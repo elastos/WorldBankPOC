@@ -1,3 +1,5 @@
 # Blockchain, Trusted Computing and Modern Internet
-![cover page](doc/images/Blockchain, Trust Computation and New Internet Apr 2019 (50).jpg)
+![cover page](images/cover.jpg)
+
+![Assumptions](images/Blockchain_Trust_Computation_and_New_Internet_Apr_2019.jpg)
 
