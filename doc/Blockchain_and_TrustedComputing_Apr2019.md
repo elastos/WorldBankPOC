@@ -81,5 +81,6 @@ With the requirement on the hardware can we still claim to be permissionless? My
 Because the PCR and other security related information will be stored to the blockchain, will it cause leaking vulnerability information?
 Well, first, the data stored in blockchain is always encrypted, not plain text. Second, only VRF selected remote attestators can ask to get keys to validate those information. Without valid VRF proof, the verifiee can reject the remote attestation request. So not everyone has the right to access those security related information. On the other hand, if any node is detected untrustable, it will be kicked out from the p2p network, and will not get the chance to do valuable tasks. Only trusted node can access to valuable secured tasks.
 
+# To be continue
 
 
