@@ -1,0 +1,1 @@
+After PoET is complete, run lambda functions as smart contract to get high performance and existing developer friendly
