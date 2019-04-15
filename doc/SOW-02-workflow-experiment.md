@@ -34,6 +34,14 @@ When new digital capsule comes from RPi, it start a new docker container based o
 
 At experiment stage, a hello world digital capsule is fine.
 
+# Minimized version of OS for HPC
+Minimized Linux, remove all unused drivers unrelated to digital capsule work. 
+
+# Docker engine enhancement, load image from IPFS
+Original docker engine will load docker image from docker hub.
+we should redirect to IPFS
+also we will need RPi to check every image to be verfiied before downloading
+
 # VRF in P2P network
 Choose a practical VRF algorithm.
 Make this VRF a whole network consensus. Easy to verify, even at low power IoT CPU
