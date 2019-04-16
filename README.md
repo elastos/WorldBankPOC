@@ -14,7 +14,7 @@ The slides with description in Markdown
 
 ## The World Bank Group
 
-[wiki]
+[wiki](https://en.wikipedia.org/wiki/World_Bank_Group)
 
 ## Goals of the Proof of Concept
 
@@ -38,6 +38,8 @@ In the future, we will extend the layer 3 on top of the trusted peer to peer net
 ## Technologies
 
 Here is the [github link](http://github.com/elastos/WorldBankPOC) of this project
+
+[Statement of work](https://github.com/elastos/WorldBankPOC/blob/master/doc/SOW-overview.md)
 
 ## Team
 
