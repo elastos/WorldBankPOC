@@ -14,7 +14,11 @@ The slides with description in Markdown
 
 ## The World Bank Group
 
-[wiki](https://en.wikipedia.org/wiki/World_Bank_Group)
+From [wiki](https://en.wikipedia.org/wiki/World_Bank_Group)
+
+The World Bank Group (WBG) (French: Groupe de la Banque mondiale)[6] is a family of five international organizations that make leveraged loans to developing countries. It is the largest and most well-known development bank in the world and is an observer at the United Nations Development Group.[7] The bank is based in Washington, D.C. and provided around $61 billion in loans and assistance to "developing" and transition countries in the 2014 fiscal year.[8] The bank's stated mission is to achieve the twin goals of ending extreme poverty and building shared prosperity.[8] Total lending as of 2015 for the last 10 years through Development Policy Financing was approximately $117 billion.[9] Its five organizations are the International Bank for Reconstruction and Development (IBRD), the International Development Association (IDA), the International Finance Corporation (IFC), the Multilateral Investment Guarantee Agency (MIGA) and the International Centre for Settlement of Investment Disputes (ICSID). The first two are sometimes collectively referred to as the World Bank.
+
+The World Bank's (the IBRD and IDA's) activities are focused on developing countries, in fields such as human development (e.g. education, health), agriculture and rural development (e.g. irrigation and rural services), environmental protection (e.g. pollution reduction, establishing and enforcing regulations), infrastructure (e.g. roads, urban regeneration, and electricity), large industrial construction projects, and governance (e.g. anti-corruption, legal institutions development). The IBRD and IDA provide loans at preferential rates to member countries, as well as grants to the poorest countries. Loans or grants for specific projects are often linked to wider policy changes in the sector or the country's economy as a whole. For example, a loan to improve coastal environmental management may be linked to development of new environmental institutions at national and local levels and the implementation of new regulations to limit pollution.[10]
 
 ## Goals of the Proof of Concept
 
