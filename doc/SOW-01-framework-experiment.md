@@ -22,6 +22,61 @@ RPI Agent Server -- trigger --> HPC's Agent Service -- trigger --> HPC's Agent i
 
 As far as I know the SMM handler is passive, it could not active create an event. Please correct me if I am wrong.
 
+## Remote Attestation Workflow
+![RaWorkflow1](images/RaStep1.jpeg)
+Step1:
+Few VRF selected remote attestator initialize a remote attestation process. It generate a request, for example, it want to get the PCR of a HPC. It send the request to the RaspberryPi via P2P network. The payload including 
+
+- VRF verification information, so that the RPi will verify this is actually a real attestator
+- Request command, eg. PCR
+- nonce, in order to prevent replay attack
+- Signature
+
+Step2:
+RPi carrier received the request via P2P network. It verify signature, if failed drop the request.
+If success send to R/A Service (remote attestation service). R/A service will do VRF verfication to make sure this node is actaully VRF selected. If this is not valid, it drop the request, also submit a dispute to Layer 1 blockchain smart contract if the signaure valid and VRF failed. (this mean the node is real but it try to pretent VRF selected validator).
+
+If success, it send the request to Agent Server
+
+Step 3:
+Agent Server has TCP/IP connection to the Agent Service running inside HPC. 
+Agent server just pass the request to the Agent service with a nonce. This nonce is different than the one from remote attestator. It is a new nonce just used between the RPi and HPC. the original nonce from the remote attestor will be stored at R/A Service layer and will be used when return to remote attestator.
+
+Step 4:
+Agent Server send the request with the new nonce to Agent Service via regular REST API (or any TCP/IP connection, doesn't have to be REST)
+
+Step 5:
+Agent service call a SMI (System Management Interupt). This is cause an hardware interrupt (is this doabe?) to force CPU enter SMM (System Managerment Mode). The handler of this SMI will be execute. This handler was originally load into SMRAM (System Management RAM by BIOS at booting).
+
+Step 6:
+The SMI handler executed by CPU and call TPM 2.0 TSS API to TPM, asking for the PCR based on the requrement from Agent Service (eventually from Remote attestator). 
+
+
+
+![RaWorkflow1](images/RaStep2.jpeg)
+
+
+Step 7:
+TPM response the PCR values stored in TPM during booting. Sign the data with endorsement key.
+
+Step 8:
+SMM handler use RSM instructor leave SMM back to OS, leave the data back to Agent Service.
+
+Step 9:
+Agent server response the REST call back to Agent Server at RPI
+
+Step 10:
+Agent server return R/A Service
+
+Step 11:
+R/A service use P2P network to prepare the response back to remote attestator. Including the original nonce and sign with RPi's public key
+
+Step 12:
+P2P network send to Remote Attestator.
+
+The Remote attestors will get to a consensus but not included in this workflow. We will discuss in another workflow.
+
+
 ## Test SMM Agent will coexist with exsiting BIOS and run without problem when HPC boot
 
 We can send this test to GMU lab to make sure it works.
