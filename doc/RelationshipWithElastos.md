@@ -1,4 +1,4 @@
-# A layer-2 solution based on existing Elastos platform
+# A Trust Enhanced layer-2 Solution Based on Existing Elastos Platform
 
 ![LayerMap](images/RelationWithEla.001.jpeg)
 
