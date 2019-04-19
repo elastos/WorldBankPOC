@@ -51,4 +51,19 @@ The user who need to send and receive digital capsule is a digital capsule clien
 
 The DApps can be traditional webapp, mobile app without requirement on trusted environment. However, if the client is required to provide some kind of "proof of trust" to run some DRM requested digital media, they would need to provide to get the decrptyion key. So we would suggest client also join the trusted network so that they can be treated evenly.
 
+# Potential Use Cases
+
+## Software guarded trusted computing is good enough for personal use
+
+The software based trusted computing, the traditional Elastos DApps are secure enough for most  use cases as long as the developers follow some basic security principles. However, for those enterprise or government who care a lot of cybersecurity, they have specific security requirement on hardware based cyber security guarantee. In this case, Trusted Computing is necessarily providing required hardware guarded cyber security.
+
+## New type of consensus bring to us the high scalability, high secure and decentralization with hardware guarantee
+
+Basides the security reason, we plan to design a new type of consensus (e.g. PoET) based on trusted hardware. Because the "hardware trust" is taken over by the hardware, the consensus can make a "trustful" assumption, this will significantly reduce the complexity and cost of traditional blockchain consensus. We aim to get a very high performance and very low enerey consumption. It is supposed to be running on regular IoT devices, such as wireless routers, TV top box, smart home speaker, even battery powered smart phone etc. This can make everyone, every device to become a miner without significant cost special hardware. This can lead to a true decentralization. 
+
+## Modern internet vs. classical internet
+
+As long as the cost of new consensus is low enough and fast enough. It would be a good replacement of existing classic internet. It can run at the same speed yet have trust built-in.
+
+
 
