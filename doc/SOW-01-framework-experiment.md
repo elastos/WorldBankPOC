@@ -6,11 +6,12 @@ Find a tools such as coreboot, try to get familiar about how the SMM work on a P
 
 Before starting down the SMM lane, [this Intel Whitepaper](https://firmware.intel.com/sites/default/files/resources/A_Tour_Beyond_BIOS_Launching_Standalone_SMM_Drivers_in_PEI_using_the_EFI_Developer_Kit_II.pdf) is a good read.
 
-The overall SMM design use can be seen here ![workflow](images/SMM_Architecture_curtecy_Intel) 
+The overall SMM design use can be seen here ![workflow](images/SMM_Architecture_curtecy_Intel.png) 
 (curtecy Intel).
 
 The primary architecture of Coreboot is:
-![Coreboot Arch](images/comparision_coreboot_uefi.svg). More information can be found [here](https://doc.coreboot.org/getting_started/architecture.html)
+![Coreboot Arch](images/comparision_coreboot_uefi.svg) 
+More information can be found [here](https://doc.coreboot.org/getting_started/architecture.html)
 
 Coreboot uses the Linux Kernel [coding style](https://doc.coreboot.org/coding_style.html) and it offers some security features by default:
 
