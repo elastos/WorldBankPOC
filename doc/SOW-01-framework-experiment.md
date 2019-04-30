@@ -1,10 +1,32 @@
 
 
-# System Management Mode Agent feasible experiment
-## Find a bois programming tools such as CoreBoot
-Find a toosl such as coreboot https://www.coreboot.org/developers.html, try to get familiar about how the SMM work on a PC.
+# System Management Mode(SMM) Agent Feasibilty
+## Find a Bios programming tools such as [CoreBoot](https://www.coreboot.org/developers.html)
+Find a tools such as coreboot, try to get familiar about how the SMM work on a PC. 
 
-Inject a hello world and make sure it works
+Before starting down the SMM lane, [this Intel Whitepaper](https://firmware.intel.com/sites/default/files/resources/A_Tour_Beyond_BIOS_Launching_Standalone_SMM_Drivers_in_PEI_using_the_EFI_Developer_Kit_II.pdf) is a good read.
+
+The overall SMM design use can be seen here ![workflow](images/SMM_Architecture_curtecy_Intel) 
+(curtecy Intel).
+
+The primary architecture of Coreboot is:
+![Coreboot Arch](images/comparision_coreboot_uefi.svg). More information can be found [here](https://doc.coreboot.org/getting_started/architecture.html)
+
+Coreboot uses the Linux Kernel [coding style](https://doc.coreboot.org/coding_style.html) and it offers some security features by default:
+
+Coreboot already has (some) support for [SMM](https://review.coreboot.org/c/coreboot/+/2693/2/src/include/cpu/x86/smm.h). The files can be obtained at the [Coreboot github](https://review.coreboot.org/cgit/coreboot.git).
+
+In addition to support for SMM, Coreboot has also inherent Security features build in including the ability to statically or dynamically verify code [see here for more details](https://doc.coreboot.org/security/vboot/measured_boot.html)
+
+To begin the prototype implementation using Coreboot, we will start with a simple QEMU implementation and then use supported motherboards to flash their BIOS.
+Instructions how to start with Coreboot and QEMU can be found [here](https://doc.coreboot.org/lessons/lesson1.html)
+
+To deploy on real hardware, we will also need tools to program the BIOS including [Flashrom](https://www.flashrom.org)
+The [supported hardware](https://www.flashrom.org/Supported_hardware) includes many supported recent mainboards and mobile devices too!
+Maybe we will need to purchase anexternal flasher/programmers to program the BIOS. Some Mainboards do support programming otherwise this list of [programmers](https://www.flashrom.org/Supported_programmers)
+will do.
+
+
 
 ## Agent communicate with TPM
 Send command to TPM and get response.
