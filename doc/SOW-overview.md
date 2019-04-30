@@ -1,5 +1,5 @@
 # Main Ideas and Design Goals
-The  SOW (Statement of Work) into several sections that try to explain the different parts of the entire architecture below.
+The  SOW (Statement of Work) is split into several sections that try to explain the different parts of the entire architecture below.
 
 ## [01 Initial Prototype - Framework Experiments](SOW-01-framework-experiment.md)
 Initial prototype to illustrate the overall architecture and detail (but not demonstrate) the protection it can offer against simple attacks and adversaries when used in simple scenarios.
