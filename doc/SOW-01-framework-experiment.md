@@ -12,7 +12,7 @@ The overall SMM design use can be seen here:
 
 The primary architecture of Coreboot is:
 ![Coreboot Arch](images/comparision_coreboot_uefi.svg) 
-More information can be found [here](https://doc.coreboot.org/getting_started/architecture.html)
+More information about the Coreboot architecture can be found [here](https://doc.coreboot.org/getting_started/architecture.html)
 
 Coreboot uses the Linux Kernel [coding style](https://doc.coreboot.org/coding_style.html) and it offers some security features by default:
 
