@@ -7,9 +7,7 @@ Find a tools such as coreboot, try to get familiar about how the SMM work on a P
 Before starting down the SMM lane, [this Intel Whitepaper](https://firmware.intel.com/sites/default/files/resources/A_Tour_Beyond_BIOS_Launching_Standalone_SMM_Drivers_in_PEI_using_the_EFI_Developer_Kit_II.pdf) is a good read.
 
 The overall SMM design use can be seen here:
-![workflow](images/SMM_Architecture_curtecy_Intel.png) 
-
-(curtecy Intel)
+![workflow](images/SMM_Architecture_curtecy_Intel.png) (curtecy Intel)
 
 The primary architecture of Coreboot is:
 ![Coreboot Arch](images/comparision_coreboot_uefi.svg) 
