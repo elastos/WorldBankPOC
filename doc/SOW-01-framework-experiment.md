@@ -8,6 +8,7 @@ Before starting down the SMM lane, [this Intel Whitepaper](https://firmware.inte
 
 The overall SMM design use can be seen here:
 ![workflow](images/SMM_Architecture_curtecy_Intel.png) 
+
 (curtecy Intel)
 
 The primary architecture of Coreboot is:
