@@ -51,7 +51,7 @@ We plan to create a research team with engineers from The World Bank Group, Elas
 
 The World Bank Group commit 4 + engineers to join the team.
 
-Angolos Starouve, expert of cyber security and  professior of GMU, would let his team to join the team as well.
+Angelos Stavrou [Web](http://cs.gmu.edu/~astavrou), expert of cyber security and  professor of GMU, would let his team to join the team as well.
 
 We will need more contributors from the community to help build the PoC.
 
@@ -69,7 +69,8 @@ Demo day is set to 6 months.
 
 The whole project is open source. All source code and documents are online.
 
-We are going to invite GMU Cybersecurity center to do a security test when the demo is done. The report will  be part of the deliverables (cost unknown so far)
+We are going to invite GMU CARE Cybersecurity center to do a security test when the demo is done. The report will  be part of the deliverables (cost unknown so far).
+Dr. stavrou will also invite NIST researchers from the CSD and Crypto groups to test and validate the overall architecture using the NIST conformance laboratory.
 
 Demo video will be online.
 
