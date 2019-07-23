@@ -39,6 +39,9 @@ For example, we reduce X half every 6 months. Then the employee will be incentiv
 
 When token listed in exchange, X will become 0 immediately.
 
+## Token exchange rate and evaluation
+Before the token listed in exchange, there won't be real market price (exchange to USD for example). We can consider the token incentive some kind of "convertable notes". When the incentive token was issue, it is just an "I Owe You". The rate will be determined by the evaluation price of next round of investment. Let's use the same example we used in last paragraph. the developer get his 70% salary in cash ($70k / 12 = $5833) and 30% * 1.5 in token (worth $30k / 12 * 1.5 = $3750) in Jan 2020. the $3750 is an "I Owe You" and won't be converted into token at that moment because there is no price in Jan 2020. One month later,  in Feb 2020, an investor has evaluation at $1 per token and make the investment $1M for 1M token. The "I Owe You" will be converted into 3750 token and issue to this developer immediately. Before the token listed in public exchange, internal trade is OK.
+
 # Partime team members compensation based on tasks
 
 We hope to have a lot of code contributors from open source community. 
