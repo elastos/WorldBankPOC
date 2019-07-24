@@ -57,3 +57,32 @@ Credit score system will be in our next or next 2 milestones. In the Alamos mile
 * (Advanced) Remote attestation node can receive TPM information remotely from a RPi connected PC with SMM interruption. 
 
 if we could complete 100% of the demo tasks by the end of Dec, we are awesome!
+
+# What you need to know, Geeks?
+
+## Basic information:
+* You will get rewarded by crypto and work remotely from anywhere in the universe
+* You can pick a module to work on, but you will need to show your capability first. We will need to know you actually can make it as expected
+* You can choose the programming language and platform you want, but I have some recommendation here
+- If you have been familiar with Elastos (eg. Elastos Carrier), you are recommended to use it since we will need to be compability eventually
+- If you do not, I would recommended you to start using RUST language and use the LibP2P on Rust to start the P2P network. We can deal with the Elastos compability in the future given limited time and resource in the demo milestone
+- If you work on the hardware related low-level services. RUST language is recommended. We do not prefer using C/C++ for the safety and compability reason. 
+- Communication between modules will be using REST in the demo stage. In the future, we may upgrade to something more secure.
+- You will be using Zoom, Github and Telegram during work. English is the common language in the team
+- The code is open sourced. 
+
+## What skillset you need to help
+
+We have several modules, each modules request different kind of skillsets. If you have read the project introduction and you understand what I explained there, you are already the top 10% of developers in the world. If you think you are able to contribute to the project, we really appreciate your help.
+
+Besides the common requestment and information above, I hope you are good at the following items
+* Blockchain basic
+* TPM, TCG2.0
+* P2P Network
+* Rust language
+* SMM (advanced) and BIOS programming
+* Linux core
+* Not to mention you are good at other general skills like web, TCP/IP
+* Know the basic rules to work in a open source team and work remotely, self driven for example.
+
+## Contacxt me at kevin.zhang.canada@gmail.com if you want to join or ask any question. 
