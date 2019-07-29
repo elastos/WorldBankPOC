@@ -49,7 +49,7 @@ Here is the [github link](http://github.com/elastos/WorldBankPOC) of this projec
 
 We plan to create a research team with engineers from The World Bank Group, Elastos, GMU (George Mason University) and other contributors from open source communities. 
 
-The World Bank Group commit 4 + engineers to join the team.
+The World Bank Group commit some engineers to join the team.
 
 Angelos Stavrou [Web](http://cs.gmu.edu/~astavrou), expert of cyber security and  professor of GMU, would let his team to join the team as well.
 
