@@ -1,0 +1,1 @@
+exports.creditScore = require('./creditScore');

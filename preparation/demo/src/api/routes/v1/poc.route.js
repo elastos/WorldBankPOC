@@ -1,10 +1,10 @@
 const express = require('express');
 
-const Credit = require('../../../poc/creditScore');
+const {creditScore} = require('../../../poc');
 
 
 const router = express.Router();
-
+console.log("credit", creditScore);
 router
   .route('/')
   .get((req, res) => {
@@ -31,7 +31,8 @@ router
   .get(async (req, res, next) => {
     try {
       const { id } = req.params;
-      const credit = await Credit.get(id);
+      console.log("line34, id", id);
+      const credit = await creditScore.get(id);
       console.log('credit is,', credit);
       if (credit) {
         return res.json(credit);
@@ -49,7 +50,7 @@ router
     try {
       const { id, score } = req.params;
       console.log('set id, score, ', id, score);
-      const r = await Credit.set(id, score);
+      const r = await creditScore.set(id, score);
       console.log('result is,', r);
       if (r) {
         return res.json(r);
