@@ -25,46 +25,40 @@ router
     res.send('Post here');
   });
 
-  router
+router
   .route('/checkCredit/:id')
-  .get(async (req, res, next)=>{
-    try{
-      const id = req.params.id;
+
+  .get(async (req, res, next) => {
+    try {
+      const { id } = req.params;
       const credit = await Credit.get(id);
-      console.log("credit is,", credit);
-      if(credit)
+      console.log('credit is,', credit);
+      if (credit) {
         return res.json(credit);
-      next();
-    }catch (error) {
-      console.log("error line13", error);
-      res.json(error.message);
-    
+      }
+      return next();
+    } catch (error) {
+      console.log('error line13', error);
+      return res.json(error.message);
     }
   });
 
-  router
+router
   .route('/set/:id/:score')
-  .get(async (req, res, next)=>{
-    try{
-      const id = req.params.id;
-      const score = req.params.score;
-      console.log("set id, score, ", id, score);
+  .get(async (req, res, next) => {
+    try {
+      const { id, score } = req.params;
+      console.log('set id, score, ', id, score);
       const r = await Credit.set(id, score);
-      console.log("result is,", r);
-      if(r){
+      console.log('result is,', r);
+      if (r) {
         return res.json(r);
       }
-      next();
-    }catch (error) {
-      console.log("error line13", error);
-      res.json(error.message);
-    
+      return next();
+    } catch (error) {
+      console.log('error line13', error);
+      return res.json(error.message);
     }
   });
 
-
-
 module.exports = router;
-
-
-

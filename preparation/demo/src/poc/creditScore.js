@@ -1,12 +1,6 @@
 const mongoose = require('mongoose');
 const httpStatus = require('http-status');
-const { omitBy, isNil } = require('lodash');
-const bcrypt = require('bcryptjs');
-const moment = require('moment-timezone');
-const jwt = require('jwt-simple');
-const uuidv4 = require('uuid/v4');
 const APIError = require('../api/utils/APIError');
-const { env, jwtSecret, jwtExpirationInterval } = require('../config/vars');
 
 
 /**
@@ -15,7 +9,8 @@ const { env, jwtSecret, jwtExpirationInterval } = require('../config/vars');
  */
 const creditSchema = new mongoose.Schema({
   peerId: {
-    type: String,  //For PoC, we use String instead of hash256 for easier human reading. Of course, it is not efficient. We will change later in product
+    type: String, //For PoC, we use String instead of hash256 for easier human reading.
+    //Of course, it is not efficient. We will change later in product
     required: true,
     unique: true,
     trim: true,
@@ -44,9 +39,9 @@ const creditSchema = new mongoose.Schema({
  * - validations
  * - virtuals
  */
-creditSchema.pre('save', async function save(next) {
-  //we will put pre conditional later
-});
+// creditSchema.pre('save', async save(next) => {
+//   //we will put pre conditional later
+// });
 
 /**
  * Methods
@@ -79,9 +74,7 @@ creditSchema.statics = {
   async get(peerId) {
     
     try {
-      let credit;
-
-      credit = await this.findOne({peerId}).exec();
+      const credit = await this.findOne({peerId}).exec();
 
       if (credit) {
         return credit;
