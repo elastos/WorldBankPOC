@@ -129,6 +129,6 @@ or
 sh ./deploy.sh
 ```
 
-## Tutorials
- - [Create API Documentation Using Squarespace](https://selfaware.blog/home/2018/6/23/api-documentation)
-
+# Run
+In browser open http://localhost:3000/v1/poc/
+You should see "You are doing great"
