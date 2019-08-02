@@ -1,12 +1,4 @@
-# Some design considerations for PoC stage
-As we have limited resources and limited time. We need to make some compromise to reach our goal on time. 
-This is just a PoC. The goal is to demo to future investor how it should work in real life. This is not a performance test prototype. So as long as we can dev quick and dirty, we can compromise performance at this point. As long as the concept get approved by our potential clients. We can redo most modules using RUST or other high performance technologies.
 
-So at this point, I am OK to use JS, TS, Python etc to build each modules individually. Use REST to connect each modules. Each modules can be running in different docker containers if needed. I know the performance won't be good, but I think it is OK for demoing the concept.
-
-Additional benefits is that each small dev group can use whatever language or platform they are familar to build their module without concern too much about integration, since the REST will be supportted by almost everything. 
-
-In the future, I would prefer to rewrite most of the modules in RUST and internal integration rather than REST to reduce the overhead.
 
 # Respberry Pi Single Node
 Developer can choose either run each process in one docker container or separate each process in different docker container. 
@@ -56,14 +48,35 @@ Upon Request from other modules, ask the TPM to get PoT information (signed by T
 The smart contract will be running in Elastos Eth side chain (test net in PoC stage)
 
 ## Data structure
+We use Ethereum state machine as an immutable database to store every node's credit score. The score can only be modified by smart contract based on VRF selected nodes' input. The business logic is the most important part of the whole project. 
+
+The data structure is simply a key-value pair
 
 MAP ( PeerID -> CreditScore)
 
 When look up PeerID not existing in the data base. the result CreditScore is 0. It could be a non-trusted regular nodes or new join nodes without any credit yet.
 
 ## VRF verification
+During the PoC stage, we can use
+https://github.com/witnet/vrf-solidity
+to verify VRF to make sure the node who provide RA result or task result is actually VRF selected node. If not, a penalty will be applied (such as reduce credit score). If yes, then continue the logic to either issue reward or penalty.
 
-## Approval concensus
+## New Joined Node Approval concensus
+1. A node want to earn the reward as being a RA node, it can listen to pub/sub channel of "RemoteAttestators"
+2. In this channel, as long as there is a new joined node, the new node's req tx (inc. peer ID) will be broadcast to this channel. All subscribers will receive its "new join req". The New Join Req is a structure including new node's peer ID and time stamp and placeholder (this placeholder will be replaced by the next Elastos mainchain block hash).
+
+struct{
+  PeerId: hash64,
+  NextElastosBlockHash: hash256,
+  RA_Node_PeerId: hash64,
+  Timestamp: DateTime,
+  etc...
+}
+
+3. When next block is mined, The next elastos main chain block hash takes place the placeholder in "New Join Req" tx. The hash of this tx is a "non predictable hash" at the time of new node send this tx.
+4. RA node will replace the placeholder RA_Node_PeerId with it's own Peer ID. For every RA node, this value would be different
+5. 
+
 
 ## Update Credit Score
 
