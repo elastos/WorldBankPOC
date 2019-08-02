@@ -1,6 +1,6 @@
 const httpStatus = require('http-status');
 const { omit } = require('lodash');
-const User = require('../models/user.model');
+const User = require('../models/poc.model');
 
 /**
  * Load user and append to req.

@@ -8,7 +8,6 @@ const helmet = require('helmet');
 const passport = require('passport');
 const routes = require('../api/routes/v1');
 const { logs } = require('./vars');
-const strategies = require('./passport');
 const error = require('../api/middlewares/error');
 
 /**
@@ -37,11 +36,6 @@ app.use(helmet());
 // enable CORS - Cross Origin Resource Sharing
 app.use(cors());
 
-// enable authentication
-app.use(passport.initialize());
-passport.use('jwt', strategies.jwt);
-passport.use('facebook', strategies.facebook);
-passport.use('google', strategies.google);
 
 // mount api v1 routes
 app.use('/v1', routes);
