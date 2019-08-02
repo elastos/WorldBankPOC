@@ -18,6 +18,7 @@ Since the goal is simple and straightforward, I will make everything as easy as 
 
 - I will write in node.js
 - I won't separate each module in different web services, instead, put them in one services but in different file. Other develoeprs can read the code, then redo the logic in their own langauge / platform in standlone module
+- I wont' use Ethereum. I will just use a simple mongodb to simulate Ethereum state machine. Just assume it is immutable.
 - Most of the functions are placeholder with meaningful name and comments (I will try to explain it as clear as possible, but.... let's see how I can get)
 - Of course, the code won't have any real function. Just to explain the relationship between modules and basic business logic
 
