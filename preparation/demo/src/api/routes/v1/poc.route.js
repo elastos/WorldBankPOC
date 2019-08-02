@@ -1,28 +1,25 @@
 const express = require('express');
-const validate = require('express-validation');
 
 const router = express.Router();
 
-
-
 router
   .route('/')
-  .get(function (req, res) {
-    res.send('You are doing great')
+  .get((req, res) => {
+    res.send('You are doing great');
   });
 
-  router
+router
   .route('/status')
-  .get(function (req, res) {
-    res.send('You will see updates here')
+  .get((req, res) => {
+    res.send('You will see updates here');
   });
-  router
+router
   .route('/newNodeJoin')
-  .get(function(req,res){
-    res.send("please post")
+  .get((req, res) => {
+    res.send('please post');
   })
-  .post(function (req, res) {
-    res.send('Post here')
+  .post((req, res) => {
+    res.send('Post here');
   });
 
 
