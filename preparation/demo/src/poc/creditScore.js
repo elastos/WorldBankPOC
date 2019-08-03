@@ -17,14 +17,6 @@ const creditSchema = new mongoose.Schema({
     lowercase: true,
   },
 
-  name: {
-    type: String,
-    maxlength: 128,
-    required: false, //this is optional
-    index: true,
-    trim: true,
-  },
-
   creditScore: {
     type: Number,
     required: true,
@@ -72,37 +64,22 @@ creditSchema.statics = {
    * @returns {Promise<CreditScore, APIError>}
    */
   async get(peerId) {
-    
-    try {
-      const credit = await this.findOne({peerId}).exec();
-
-      if (credit) {
-        return credit;
-      }
-      
-      throw new APIError({
-        message: 'Id does not exist',
-        status: httpStatus.NOT_FOUND,
-      });
-    } catch (error) {
-      throw error;
-    }
+      return credit = await this.findOne({peerId}).exec();
   },
 
   async set(peerId, score){
-    console.log("set score for ,", peerId, score);
     const n = Number.parseInt(score);
   
     credit = await this.findOne({peerId}).exec();
-    console.log("l107, ", credit);
     if(credit){
+      console.log('l82', credit);
       credit.creditScore = n;
-      console.log("line110", credit);
       return credit.save();
     }else{
-      return this.create({
+      console.log('l86', credit);
+      return await this.create({
         peerId, 
-        creditScore: score
+        creditScore: n
       })
     }
 

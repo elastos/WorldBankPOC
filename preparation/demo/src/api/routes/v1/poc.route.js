@@ -1,6 +1,6 @@
 const express = require('express');
 const sha256 = require('js-sha256');
-const {creditScore, potSim, remoteAttestationSim} = require('../../../poc');
+const {creditScore, potSim, remoteAttestationSim, potSchema} = require('../../../poc');
 
 
 const router = express.Router();
@@ -18,11 +18,23 @@ router
   });
 router
   .route('/newNodeJoin')
-  .get((req, res) => {
-    res.send('please post');
-  })
-  .post((req, res) => {
-    res.send('Post here');
+  .get(async (req, res) => {
+    const {peerId, hacked} = req.query;
+    console.log('l32,', peerId, hacked);
+    const credit = await creditScore.get(peerId);
+    if(credit){
+      return res.send("Please change peerID, since this peerId has existed");
+    }
+    const newCredit = await creditScore.set(peerId, '0');
+
+    console.log('l28', credit);
+    const potObj = potSim.createPlaceHolderPot({peerId, hacked});
+    console.log('l30', potObj);
+    const potHash = sha256(JSON.stringify(potObj));
+    console.log('l32', potHash);
+    potObj.potHash = potHash;
+    const newPotObj = await potSchema.newPot(potObj);
+    return res.json(newPotObj);
   });
 
 router
@@ -31,15 +43,12 @@ router
   .get(async (req, res, next) => {
     try {
       const { id } = req.params;
-      console.log("line34, id", id);
       const credit = await creditScore.get(id);
-      console.log('credit is,', credit);
       if (credit) {
         return res.json(credit);
       }
       return next();
     } catch (error) {
-      console.log('error line13', error);
       return res.json(error.message);
     }
   });
