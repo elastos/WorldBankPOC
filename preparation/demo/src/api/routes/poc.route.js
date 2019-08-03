@@ -54,7 +54,7 @@ router
   });
 
 router
-  .route('/set/:id/:score')
+  .route('/setPeerScore/:id/:score')
   .get(async (req, res, next) => {
     try {
       const { id, score } = req.params;
