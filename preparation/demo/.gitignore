@@ -10,7 +10,7 @@ logs
 npm-debug.log*
 
 # Documentation
-docs
+#docs
 
 # Runtime data
 pids
