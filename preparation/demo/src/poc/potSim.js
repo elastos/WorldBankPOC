@@ -25,6 +25,14 @@ exports.sampleBadPot = () => {
   return new ProofOfTrust({peerId, hacked});
 };
 
+exports.getRealProofOfTrust = ()=>{
+  //
+  console.log('please put real code to receive PCR and other PoT information from TPM here');
+  const peerId = '0';
+  const hacked = false;
+  return new ProofOfTrust({peerId, hacked});
+};
+
 exports.createPlaceHolderPot = ({peerId, hacked}) => {
   console.log("line17, peerid and hacked,", peerId, hacked);
   return new ProofOfTrust({peerId, hacked});

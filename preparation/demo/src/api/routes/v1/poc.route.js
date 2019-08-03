@@ -1,6 +1,6 @@
 const express = require('express');
-
-const {creditScore, potSim} = require('../../../poc');
+const sha256 = require('js-sha256');
+const {creditScore, potSim, remoteAttestationSim} = require('../../../poc');
 
 
 const router = express.Router();
@@ -91,5 +91,17 @@ router
     const testPot = badPot? potSim.sampleBadPot() : potSim.sampleGoodPot();
     const bForcePass = wannaPass? true: false;
     return res.send( potSim.verifyPot(testPot, bForcePass));
+  });
+
+router
+  .route('/tryRa')
+  .get((req, res, next) => {
+    const {peerId} = req.query;
+    const newJoinTxHash = '1';
+    const privKey = 'placeholderPrivateKey';
+    const creditScore = 1000;//placeholder
+    remoteAttestationSim.notifyNewJoinNodeNeedRa({newJoinTxHash, peerId, privKey, creditScore});
+    const ret = sha256.hex(JSON.stringify({newJoinTxHash, peerId, privKey, creditScore}) );
+    res.json(ret);
   });
 module.exports = router;
