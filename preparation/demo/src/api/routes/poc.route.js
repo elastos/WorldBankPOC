@@ -1,6 +1,6 @@
 const express = require('express');
 const sha256 = require('js-sha256');
-const {creditScore, potSim, remoteAttestationSim, potSchema} = require('../../poc');
+const {creditScore, potSim, remoteAttestationSim, potSchema, betterResponse} = require('../../poc');
 
 
 const router = express.Router();
@@ -93,12 +93,15 @@ router
 router
   .route('/tryRa')
   .get((req, res, next) => {
-    const {peerId} = req.query;
+    const {peerId, potHash} = req.query;
+
+    betterResponse.responseBetterJson(res, {peerId, potHash}, {});
+   //return res.send();
     const newJoinTxHash = '1';
-    const privKey = 'placeholderPrivateKey';
-    const creditScore = 1000;//placeholder
-    remoteAttestationSim.notifyNewJoinNodeNeedRa({newJoinTxHash, peerId, privKey, creditScore});
-    const ret = sha256.hex(JSON.stringify({newJoinTxHash, peerId, privKey, creditScore}) );
-    res.json(ret);
+    // const privKey = 'placeholderPrivateKey';
+    // const creditScore = 1000;//placeholder
+    // remoteAttestationSim.notifyNewJoinNodeNeedRa({newJoinTxHash, peerId, privKey, creditScore});
+    // const ret = sha256.hex(JSON.stringify({newJoinTxHash, peerId, privKey, creditScore}) );
+    
   });
 module.exports = router;

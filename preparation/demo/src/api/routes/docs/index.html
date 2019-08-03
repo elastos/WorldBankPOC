@@ -80,7 +80,16 @@
       <p>In this simulation, I used manually trigger by clicking the link below. In the real world, the node who want to paticipate this lottery need to listen to P2P network notification. </p>
       <p>In this simulation, I used Math.Random to simulate VRF. In the real world, we will use VRF Rust Crate to generate the VRF, and use Solidify VRF to verify in smart contract</p>
       <p>In this simulation, I use mongoDB to simulate sending tx to Ethereum and the execution of smart contract is also a node.js simulator triggered by another HTTP GET. </p>
-    
+      <p><a href='/poc/tryra?peerId=0&&newJoinTxHash='>click here to try remote attestation</a></p>
+      <p>
+
+
+        <form action="/poc/tryRa" method="get">
+          PeerId: <input type="text" name="peerId"><br>
+          PoTHash: <input type="text" name="potHash"><br>
+          <input type="submit" value="Submit">
+        </form>
+      </p>
     </li>
 </ul>
 
