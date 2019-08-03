@@ -71,36 +71,24 @@ router
     }
   });
 
-router
-  .route('/potCreateNew')
-  .get((req, res, next) => {
-    const {peerId, hacked} = req.query;
-    const potObj = potSim.createPlaceHolderPot({peerId, hacked});
-    if(potObj){
-      return res.json(potObj);
-    }else{
-      return next();
-    }
-  });
-
-  router
-  .route('/potVerify')
-  .post((req, res, next) => {
-    const {wannaPass} = req.query;
-    const {pot} = req.body;
+  // router
+  // .route('/potVerify')
+  // .post((req, res, next) => {
+  //   const {wannaPass} = req.query;
+  //   const {pot} = req.body;
     
-    if(potObj){
-      return res.json(potObj);
-    }else{
-      return next();
-    }
-  })
-  .get((req, res) => {
-    const {badPot, wannaPass} = req.query;
-    const testPot = badPot? potSim.sampleBadPot() : potSim.sampleGoodPot();
-    const bForcePass = wannaPass? true: false;
-    return res.send( potSim.verifyPot(testPot, bForcePass));
-  });
+  //   if(potObj){
+  //     return res.json(potObj);
+  //   }else{
+  //     return next();
+  //   }
+  // })
+  // .get((req, res) => {
+  //   const {badPot, wannaPass} = req.query;
+  //   const testPot = badPot? potSim.sampleBadPot() : potSim.sampleGoodPot();
+  //   const bForcePass = wannaPass? true: false;
+  //   return res.send( potSim.verifyPot(testPot, bForcePass));
+  // });
 
 router
   .route('/tryRa')
