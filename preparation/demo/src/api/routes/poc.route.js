@@ -1,6 +1,6 @@
 const express = require('express');
 const sha256 = require('js-sha256');
-const {creditScore, potSim, remoteAttestationSim, potSchema} = require('../../../poc');
+const {creditScore, potSim, remoteAttestationSim, potSchema} = require('../../poc');
 
 
 const router = express.Router();

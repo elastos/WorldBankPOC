@@ -5,14 +5,14 @@ const pocRoutes = require('./poc.route');
 const router = express.Router();
 
 /**
- * GET v1/status
+ * GET status
  */
 router.get('/status', (req, res) => res.send('OK'));
-
+console.log('dir', __dirname );
 /**
- * GET v1/docs
+ * GET docs
  */
-router.use('/docs', express.static('docs'));
+router.use('/', express.static(__dirname + '/docs'));
 
 router.use('/poc', pocRoutes);
 
