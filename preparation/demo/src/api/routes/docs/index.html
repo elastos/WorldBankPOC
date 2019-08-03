@@ -54,14 +54,19 @@
       <a href='/poc/newNodeJoin?peerId=999'>/poc/newNodeJoin?peerId=999</a> tells us a node peerid is 999, it is not hacked (can be trusted), it is joining our network </p><br>
       
       <p>
-        Note: If you want a note to be not hacked, just do not write "hacked" in the url at all. "hacked=false" is the same as "hacked=true". Code doesn't check what's in the params "hacked", as long as this is something, it is hacked. 
-
-      </p>
-      <p>
         If a node with same PeerId exists in the mongodb, you will see a response like this <code>Please change peerID, since this peerId has existed</code> Just change another peerId and retry.
       </p>
       <p>If everything is OK, you can see resposne like this <br> <code>{"_id":"5d45c8a0e065e22de42811f0","peerId":"6","pcrReading":"placeholder","hacked":true,"potHash":"c64f639a6c23150f648e6bc2684e412c6dffbe7f84936a8ebdda15237540dbd0","createdAt":"2019-08-03T17:47:12.977Z","updatedAt":"2019-08-03T17:47:12.977Z","__v":0}</code></p>
+      <p>
 
+
+          <form action="/poc/newNodeJoin" method="get">
+            PeerId: <input type="text" name="peerId"><br>
+            <input type="radio" name="hacked" value="true" checked> Hacked<br>
+            <input type="radio" name="hacked" value="false"> Trustable<br>
+            <input type="submit" value="Submit">
+          </form>
+        </p>
     </li>
 
     <li>

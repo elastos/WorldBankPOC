@@ -20,21 +20,18 @@ router
   .route('/newNodeJoin')
   .get(async (req, res) => {
     const {peerId, hacked} = req.query;
-    console.log('l32,', peerId, hacked);
     const credit = await creditScore.get(peerId);
     if(credit){
-      return res.send("Please change peerID, since this peerId has existed");
+      return betterResponse.responseBetterJson(res, {peerId, hacked}, {error:'Please change peerID, since this peerId has existed'});
     }
     const newCredit = await creditScore.set(peerId, '0');
 
-    console.log('l28', credit);
-    const potObj = potSim.createPlaceHolderPot({peerId, hacked});
-    console.log('l30', potObj);
+    const potObj = potSim.createPlaceHolderPot({peerId, hacked: hacked == 'true'});
+
     const potHash = sha256(JSON.stringify(potObj));
-    console.log('l32', potHash);
     potObj.potHash = potHash;
     const newPotObj = await potSchema.newPot(potObj);
-    return res.json(newPotObj);
+    betterResponse.responseBetterJson(res, {peerId, hacked}, {newPotObj});
   });
 
 router
