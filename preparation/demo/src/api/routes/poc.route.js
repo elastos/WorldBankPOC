@@ -51,17 +51,12 @@ router
   });
 
 router
-  .route('/setPeerScore/:id/:score')
-  .get(async (req, res, next) => {
+  .route('/setPeerScore')
+  .get(async (req, res) => {
     try {
-      const { id, score } = req.params;
-      console.log('set id, score, ', id, score);
-      const r = await creditScore.set(id, score);
-      console.log('result is,', r);
-      if (r) {
-        return res.json(r);
-      }
-      return next();
+      const { peerId, score } = req.query;
+      const r = await creditScore.set(peerId, score);
+      return betterResponse.responseBetterJson(res, req.query, {r});
     } catch (error) {
       console.log('error line13', error);
       return res.json(error.message);

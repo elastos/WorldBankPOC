@@ -71,11 +71,15 @@
 
     <li>
       <h2>Manually Change A Node's Score</h2>
-      <p>/setPeerScore/:id/:score allows you to manually change a peer (node) credit score.</p>
+      <p>/setPeerScore allows you to manually change a peer (node) credit score.</p>
       <p>In the real world, you certainly cannot do so, this is a big cheat. However, in the demo world, you are God. Do whatever you want.</p>
-      <a href='/poc/setPeerScore/1/900'>/poc/setPeerScore/1/900</a> Set PeerId 1 to CreditScore 900.
-      <p>If successful, response is something like <br>
-      <code>{"_id":"5d45086626beac27a5fe87e8","peerId":"1","creditScore":900,"createdAt":"2019-08-03T04:07:02.457Z","updatedAt":"2019-08-03T17:52:43.723Z","__v":0}</code></p>
+      <p>
+          <form action="/poc/setPeerScore" method="get">
+            PeerId: <input type="text" name="peerId"><br>
+            New Credit Score: <input type="text" name="score"><br>
+            <input type="submit" value="Submit">
+          </form>
+      </p>
     </li>
 
     <li>
