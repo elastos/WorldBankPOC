@@ -2,6 +2,9 @@ const vrfSim = require('./vrfSim');
 const potSim = require( './potSim');
 const ethSim = require( './ethSim');
 const constValue = require( './constValue');
+const creditScoreSim = require('./creditScore');
+const APIError = require('../api/utils/APIError');
+
 
 const weightedThreshold = (creditScore) => {
   const weight = creditScore / constValue.totalCreditToken;
@@ -13,29 +16,53 @@ const signature = (peerId, privKey, input) =>{
 }
 
 
-const getPotFromHash = (raTaskHash) =>{
-  console.log("placeholder, just return a good pot without actually retrieve")
-  return potSim.sampleGoodPot();
-}
-
-
 exports.verifyOthersRa = () => {
+
+};
+
+const luckyDraw = async ({peerId, potHash, creditScore, privKey}) => {
+
+  const {pi, outputHash} = vrfSim.createVrf({peerId, privKey, inputHash: potHash});
+  const threshold = weightedThreshold(creditScore);
+  const vrfHash = outputHash;
+  if(vrfHash < threshold){
+    return {result: true, vrfHash, pi, threshold};
+    
+  }else{
+    return {result: false, vrfHash, pi, threshold};
+  }
+};
+
+exports.tryRa = async ({peerId, potHash}) => {
+  const credit = await creditScoreSim.get(peerId);
+  if (! credit) {
+    throw new APIError({
+      message: 'peer not exists',
+      status: httpStatus.NOT_FOUND,
+    });
+  }
+  const {creditScore, privKey} = credit;
+
+  const luckyDrawResult = await luckyDraw({peerId, potHash, creditScore, privKey});
+  if(! luckyDrawResult.result){
+    return {result:false, message:"Not lucky enough", luckyDrawResult};
+  }
+  
+  console.log("I am lucky, I have the chance to run RA, ", luckyDrawResult.vrfHash, luckyDrawResult.threshold);
+  console.log('placeholder, doing RemoteAttestation ....');
+  const pot = await potSim.getPotFromHash(potHash);
+  if (! pot){
+    throw new APIError({message: 'potHash not exists', status: httpStatus.NOT_FOUND});
+  }
+  
+  const raResult = potSim.verifyPot(pot, false);
+  return {result:true, raResult};
+  //ethSim.signRaTask('sigPlaceHolder', newJoinTxHash, pi, raResult);
+
 
 };
 
 exports.notifyNewJoinNodeNeedRa = ({newJoinTxHash, peerId, privKey, creditScore}) => {
   const inputHash = newJoinTxHash;
-  const {pi, outputHash} = vrfSim.createVrf({peerId, privKey, inputHash});
-  const threshold = weightedThreshold(creditScore);
-  if(outputHash < threshold){
-    console.log("I am lucky, I have the chance to run RA, ", outputHash, threshold);
-    console.log('placeholder, doing RemoteAttestation ....');
-    const pot = getPotFromHash(newJoinTxHash);
-    const raResult = potSim.verifyPot(pot, false);
-    ethSim.signRaTask('sigPlaceHolder', newJoinTxHash, pi, raResult);
-
-
-  }else{
-    console.log('not lucky enough to run RA');
-  }
+  
 };

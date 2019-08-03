@@ -84,16 +84,9 @@ router
 
 router
   .route('/tryRa')
-  .get((req, res, next) => {
+  .get(async (req, res, next) => {
     const {peerId, potHash} = req.query;
-
-    betterResponse.responseBetterJson(res, {peerId, potHash}, {});
-   //return res.send();
-    const newJoinTxHash = '1';
-    // const privKey = 'placeholderPrivateKey';
-    // const creditScore = 1000;//placeholder
-    // remoteAttestationSim.notifyNewJoinNodeNeedRa({newJoinTxHash, peerId, privKey, creditScore});
-    // const ret = sha256.hex(JSON.stringify({newJoinTxHash, peerId, privKey, creditScore}) );
-    
+    const result = await remoteAttestationSim.tryRa({peerId, potHash});
+    betterResponse.responseBetterJson(res, {peerId, potHash}, result);
   });
 module.exports = router;

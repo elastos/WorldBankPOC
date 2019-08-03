@@ -1,4 +1,4 @@
-
+const potSchema = require('./potSchema');
 
 class ProofOfTrust {
   constructor({
@@ -46,4 +46,6 @@ exports.verifyPot = (pot, bForcePass) =>{
   return true;
 };
 
-
+exports.getPotFromHash = async (potHash) => {
+  return await potSchema.get(potHash);
+};
