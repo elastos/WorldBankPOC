@@ -2,10 +2,10 @@ const vrfSim = require('./vrfSim');
 const potSim = require( './potSim');
 const ethSim = require( './ethSim');
 const constValue = require( './constValue');
-const addNewRaLogSchema = require('./raLogSchema');
+const raLogSchema = require('./raLogSchema');
 const creditScoreSim = require('./creditScore');
 const APIError = require('../api/utils/APIError');
-
+const STATIC_THRESHOLD_FOR_REMOTE_ATTESTATION = 0;
 
 const weightedThreshold = (creditScore) => {
   const weight = creditScore / constValue.totalCreditToken;
@@ -32,6 +32,41 @@ const luckyDraw = async ({peerId, potHash, creditScore, privKey}) => {
   }else{
     return {result: false, vrfHash, pi, threshold};
   }
+};
+
+const runRaConsensus = async ({potHash}) => {
+  const activePots = await raLogSchema.getAllActiveRaLogFromPotHash({potHash});
+  //console.log('activePots', activePots);
+  const verifyVrf = (pot) => {
+    //placeholder
+    return true;
+  }
+  const verifyPeerCreditAtOriginalHeight = (pot) =>{
+    return true;//placeholder
+  }
+  const reducer = (accumulator, current) => {
+    if( ! verifyVrf(current)) return accumulator;
+    if( ! verifyPeerCreditAtOriginalHeight) return accumulator;
+    const positiveOrNegative = current.raResult? 1 : -1;
+    accumulator.weightedScore += positiveOrNegative * current.creditScoreAtBlockHeightTime;
+    accumulator.raPeerCount += 1;
+    return accumulator;
+  }
+
+  const accum = activePots.reduce(reducer, {weightedScore:0, raPeerCount:0});
+  console.log('accum,', accum);
+  if( accum.raPeerCount < 5){
+    return {result: false, message:'less than 5 remote attestators, please wait for more attestators to verify', activePots}
+  }else{
+    const potIds = activePots.map(p=>p._id);
+    raLogSchema.finalizeRaLogs(potIds);
+    if(accum.weightedScore < STATIC_THRESHOLD_FOR_REMOTE_ATTESTATION){
+      return {result: false, message:'we have enough remote attestators, but the result is false', accum, activePots};
+    }else{
+      return {result: true, message:'we have enough remote attestators support you. Welcome to our trusted network', accum, activePots};
+    }
+  }
+   
 };
 
 exports.tryRa = async ({peerId, potHash}) => {
@@ -62,11 +97,14 @@ exports.tryRa = async ({peerId, potHash}) => {
   console.log("peerId, potHash, pi, vrfHash, blockHeight, raResult, threshold", {
     peerId, potHash, pi, vrfHash, blockHeight, raResult, threshold
   });
-  const saveNewRaLog = await addNewRaLogSchema.addNewRaLog({
-    peerId, potHash, pi, vrfHash, blockHeight, raResult, threshold
+  const saveNewRaLog = await raLogSchema.addNewRaLog({
+    peerId, potHash, pi, vrfHash, blockHeight, creditScoreAtBlockHeightTime: creditScore, raResult, threshold
   });
 
-  return {result:true, raResult};
+  const currentRaConsensusResult = await runRaConsensus({potHash});
+
+
+  return {result:true, raResult, currentRaConsensusResult};
   //ethSim.signRaTask('sigPlaceHolder', newJoinTxHash, pi, raResult);
 
 

@@ -11,7 +11,7 @@ const raLogSchema = new mongoose.Schema({
   peerId: {
     type: String,
     required: true,
-    unique: true,
+    unique: false,
     trim: true,
     lowercase: true,
   },
@@ -46,6 +46,10 @@ const raLogSchema = new mongoose.Schema({
     index: false,
     trim: true,
   },
+  creditScoreAtBlockHeightTime:{
+    type:Number,
+    required: true,
+  },
   finalized:{
     type:Boolean,
     requied: true,
@@ -60,18 +64,14 @@ raLogSchema.statics = {
     const pot = await this.find({potHash, finalized:false}).exec();
     return pot;
   },
-  async addNewRaLog({peerId, potHash, pi, vrfHash, blockHeight, raResult}){
-    const newRaLog = {peerId, potHash, pi, vrfHash, blockHeight, raResult, finalized: false};
+  async addNewRaLog({peerId, potHash, pi, vrfHash, blockHeight, creditScoreAtBlockHeightTime, raResult}){
+    const newRaLog = {peerId, potHash, pi, vrfHash, blockHeight, creditScoreAtBlockHeightTime, raResult, finalized: false};
     return this.create(newRaLog);
   },
   async finalizeRaLogs(idArray){
     return await Promise.all(idArray.map(id => {
-      const raLog = this.findOne(id);
-      if(raLog){
-        raLog.finalized = true;
-        return raLog.save();
-      }
-      return null;
+      const query= {_id:id};
+      return this.findOneAndUpdate(query, {finalized:true});
     }));
   },
 };

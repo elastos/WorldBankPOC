@@ -1,2 +1,2 @@
 exports.thresholdForVrfRa = 500;
-exports.totalCreditToken = 1000000;
+exports.totalCreditToken = 10000;
