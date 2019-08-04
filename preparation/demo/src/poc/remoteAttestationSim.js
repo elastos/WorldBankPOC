@@ -2,6 +2,7 @@ const vrfSim = require('./vrfSim');
 const potSim = require( './potSim');
 const ethSim = require( './ethSim');
 const constValue = require( './constValue');
+const addNewRaLogSchema = require('./raLogSchema');
 const creditScoreSim = require('./creditScore');
 const APIError = require('../api/utils/APIError');
 
@@ -56,6 +57,15 @@ exports.tryRa = async ({peerId, potHash}) => {
   }
   
   const raResult = potSim.verifyPot(pot, false);
+  const {pi, vrfHash, threshold} = luckyDrawResult;
+  const blockHeight = 0; //placeholder
+  console.log("peerId, potHash, pi, vrfHash, blockHeight, raResult, threshold", {
+    peerId, potHash, pi, vrfHash, blockHeight, raResult, threshold
+  });
+  const saveNewRaLog = await addNewRaLogSchema.addNewRaLog({
+    peerId, potHash, pi, vrfHash, blockHeight, raResult, threshold
+  });
+
   return {result:true, raResult};
   //ethSim.signRaTask('sigPlaceHolder', newJoinTxHash, pi, raResult);
 
