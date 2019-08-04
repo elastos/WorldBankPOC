@@ -3,7 +3,7 @@ const potSim = require( './potSim');
 const ethSim = require( './ethSim');
 const constValue = require( './constValue');
 const raLogSchema = require('./raLogSchema');
-const creditScoreSim = require('./creditScore');
+const creditScoreSim = require('./creditSchema');
 const APIError = require('../api/utils/APIError');
 const STATIC_THRESHOLD_FOR_REMOTE_ATTESTATION = 0;
 
