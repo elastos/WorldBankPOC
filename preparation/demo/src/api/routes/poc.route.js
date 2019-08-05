@@ -1,6 +1,6 @@
 const express = require('express');
 const sha256 = require('js-sha256');
-const {creditScore, potSim, remoteAttestationSim, potSchema, betterResponse} = require('../../poc');
+const {creditScore, potSim, remoteAttestationSim, potSchema, betterResponse, result} = require('../../poc');
 
 
 const router = express.Router();
@@ -19,9 +19,12 @@ router
 router
   .route('/newNodeJoin')
   .get(async (req, res) => {
-    const {peerId, hacked} = req.query;
+    const {peerId, hacked, json, lat, lng} = req.query;
     const credit = await creditScore.get(peerId);
     if(credit){
+      if(json){
+        return result(res, -1, 'Please change peerID, since this peerId has existed');
+      }
       return betterResponse.responseBetterJson(res, {peerId, hacked}, {error:'Please change peerID, since this peerId has existed'});
     }
     const newCredit = await creditScore.set(peerId, '0');
@@ -30,7 +33,11 @@ router
 
     const potHash = sha256(JSON.stringify(potObj));
     potObj.potHash = potHash;
+    potObj.location = [lat, lng];
     const newPotObj = await potSchema.newPot(potObj);
+    if(json){
+      return result(res, 1, newPotObj);
+    }
     betterResponse.responseBetterJson(res, {peerId, hacked}, {newPotObj});
   });
 

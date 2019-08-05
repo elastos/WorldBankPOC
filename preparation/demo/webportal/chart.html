@@ -8,6 +8,7 @@
   <link href="lib/bootstrap/bootstrap-reset.css" rel="stylesheet">
 
   <script type="text/javascript" src="lib/jquery.js"></script>
+  <script type="text/javascript" src="lib/bootstrap/bootstrap.min.js"></script>
   <script type="text/javascript" src="lib/echart/echarts.min.js"></script>
   <script type="text/javascript" src="lib/echart/world.js"></script>
   <!-- <script type="text/javascript" src="lib/echart/echarts-en.min.js"></script>
@@ -18,10 +19,67 @@
 </head>
 
 <body style="background: #eee;">
-  <div style="width: 1200px; margin: 20px auto 0; outline: 1px solid #f99; height: 40px;">
-
+  <div style="width: 1200px; margin: 20px auto 0; height: 40px;">
+    <button class="btn btn-success" onClick="poc.showCreateNodeModal()">Add new node</button>
   </div>
-  <div id="echart-div" style="margin: 20px auto; width: 1200px; min-height: 700px;"></div>
+  <div id="echart-div" style="margin: 5px auto; width: 1200px; min-height: 700px;"></div>
+
+
+
+<!-- Modal -->
+<div class="modal fade" id="js_create_modal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Create New Node</h5>
+      </div>
+      <div class="modal-body">
+        
+        <form>
+          <div class="form-group">
+            <label for="ma_peerId">Peer ID</label>
+            <input type="text" class="form-control" id="ma_peerId">
+          </div>
+
+          <!-- <div class="form-group">
+            <label for="ma_potHash">Pot hash</label>
+            <input type="text" class="form-control" id="ma_potHash">
+          </div> -->
+
+          <!-- <div class="form-group">
+            <label for="ma_pcrReading">PCR Reading</label>
+            <input type="text" class="form-control" id="ma_pcrReading">
+          </div> -->
+
+          <div class="form-group">
+            <label>PCR Reading</label>
+            <div class="row">
+              <div class="col-md-6">
+                <input type="text" id="ma_lat" class="form-control" placeholder="Lat">
+              </div>
+              <div class="col-md-6">
+                <input type="text" id="ma_lng" class="form-control" placeholder="Lng">
+              </div>
+            </div>
+          </div>
+
+          <div class="form-check form-check-inline">
+            
+            <label class="form-check-label" for="ma_hacked">Hacked</label>
+            <input class="form-check-input" type="checkbox" id="ma_hacked" checked>
+          </div>
+        </form>
+
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <button type="button" onClick="poc.addNewNode()" class="btn btn-primary">Confirm</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
 <script type="text/javascript" src="js/util.js"></script>
