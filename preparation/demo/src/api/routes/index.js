@@ -16,5 +16,10 @@ router.use('/', express.static(__dirname + '/docs'));
 
 router.use('/poc', pocRoutes);
 
+console.log(1, process.cwd()+'/webprotal/');
+
+// set webprotal folder as static
+router.use('/webportal', express.static(process.cwd() + '/webportal'));
+
 
 module.exports = router;
