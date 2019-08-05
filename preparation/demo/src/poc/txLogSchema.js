@@ -53,7 +53,12 @@ txLogSchema.statics = {
   async addNewTxLog(tx){
     return this.create(tx);
   },
-  
+  async doValidationOnGasTx(txId, validateFunction){
+
+    const tx = await this.findOne({_id:txId}).exec();
+    if(! tx) return false;
+    return validateFunction(tx);
+  }
 };
 
 module.exports = mongoose.model('TxLog', txLogSchema);
