@@ -34,6 +34,10 @@
           // bottom: '%',
           right: 24,
           roam: true,
+          scaleLimit: {
+            min: 0.8,
+            max: 4
+          },
           itemStyle: {
               normal: {
                 areaColor: '#323c48',
@@ -48,15 +52,16 @@
             type: 'effectScatter',
             coordinateSystem: 'geo',
             data: opts.data || [],
+            symbol: 'diamond',
             symbolSize: (val)=>{
-              console.log(util.symbolSize(val[2]))
               return util.symbolSize(val[2]);
             },
             showEffectOn: 'render',
             rippleEffect: {
-                brushType: 'stroke'
+              brushType: 'stroke'
             },
             hoverAnimation: true,
+            
             label: {
                 normal: {
                   formatter: '{b}',
@@ -65,11 +70,14 @@
                 }
             },
             itemStyle: {
-                normal: {
-                  color: '#0f0',
-                  shadowBlur: 10,
-                  shadowColor: '#333'
-                }
+              normal: {
+                color: (e)=>{
+                  const isPass = e.data.hacked;
+                  return !isPass ? '#0f0' : '#f00';
+                },
+                shadowBlur: 10,
+                shadowColor: '#333'
+              }
             },
             zlevel: 1
           }
@@ -81,41 +89,72 @@
     },
 
     getData(){
-      const testData = [
-        {
-          name : '1',
-          geo : [11.11, 22.22],
-          credit : 10,
-        },
-        {
-          name : '2',
-          geo : [22.22, 33.33],
-          credit : 32
-        },
-        {
-          name : '3',
-          geo : [33.33, 44.44],
-          credit : 100
-        }
-      ];
-
-      return Promise.resolve(testData);
+      return util.requestList();
     },
-    processData(data){
-      return _.map(data, (item)=>{
-        item.value = [...item.geo, item.credit];
-        return item;
-      });
-    },
+  
     renderData(){
       myChart.showLoading();
       F.getData().then((data)=>{
-        data = F.processData(data);
+        data = util.processData(data);
         const option = F.getOption({data});
         myChart.setOption(option);
         myChart.hideLoading();
       });
 
+    }
+  };
+
+  window.poc = {
+    showCreateNodeModal(){
+      $('#js_create_modal').modal({});
+
+      const d = util.createRandomGeoLocation();
+      _.delay(()=>{
+        $('#ma_peerId').val('');
+        $('#ma_lat').val(d[0]);
+        $('#ma_lng').val(d[1]);
+        $('#ma_hacked')[0].checked = true;
+      }, 100);
+      
+    },
+    addNewNode(){
+      const el = {
+        peerId : $('#ma_peerId'),
+        lat : $('#ma_lat'),
+        lng : $('#ma_lng'),
+        hacked : $('#ma_hacked')
+      };
+
+      const val = {
+        peerId : el.peerId.val(),
+        lat : el.lat.val(),
+        lng : el.lng.val(),
+        hacked : el.hacked[0].checked
+      };
+
+      if(!val.peerId){
+        alert('please input peer id');
+        return false;
+      }
+
+      val.json = 1;
+      val.depositGasTxId = 123;
+      $.ajax({
+        url : '/poc/newNodeJoin',
+        type : 'get',
+        // dataType : 'json',
+        data : val,
+        success : (rs)=>{
+          if(rs.code < 0){
+            alert(rs.error);
+            return;
+          }
+
+          alert('create success');
+          console.log(rs.data);
+          $('#js_create_modal').modal('hide');
+        }
+      });
     }
   };
 

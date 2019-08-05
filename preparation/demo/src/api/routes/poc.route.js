@@ -1,6 +1,6 @@
 const express = require('express');
 const sha256 = require('js-sha256');
-const {creditScore, potSim, remoteAttestationSim, potSchema, betterResponse, gasSim} = require('../../poc');
+const {creditScore, potSim, remoteAttestationSim, potSchema, betterResponse, gasSim, result} = require('../../poc');
 
 
 const router = express.Router();
@@ -42,12 +42,18 @@ router
 router
   .route('/newNodeJoin')
   .get(async (req, res) => {
-    const {peerId, hacked, depositGasTxId} = req.query;
+    const {peerId, hacked, depositGasTxId, json, lat, lng} = req.query;
     const credit = await creditScore.get(peerId);
     if(credit){
+      if(json){
+        return result(res, -1, 'Please change peerID, since this peerId has existed');
+      }
       return betterResponse.responseBetterJson(res, {peerId, hacked, depositGasTxId}, {error:'Please change peerID, since this peerId has existed'});
     }
     if(! depositGasTxId){
+      if(json){
+        return result(res, -1, 'In order to join the trusted network, you have to pay a init gas fee for other trusted nodes to give you an approval based on PoT value. This is called Remote Attestation. Please attach the txId of your deposit to Escrow account');
+      }
       return betterResponse.responseBetterJson(res, {peerId, hacked, depositGasTxId}, {error:'In order to join the trusted network, you have to pay a init gas fee for other trusted nodes to give you an approval based on PoT value. This is called Remote Attestation. Please attach the txId of your deposit to Escrow account'});
     
     }
@@ -57,7 +63,11 @@ router
 
     const potHash = sha256(JSON.stringify(potObj));
     potObj.potHash = potHash;
+    potObj.location = [lat, lng];
     const newPotObj = await potSchema.newPot(potObj);
+    if(json){
+      return result(res, 1, newPotObj);
+    }
     betterResponse.responseBetterJson(res, {peerId, hacked}, {newPotObj});
   });
 

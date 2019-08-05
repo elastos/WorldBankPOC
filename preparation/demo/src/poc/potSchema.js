@@ -28,16 +28,20 @@ const potSchema = new mongoose.Schema({
     index: false,
     trim: true,
   },
-  pcrReading: {
-    type: String,
-    maxlength: 128,
-    required: false, //this is optional
-    index: false,
-    trim: true,
-  },
+  // pcrReading: {
+  //   type: String,
+  //   maxlength: 128,
+  //   required: false, //this is optional
+  //   index: false,
+  //   trim: true,
+  // },
   hacked:{
     type: Boolean,
 
+  },
+  location : {
+    type: [Number],  // [lat, long]
+    required: false
   }
 
 }, {
