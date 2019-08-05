@@ -2,6 +2,7 @@ const express = require('express');
 const sha256 = require('js-sha256');
 const {creditScore, potSim, remoteAttestationSim, potSchema, betterResponse, gasSim, result} = require('../../poc');
 
+const _ = require('lodash');
 
 const router = express.Router();
 console.log("credit", creditScore);
@@ -91,8 +92,11 @@ router
   .route('/setPeerScore')
   .get(async (req, res) => {
     try {
-      const { peerId, score } = req.query;
+      const { peerId, score, json } = req.query;
       const r = await creditScore.set(peerId, score);
+      if(json){
+        return result(res, 1, r);
+      }
       return betterResponse.responseBetterJson(res, req.query, {r});
     } catch (error) {
       console.log('error line13', error);
@@ -125,5 +129,46 @@ router
     const {peerId, potHash} = req.query;
     const result = await remoteAttestationSim.tryRa({peerId, potHash});
     betterResponse.responseBetterJson(res, {peerId, potHash}, result);
+  });
+
+router
+  .route('/potList')
+  .get(async (req, res)=>{
+    let list = await potSchema.getAll();
+    const ids = _.map(list, (item)=>{
+      return item.peerId;
+    });
+    const cs = await creditScore.find({
+      peerId : {
+        $in : ids
+      }
+    }).exec();
+    list = _.map(list, (item)=>{
+      const tmp = _.find(cs, (x)=>x.peerId===item.peerId);
+      const rs = {
+        ...item.toJSON(),
+        creditScore : tmp.creditScore
+      };
+      return rs;
+    });
+    return result(res, 1, list);
+  });
+
+router
+  .route('/deletePot')
+  .get(async (req, res)=>{
+    const {peerId} = req.query;
+    
+    try{
+      await creditScore.remove({peerId});
+      await potSchema.remove({peerId});
+
+      return result(res, 1, 'ok');
+    }catch(e){
+      return result(res, -1, e.toString());
+    }
+    
+
+    
   });
 module.exports = router;

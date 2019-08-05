@@ -3,8 +3,8 @@ this.util = {
   createRandomGeoLocation(){
     var data=[];   
     for (var i=0; i < 1; i++) {
-      var aaa = GetRandomNum(0,179)+Math.random();
-      var bbb = GetRandomNum(0,89)+Math.random();
+      var aaa = GetRandomNum(-179,179)+Math.random();
+      var bbb = GetRandomNum(-40,89)+Math.random();
       data.push([aaa, bbb]);
     }
     function GetRandomNum(Min,Max){   
@@ -31,39 +31,47 @@ this.util = {
     }
 
     return [
-      2, 4, 8, 13, 20
+      8, 12, 16, 20, 25
     ][level];
   },
 
   async requestList(){
-    const data = [
-      {
-        peerId : '1',
-        geo : util.createRandomGeoLocation(),
-        creditScore : 10,
-        hacked : true,
-      },
-      {
-        peerId : '2',
-        geo : util.createRandomGeoLocation(),
-        creditScore : 32,
-        hacked : false,
-      },
-      {
-        peerId : '3',
-        geo : util.createRandomGeoLocation(),
-        creditScore : 100,
-        hacked : false
-      }
-    ];
+    // const data = [
+    //   {
+    //     peerId : '1',
+    //     geo : util.createRandomGeoLocation(),
+    //     creditScore : 10,
+    //     hacked : true,
+    //   },
+    //   {
+    //     peerId : '2',
+    //     geo : util.createRandomGeoLocation(),
+    //     creditScore : 32,
+    //     hacked : false,
+    //   },
+    //   {
+    //     peerId : '3',
+    //     geo : util.createRandomGeoLocation(),
+    //     creditScore : 100,
+    //     hacked : false
+    //   }
+    // ];
 
-    return Promise.resolve(data);
+    return new Promise((resolve)=>{
+      $.ajax({
+        url : '/poc/potList',
+        type : 'get',
+        success : (rs)=>{
+          resolve(rs.data);
+        }
+      });
+    })
   },
 
   processData(data){
     return _.map(data, (item)=>{
       item.name = item.peerId,
-      item.value = [...item.geo, item.creditScore];
+      item.value = [...item.location, item.creditScore];
       return item;
     });
   }
