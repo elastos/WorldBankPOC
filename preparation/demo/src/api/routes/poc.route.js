@@ -1,6 +1,6 @@
 const express = require('express');
 const sha256 = require('js-sha256');
-const {creditScore, potSim, remoteAttestationSim, potSchema, betterResponse, result} = require('../../poc');
+const {creditScore, potSim, remoteAttestationSim, potSchema, betterResponse, gasSim, result} = require('../../poc');
 
 
 const router = express.Router();
@@ -16,16 +16,46 @@ router
   .get((req, res) => {
     res.send('You will see updates here');
   });
+
+  //newJoinNodeDeposit
+router
+  .route('/newJoinNodeDeposit')
+  .get(async (req, res) => {
+    console.log("l24", req.query);
+    const {peerId, depositGasAmt} = req.query;
+    const credit = await creditScore.get(peerId);
+    if(credit){
+      return betterResponse.responseBetterJson(res, {peerId, depositGasAmt}, {error:'Please change peerID, since this peerId has existed'});
+    }
+    if(! depositGasAmt){
+      return betterResponse.responseBetterJson(res, {peerId, depositGasAmt}, {error:'Deposit gas for intial remote attestion need to be more than 10'});
+    }
+    const depositGasAmtNumber = Number.parseInt(depositGasAmt);
+    if (depositGasAmtNumber < 10){
+      return betterResponse.responseBetterJson(res, {peerId, depositGasAmt}, {error:'Deposit gas for intial remote attestion need to be more than 10'});
+    }
+    console.log('depositGasAmtNumber', depositGasAmtNumber)
+    const gasTransactionId = await gasSim.transferGasToEscrow(peerId, depositGasAmtNumber, "NewNodeJoinDepositGas_ref_peerId", peerId);
+    betterResponse.responseBetterJson(res, {peerId, depositGasAmt}, {gasTransactionId});
+  });
+
 router
   .route('/newNodeJoin')
   .get(async (req, res) => {
-    const {peerId, hacked, json, lat, lng} = req.query;
+    const {peerId, hacked, depositGasTxId, json, lat, lng} = req.query;
     const credit = await creditScore.get(peerId);
     if(credit){
       if(json){
         return result(res, -1, 'Please change peerID, since this peerId has existed');
       }
-      return betterResponse.responseBetterJson(res, {peerId, hacked}, {error:'Please change peerID, since this peerId has existed'});
+      return betterResponse.responseBetterJson(res, {peerId, hacked, depositGasTxId}, {error:'Please change peerID, since this peerId has existed'});
+    }
+    if(! depositGasTxId){
+      if(json){
+        return result(res, -1, 'In order to join the trusted network, you have to pay a init gas fee for other trusted nodes to give you an approval based on PoT value. This is called Remote Attestation. Please attach the txId of your deposit to Escrow account');
+      }
+      return betterResponse.responseBetterJson(res, {peerId, hacked, depositGasTxId}, {error:'In order to join the trusted network, you have to pay a init gas fee for other trusted nodes to give you an approval based on PoT value. This is called Remote Attestation. Please attach the txId of your deposit to Escrow account'});
+    
     }
     const newCredit = await creditScore.set(peerId, '0');
 

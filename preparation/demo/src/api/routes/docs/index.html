@@ -45,9 +45,28 @@
       </code>
     </p>
   </li>
-
   <li>
-      <h2> New Node Join Network</h2>
+      <h2>Deposit Escrow Gas Fee for Init Approval Cost before New Node Join Network</h2>
+      <p>
+        If a node with same PeerId exists in the mongodb, you will see a response like this <code>Please change peerID, since this peerId has existed</code> Just change another peerId and retry.
+      </p>
+      <p>
+        The Escrow gas will not return no matter the init remote attestation approved or rejected. 
+      </p>
+      <p>
+        If you are too poor to pay 10 gas for test purpose, just type "faucet" in the peerId textbox, Santa Clause will pay for you.
+      </p>
+
+          <form action="/poc/newJoinNodeDeposit" method="get">
+            PeerId: <input type="text" name="peerId"><br>
+            Escrow Gas Deposit Amount (must higher than 10): <input type="text" name="depositGasAmt"><br>
+            <input type="submit" value="Submit">
+          </form>
+        </p>
+        <p><b>Remember to copy the gasTransactionId._id in the response json. </b>You will need this ID in your further steps</p>
+  </li>
+  <li>
+      <h2> New Node Join Network Asking for Initial Remote Attestation</h2>
       <p>/newNodeJoin?peerId=1&&hacked=true can list node's credit for node ID is :id<br>
       for example<br>
       <a href='/poc/newNodeJoin?peerId=2&&hacked=true'>/poc/newNodeJoin?peerId=2&&hacked=true</a> tells us a node peerid is 2, it is hacked (untrusted), it is joining our network </p><br>
@@ -62,11 +81,13 @@
 
           <form action="/poc/newNodeJoin" method="get">
             PeerId: <input type="text" name="peerId"><br>
+            Escrow Gas Deposit Tx Id: <input type="text" name="depositGasTxId"><br>
             <input type="radio" name="hacked" value="true" checked> Hacked<br>
             <input type="radio" name="hacked" value="false"> Trustable<br>
             <input type="submit" value="Submit">
           </form>
         </p>
+        
     </li>
 
     <li>

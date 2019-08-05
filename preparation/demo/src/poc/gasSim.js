@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const httpStatus = require('http-status');
 const APIError = require('../api/utils/APIError');
 const txLogSchema = require('./txLogSchema');
-
+const constValue = require('./constValue');
 /**
  * Credit Schema
  * @private
@@ -62,16 +62,21 @@ gasSchema.statics = {
 
   },
   async transferGas(fromPeerId, toPeerId, amt, referenceEventType, referenceEventId){
-    const fromPeer = this.findOne({fromPeerId}).exec();
-    if(! fromPeer) return {txId: null, err:'From Peer Not Exists'};
-    const newBalance = fromPeer.gasBalance - amt;
-    if(newBalance < 0) return {txId: null, err:'From Peer Doesnot have enough balance'};
-    this.findOneAndUpdate({peerId:fromPeerId}, {gasBalance:newBalance}).exec();
+    if(fromPeerId != constValue.gasFaucetPeerId){
+      const fromPeer =await this.findOne({fromPeerId}).exec();
+      if(! fromPeer) return {txId: null, err:'From Peer Not Exists'};
+      const newBalance = fromPeer.gasBalance - amt;
+      if(newBalance < 0) return {txId: null, err:'From Peer Doesnot have enough balance'};
+      await this.findOneAndUpdate({peerId:fromPeerId}, {gasBalance:newBalance}).exec();
+    }
+    let toPeer;
+    if(toPeerId != constValue.gasBurnPeerId){
+      toPeer = await this.findOne({toPeerId}).exec();
+      if(! toPeer) return {txId: null, err:'To Peer Not Exists'};
+    }
 
-    const toPeer = this.findOne({toPeerId}).exec();
-    if(! toPeer) return {txId: null, err:'To Peer Not Exists'};
-    const newToPeerBalance = toPeer.gasBalance + amt;
-    this.findOneAndUpdate({peerId:toPeerId}, {gasBalance:newToPeerBalance}).exec();
+    const newToPeerBalance = toPeer? toPeer.gasBalance + amt : amt;
+    await this.findOneAndUpdate({peerId:toPeerId}, {gasBalance:newToPeerBalance}).exec();
     //During placeholder stage, we do not guarantee transaction and atom transaction, we assume all transaction go through successfully
     return await txLogSchema.addNewTxLog({
       fromPeerId,
@@ -82,6 +87,14 @@ gasSchema.statics = {
       referenceEventId
     })
 
+  },
+
+  async transferGasToEscrow(fromPeerId, amt, referenceEventType, referenceEventId){
+    return this.transferGas(fromPeerId, constValue.gasBurnPeerId, amt, referenceEventType, referenceEventId);
+  },
+
+  async transferGasFromEscrow(toPeerId, amt, referenceEventType, referenceEventId){
+    return this.transferGas(toPeerId, constValue.gasFaucetPeerId, amt, referenceEventType, referenceEventId);
   },
 };
 

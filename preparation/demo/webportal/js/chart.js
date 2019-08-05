@@ -138,6 +138,7 @@
       }
 
       val.json = 1;
+      val.depositGasTxId = 123;
       $.ajax({
         url : '/poc/newNodeJoin',
         type : 'get',

@@ -5,6 +5,7 @@ exports.potSchema = require('./potSchema');
 exports.betterResponse = require('./betterResponse');
 exports.raLogSchema = require('./raLogSchema');
 exports.txLogSchema = require('./txLogSchema');
+exports.gasSim = require('./gasSim');
 
 exports.result = (res, code, dataOrError, message='')=>{
   const json = {
