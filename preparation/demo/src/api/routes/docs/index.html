@@ -54,7 +54,7 @@
         The Escrow gas will not return no matter the init remote attestation approved or rejected. 
       </p>
       <p>
-        If you are too poor to pay 10 gas for test purpose, just type "faucet" in the peerId textbox, Santa Clause will pay for you.
+        If you are too poor to pay 10 gas for test purpose, just type "faucet" in the peerId textbox, Santa Claus will pay for you.
       </p>
 
           <form action="/poc/newJoinNodeDeposit" method="get">
@@ -67,15 +67,10 @@
   </li>
   <li>
       <h2> New Node Join Network Asking for Initial Remote Attestation</h2>
-      <p>/newNodeJoin?peerId=1&&hacked=true can list node's credit for node ID is :id<br>
-      for example<br>
-      <a href='/poc/newNodeJoin?peerId=2&&hacked=true'>/poc/newNodeJoin?peerId=2&&hacked=true</a> tells us a node peerid is 2, it is hacked (untrusted), it is joining our network </p><br>
-      <a href='/poc/newNodeJoin?peerId=999'>/poc/newNodeJoin?peerId=999</a> tells us a node peerid is 999, it is not hacked (can be trusted), it is joining our network </p><br>
-      
+      <p>If you (or Santa Claus) have paid the deposit in last step, please copy the transaction ID as the Proof of Payment in this step.</p>
       <p>
-        If a node with same PeerId exists in the mongodb, you will see a response like this <code>Please change peerID, since this peerId has existed</code> Just change another peerId and retry.
+        Please input your peerId. It has to be a new peerId because only new join node need to do this step. If a node with same PeerId exists in the mongodb, you will see a response like this <code>Please change peerID, since this peerId has existed</code> Just change another peerId and retry.
       </p>
-      <p>If everything is OK, you can see resposne like this <br> <code>{"_id":"5d45c8a0e065e22de42811f0","peerId":"6","pcrReading":"placeholder","hacked":true,"potHash":"c64f639a6c23150f648e6bc2684e412c6dffbe7f84936a8ebdda15237540dbd0","createdAt":"2019-08-03T17:47:12.977Z","updatedAt":"2019-08-03T17:47:12.977Z","__v":0}</code></p>
       <p>
 
 
@@ -87,6 +82,7 @@
             <input type="submit" value="Submit">
           </form>
         </p>
+        <p>After submmited. Your node is created and also you will have an account in the Credit system with the initial credit score 0. Because no other trusted nodes validate your Proof of Trust yet. In the next step, you can try other nodes to verify your PoT</p>
         
     </li>
 
