@@ -5,7 +5,7 @@
 <body>
   <div class="container">
     <h1>Two kind of token: LEO and Credit</h1>
-    <h2>LEO can be trade at exchange with other token or fiat, but Credit cannot<h2>
+    <h2>LEO can be trade at exchange with other token or fiat, but Credit cannot</h2>
     <p>LEO is a utility token. People can buy and sell LEO at exchange. </p>  
     <p>Client pay LEO as gas fee</p>
     <p>Miners (or workers) earn part of gas fee if he win the VRF competation and run the task under remote attestation</p>
@@ -66,14 +66,14 @@
     <p>In most cases, before you start doing a job (which can earn LEO) you will need to deposit some LEO first. This deposit will be forfeited if during Remote Attestation, the conesnsus finally decide this node either cheating or cannot provide enough Proof of Trust (PoT). Credit will be lost as well as LEO. </p>
     
     <h2>Credit Penalty</h2>
-    <h3>Fading</h3>
+    <h3>Credit Decay</h3>
     <p>Based on our "return" to Reserve rule. No matter how many Credit you have, as long as you stop doing job to earn Credit. Your blanace of Credit will reduce over the time. Eventually too low to maintain a meaningful balance</p>
     <p>For those nodes stop response for a while and very low Credit balance. its credit will be recycled. As long as the balance is zero, this node is out of the Trusted Network</p>
     <p>For example, All intial Credit issued to any new join node is 10. If this node do not do anything over a period of time (say 1 month), its balance may reduced to 5. After 6 months, its balance could be as low as 0.9. At this point, there is no reason to keep such a low balance node in Trusted Netowrk. We just recycle its balance 0.9 back to the Reserve and remove this node from our state.</p>
     <h3>Bad Proof of Trust (PoT)</h3>
     <p>Remote attestation can run consensus to determine if you deserve your claimed Trust level. If you do not, some of your credit score will be forfeited (return back to Reserve). How many penalty is depending on what kind of task you are working on. Generally speaking, the higher value task request higher credit level and pay more  LEO too. Of course, if you failed in such a task, your penalty will be higher too.</p>
     <h3>Missing during VRF</h3>
-    <p>If a nodeis off line or not response</p>
+    <p>If a nodes off line or not response, it won't get chance to earn LEO or Credit. However Credit will decay while others earn new Credit, it is actually losing money </p>
     
     
     <h1>Work flow</h1>

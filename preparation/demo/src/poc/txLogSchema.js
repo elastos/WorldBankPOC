@@ -2,11 +2,6 @@ const mongoose = require('mongoose');
 const httpStatus = require('http-status');
 const APIError = require('../api/utils/APIError');
 
-
-/**
- * RaLog Schema
- * @private
- */
 const txLogSchema = new mongoose.Schema({
   fromPeerId: {
     type: String,
@@ -25,6 +20,10 @@ const txLogSchema = new mongoose.Schema({
   amt: {
     type: Number,
     required: true, 
+  },
+  tokenType:{
+    type:String,//We only allow "gas" or "credit"
+    required: true,
   },
   referenceEventType:{
     type:String,
