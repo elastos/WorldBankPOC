@@ -28,6 +28,11 @@ const potSchema = new mongoose.Schema({
     index: false,
     trim: true,
   },
+  depositGasTxId:{
+    type:String,
+    maxlength: 128,
+    required: true, //this is optional
+  },
   // pcrReading: {
   //   type: String,
   //   maxlength: 128,

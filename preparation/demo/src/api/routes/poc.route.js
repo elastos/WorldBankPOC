@@ -56,25 +56,15 @@ router
       return betterResponse.responseBetterJson(res, {peerId, hacked, depositGasTxId}, {error:'In order to join the trusted network, you have to pay a init gas fee for other trusted nodes to give you an approval based on PoT value. This is called Remote Attestation. Please attach the txId of your deposit to Escrow account'});
     
     }
-    const depositGasTxIdValidation = ({fromPeerId, toPeerId, amt, tokenType, referenceEventType, referenceEventId})=>{
-      if(fromPeerId != constValue.gasFaucetPeerId){
-        if(fromPeeId != peerId) return false;
-      }
-      if(amt < 10)  return false;
-      
-      if(tokenType != 'gas') return false;
-      if(referenceEventType != 'NewNodeJoinDepositGas_ref_peerId') return false;
-      if((referenceEventId != constValue.gasFaucetPeerId) && (referenceEventId != peerId)) return false;
-      return true;
-    };
-    if(! await txLogSchema.doValidationOnGasTx(depositGasTxId, depositGasTxIdValidation)){
+    
+    if(! await txLogSchema.doValidationOnGasTx(depositGasTxId, remoteAttestationSim.depositGasTxIdValidation)){
       return betterResponse.responseBetterJson(res, {peerId, hacked, depositGasTxId}, {error:'We cannot find the Proof of Payment from the TxId You attached. In order to join the trusted network, you have to pay a init gas fee for other trusted nodes to give you an approval based on PoT value. This is called Remote Attestation. Please attach the txId of your deposit to Escrow account'});
-  
+    
     }
     
     const newCredit = await creditScore.set(peerId, '0');
 
-    const potObj = potSim.createPlaceHolderPot({peerId, hacked: hacked == 'true'});
+    const potObj = potSim.createPlaceHolderPot({peerId, hacked: hacked == 'true', depositGasTxId});
 
     const potHash = sha256(JSON.stringify(potObj));
     potObj.potHash = potHash;

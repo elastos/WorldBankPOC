@@ -2,28 +2,17 @@ const potSchema = require('./potSchema');
 
 class ProofOfTrust {
   constructor({
-    peerId, pcrReading, otherEvidence, hacked
+    peerId, pcrReading, otherEvidence, hacked, depositGasTxId
   }) {
     
     this.peerId = peerId;
     this.pcrReading = pcrReading || 'placeholder';
     this.otherEvidence = otherEvidence || 'placeholder';
     this.hacked = hacked || false;
+    this.depositGasTxId = depositGasTxId;
     // Error.captureStackTrace(this, this.constructor.name);
   }
 }
-
-exports.sampleGoodPot = () => {
-  const peerId = '0';
-  const hacked = false;
-  return new ProofOfTrust({peerId, hacked});
-};
-
-exports.sampleBadPot = () => {
-  const peerId = '9999'
-  const hacked = true;
-  return new ProofOfTrust({peerId, hacked});
-};
 
 exports.getRealProofOfTrust = ()=>{
   //
@@ -33,13 +22,13 @@ exports.getRealProofOfTrust = ()=>{
   return new ProofOfTrust({peerId, hacked});
 };
 
-exports.createPlaceHolderPot = ({peerId, hacked}) => {
-  console.log("line17, peerid and hacked,", peerId, hacked);
-  return new ProofOfTrust({peerId, hacked});
+exports.createPlaceHolderPot = ({peerId, hacked, depositGasTxId}) => {
+  console.log("line17, peerid and hacked,", peerId, hacked, depositGasTxId);
+  return new ProofOfTrust({peerId, hacked, depositGasTxId});
 };
 
 exports.verifyPot = (pot, bForcePass) =>{
-  console.log('Verifiying pot:', pot);
+  console.log('Verifying pot:', pot);
   console.log('POC want it pass or fail. This is just a place holder, you need to add real logic later. Value:', bForcePass);
   if(bForcePass) return true;
   if(pot.hacked) return false;
