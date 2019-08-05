@@ -1,7 +1,8 @@
+const PEERID_RESERVE = '0';
 const mongoose = require('mongoose');
 const httpStatus = require('http-status');
 const APIError = require('../api/utils/APIError');
-
+const txLogSchema = require('./txLogSchema');
 
 /**
  * Credit Schema
@@ -83,7 +84,37 @@ creditSchema.statics = {
       })
     }
 
-  }
+  },
+  async transferCreditBalanced(fromPeerId, toPeerId, amt, referenceEventType, referenceEventId){
+    const fromPeer = this.findOne({fromPeerId}).exec();
+    if(! fromPeer) return {txId: null, err:'From Peer Not Exists'};
+    const newBalance = fromPeer.creditScore - amt;
+    if(newBalance < 0) return {txId: null, err:'From Peer Doesnot have enough balance'};
+    this.findOneAndUpdate({peerId:fromPeerId}, {creditScore:newBalance}).exec();
+
+    const toPeer = this.findOne({toPeerId}).exec();
+    if(! toPeer) return {txId: null, err:'To Peer Not Exists'};
+    const newToPeerBalance = toPeer.creditScore + amt;
+    this.findOneAndUpdate({peerId:toPeerId}, {creditScore:newToPeerBalance}).exec();
+    //During placeholder stage, we do not guarantee transaction and atom transaction, we assume all transaction go through successfully
+    return await txLogSchema.addNewTxLog({
+      fromPeerId,
+      toPeerId,
+      amt,
+      tokenType:'credit',
+      referenceEventType, 
+      referenceEventId
+    })
+
+  },
+  
+  async depositToReserve(fromPeerId, amt){
+    return transferCreditBalanced(fromPeerId, PEERID_RESERVE, amt);
+  },
+  
+  async withdrawFromReserve(toPeerId, amt){
+    return transferCreditBalanced(PEERID_RESERVE, toPeerId, amt);
+  },
 };
 
 /**

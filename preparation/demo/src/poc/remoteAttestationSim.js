@@ -1,6 +1,6 @@
 const vrfSim = require('./vrfSim');
 const potSim = require( './potSim');
-const ethSim = require( './ethSim');
+const ethSim = require( './gasSim');
 const constValue = require( './constValue');
 const raLogSchema = require('./raLogSchema');
 const creditScoreSim = require('./creditSchema');
