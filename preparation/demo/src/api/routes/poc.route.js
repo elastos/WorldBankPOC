@@ -1,6 +1,6 @@
 const express = require('express');
 const sha256 = require('js-sha256');
-const {creditScore, potSim, remoteAttestationSim, potSchema, betterResponse, gasSim, result} = require('../../poc');
+const {creditScore, potSim, remoteAttestationSim, potSchema, betterResponse, gasSim, result, constValue, txLogSchema} = require('../../poc');
 
 const _ = require('lodash');
 
@@ -22,7 +22,6 @@ router
 router
   .route('/newJoinNodeDeposit')
   .get(async (req, res) => {
-    console.log("l24", req.query);
     const {peerId, depositGasAmt} = req.query;
     const credit = await creditScore.get(peerId);
     if(credit){
@@ -58,13 +57,29 @@ router
       return betterResponse.responseBetterJson(res, {peerId, hacked, depositGasTxId}, {error:'In order to join the trusted network, you have to pay a init gas fee for other trusted nodes to give you an approval based on PoT value. This is called Remote Attestation. Please attach the txId of your deposit to Escrow account'});
     
     }
+    const depositGasTxIdValidation = ({fromPeerId, toPeerId, amt, tokenType, referenceEventType, referenceEventId})=>{
+      if(fromPeerId != constValue.gasFaucetPeerId){
+        if(fromPeeId != peerId) return false;
+      }
+      if(amt < 10)  return false;
+      
+      if(tokenType != 'gas') return false;
+      if(referenceEventType != 'NewNodeJoinDepositGas_ref_peerId') return false;
+      if((referenceEventId != constValue.gasFaucetPeerId) && (referenceEventId != peerId)) return false;
+      return true;
+    };
+    if(! await txLogSchema.doValidationOnGasTx(depositGasTxId, depositGasTxIdValidation)){
+      return betterResponse.responseBetterJson(res, {peerId, hacked, depositGasTxId}, {error:'We cannot find the Proof of Payment from the TxId You attached. In order to join the trusted network, you have to pay a init gas fee for other trusted nodes to give you an approval based on PoT value. This is called Remote Attestation. Please attach the txId of your deposit to Escrow account'});
+  
+    }
+    
     const newCredit = await creditScore.set(peerId, '0');
 
     const potObj = potSim.createPlaceHolderPot({peerId, hacked: hacked == 'true'});
 
     const potHash = sha256(JSON.stringify(potObj));
     potObj.potHash = potHash;
-    potObj.location = [lat, lng];
+    potObj.location = [lat || 0, lng || 0];
     const newPotObj = await potSchema.newPot(potObj);
     if(json){
       return result(res, 1, newPotObj);
