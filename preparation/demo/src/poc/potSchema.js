@@ -67,6 +67,10 @@ potSchema.statics = {
       return null;
     }
     return this.create(pot);
+  },
+  async getAll(){
+    const list = await this.find({}).exec();
+    return list;
   }
 };
 

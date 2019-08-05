@@ -3,12 +3,28 @@
   const F = {
     initChart(){
       myChart = echarts.init($('#echart-div')[0]);
+
+      myChart.on('click', (e)=>{
+        const d = e.data;
+        if(!d) return false;
+
+        const el = $('#js_node_detail');
+        el.data('json', d).modal('show');
+        _.delay(()=>{
+          el.find('.js_title').html('Peer : '+ d.name);
+          el.find('.js_score').html(d.creditScore);
+          el.find('.js_geo').html(d.value.join(' - '));
+          el.find('.js_hash').html(d.potHash);
+        }, 100);
+      });
     },
     init(){
       F.initChart();
       console.log('init chart');
-      
-      F.renderData();
+      myChart.showLoading();
+      F.renderData(()=>{
+        myChart.hideLoading();
+      });
     },
 
     getOption(opts={}){
@@ -52,7 +68,7 @@
             type: 'effectScatter',
             coordinateSystem: 'geo',
             data: opts.data || [],
-            symbol: 'diamond',
+            // symbol: 'diamond',
             symbolSize: (val)=>{
               return util.symbolSize(val[2]);
             },
@@ -73,15 +89,27 @@
               normal: {
                 color: (e)=>{
                   const isPass = e.data.hacked;
-                  return !isPass ? '#0f0' : '#f00';
+                  return !isPass ? '#0f0' : '#ff0';
                 },
                 shadowBlur: 10,
                 shadowColor: '#333'
               }
             },
-            zlevel: 1
+            zlevel: 1,
+            tooltip: {
+              formatter(e){
+                const d = e.data;
+                return `
+                peerId: ${d.peerId} <br/>
+                score: ${d.creditScore}
+                `;
+              }
+            }
           }
-        ]
+        ],
+        tooltip: {
+          show: true
+        }
 
       };
 
@@ -92,13 +120,12 @@
       return util.requestList();
     },
   
-    renderData(){
-      myChart.showLoading();
+    renderData(cb){
       F.getData().then((data)=>{
         data = util.processData(data);
         const option = F.getOption({data});
         myChart.setOption(option);
-        myChart.hideLoading();
+        cb && cb();
       });
 
     }
@@ -138,7 +165,7 @@
       }
 
       val.json = 1;
-      val.depositGasTxId = 123;
+      val.depositGasTxId = 'test_123';
       $.ajax({
         url : '/poc/newNodeJoin',
         type : 'get',
@@ -153,6 +180,54 @@
           alert('create success');
           console.log(rs.data);
           $('#js_create_modal').modal('hide');
+
+          F.renderData();
+        }
+      });
+    },
+    addCreditScore(score){
+      const d = $('#js_node_detail').data('json');
+      const val = {
+        peerId : d.peerId,
+        score : _.add(d.creditScore, score),
+        json : 1
+      };
+
+      $.ajax({
+        url : '/poc/setPeerScore',
+        type : 'get',
+        data : val,
+        success : (rs)=>{
+          if(rs.code < 0){
+            alert(rs.error);
+            return false;
+          }
+          alert('success');
+
+          $('#js_node_detail').modal('hide');
+          F.renderData();
+        }
+      });
+    },
+    deleteNode(){
+      const d = $('#js_node_detail').data('json');
+      const val = {
+        peerId : d.peerId,
+      };
+
+      $.ajax({
+        url : '/poc/deletePot',
+        type : 'get',
+        data : val,
+        success : (rs)=>{
+          if(rs.code < 0){
+            alert(rs.error);
+            return false;
+          }
+          alert('success');
+
+          $('#js_node_detail').modal('hide');
+          F.renderData();
         }
       });
     }
