@@ -13,6 +13,7 @@
         _.delay(()=>{
           el.find('.js_title').html('Peer : '+ d.name);
           el.find('.js_score').html(d.creditScore);
+          el.find('.js_gas').html(d.gas);
           el.find('.js_geo').html(d.location.join(' - '));
           el.find('.js_hash').html(d.potHash);
         }, 100);
@@ -101,7 +102,8 @@
                 const d = e.data;
                 return `
                 peerId: ${d.peerId} <br/>
-                score: ${d.creditScore}
+                score: ${d.creditScore} <br/>
+                gas: ${d.gas}
                 `;
               }
             }
@@ -221,11 +223,23 @@
       });
 
     },
-    addCreditScore(score){
+    setCreditScore(){
+      const val = parseInt(prompt('please input the number you what to set', '10'), 10);
+
+      if(_.isNumber(val) && !_.isNaN(val)){
+        poc.addCreditScore(val, true);
+      }
+      else{
+        alert('invalid input');
+      }
+  
+    },
+    addCreditScore(score, f=false){
       const d = $('#js_node_detail').data('json');
+      score = !f ? _.add(d.creditScore, score) : score;
       const val = {
         peerId : d.peerId,
-        score : _.add(d.creditScore, score),
+        score,
         json : 1
       };
 
@@ -281,20 +295,77 @@
 
         _.delay(()=>{
           let html = '';
+          const x = 'style="justify-content: space-between;display:flex;"';
           _.each(rs.data, (item)=>{
             html += `
-              <li class="list-group-item">From Peer Id : ${item.fromPeerId}</li>
-              <li class="list-group-item">To Peer Id : ${item.toPeerId}</li>
-              <li class="list-group-item">Amount : ${item.amt}</li>
-              <li class="list-group-item">Type : ${item.referenceEventType}</li>
-              <li class="list-group-item">Token Type : ${item.tokenType}</li>
+              <li ${x} class="list-group-item"><b>From Peer Id</b> <span>${item.fromPeerId}</span></li>
+              <li ${x} class="list-group-item"><b>To Peer Id</b> <span>${item.toPeerId}</span></li>
+              <li ${x} class="list-group-item"><b>Amount</b> <span>${item.amt}</span></li>
+              <li ${x} class="list-group-item"><b>Type</b> <span>${item.referenceEventType}</span></li>
+              <li ${x} class="list-group-item"><b>Token Type</b> <span>${item.tokenType}</span></li>
+              <li ${x} class="list-group-item"><b>Update Time</b> <span>${item.updatedAt}</span></li>
               <li style="list-style:none;"><h4></h4></li>
             `;
           });
-          console.log(11, html);
+          
           $('#js_tx_logs').find('.js_box').html(html);
         }, 100);
       });
+    },
+
+    setGasBalance(){
+      const val = parseInt(prompt('please input the number you what to add', '10'), 10);
+      const d = $('#js_node_detail').data('json');
+      if(_.isNumber(val) && !_.isNaN(val)){
+        set();
+      }
+      else{
+        alert('invalid input');
+      }
+
+      
+      function set(){
+        $.ajax({
+          url : '/poc/faucetGasToPeer',
+          type : 'get',
+          data : {
+            json : 1,
+            peerId : d.name,
+            amt : val
+          }
+        }).then((rs)=>{
+          if(rs.code < 0){
+            alert(rs.error);
+            return false;
+          }
+
+          alert('success');
+          $('#js_node_detail').modal('hide');
+          F.renderData();
+        })
+      }
+    },
+
+    tryRA(){
+      const d = $('#js_node_detail').data('json');
+      $.ajax({
+        url : '/poc/tryRa',
+        type : 'get',
+        data : {
+          peerId : d.name,
+          potHash : d.potHash,
+          json : 1
+        }
+      }).then((rs)=>{
+        if(rs.code < 0){
+          alert(rs.error);
+          return false;
+        }
+        if(rs.data.currentRaConsensusResult){
+          alert(rs.data.currentRaConsensusResult.message);
+          return false;
+        }
+      })
     }
   };
 

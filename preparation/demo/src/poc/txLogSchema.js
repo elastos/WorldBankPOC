@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const httpStatus = require('http-status');
 const APIError = require('../api/utils/APIError');
+const _ = require('lodash');
 
 const txLogSchema = new mongoose.Schema({
   fromPeerId: {
@@ -43,6 +44,9 @@ const txLogSchema = new mongoose.Schema({
 
 txLogSchema.statics = {
   async txByTxId(id){
+    if(_.isString(id)){
+      id = mongoose.Types.ObjectId(id);
+    }
     const tx = await this.findOne(id).exec();
     return tx;
   },

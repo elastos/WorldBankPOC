@@ -66,6 +66,7 @@ gasSchema.statics = {
       const fromPeer =await this.findOne({peerId:fromPeerId}).exec();
       if(! fromPeer) return {txId: null, err:'From Peer Not Exists'};
       const newBalance = fromPeer.gasBalance - amt;
+console.log(fromPeer, amt);
       if(newBalance < 0) return {txId: null, err:'From Peer Doesnot have enough balance'};
       await this.findOneAndUpdate({peerId:fromPeerId}, {gasBalance:newBalance}).exec();
     }

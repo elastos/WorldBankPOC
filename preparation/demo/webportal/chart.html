@@ -96,17 +96,23 @@
         <ul class="list-group">
           <li style="list-style: none;"><h4>Details</h4></li>
           <li class="list-group-item">Score : <span class="js_score"></span></li>
+          <li class="list-group-item">Gas : <span class="js_gas"></span></li>
           <li class="list-group-item">Location : <span class="js_geo"></span></li>
           <li class="list-group-item">PotHash : <span class="js_hash"></span></li>
           <li style="list-style: none;margin-top:24px;"><h4>Actions</h4></li>
           <li class="list-group-item">
-            <button class="btn btn-success" onClick="poc.addCreditScore(10)">Add 10 credit score</button>
-            <button class="btn btn-success" onClick="poc.addCreditScore(100)">Add 100 credit score</button>
-            <button class="btn btn-success" onClick="poc.addCreditScore(1000)">Add 1000 credit score</button>
+            <button class="btn btn-primary" onClick="poc.setCreditScore()">Set Credit Score</button>
+            
+            <button style="float:right;margin-left: 12px;" class="btn btn-success" onClick="poc.addCreditScore(100)">Add 100 credit score</button>
+            <button style="float:right;" class="btn btn-success" onClick="poc.addCreditScore(10)">Add 10 credit score</button>
+            
           </li>
           <li class="list-group-item">
-            <button class="btn btn-success" onClick="poc.showTxLogs()">Show TX Logs</button>
-            
+            <button style="" class="btn btn-primary" onClick="poc.setGasBalance()">Add Gas Balance</button>
+          </li>
+          <li class="list-group-item">
+            <button class="btn btn-primary" onClick="poc.showTxLogs()">Show TX Logs</button>
+            <button class="btn btn-primary" onClick="poc.tryRA()">Try Remote Attestation</button>
           </li>
           <li class="list-group-item">
             <button class="btn btn-danger" onClick="poc.deleteNode()">Remove Node</button>
@@ -126,12 +132,12 @@
 
 <!-- Modal -->
 <div class="modal fade" id="js_tx_logs" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog modal-lg" role="document">
+  <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title">TX Logs</h5>
       </div>
-      <div class="modal-body">
+      <div class="modal-body" style="overflow: auto;max-height: 550px;">
         <ul class="list-group js_box">
 
         </ul>

@@ -165,9 +165,18 @@ router
 router
   .route('/tryRa')
   .get(async (req, res, next) => {
-    const {peerId, potHash} = req.query;
-    const result = await remoteAttestationSim.tryRa({peerId, potHash});
-    betterResponse.responseBetterJson(res, {peerId, potHash}, result);
+    const {peerId, potHash, json} = req.query;
+    const rs = await remoteAttestationSim.tryRa({peerId, potHash});
+    console.log('tryRa => ', rs);
+    if(json){
+      if(rs.result && rs.result !== 'error'){
+        return result(res, 1, rs);
+      }else{
+        return result(res, -1, rs.message)
+      }
+      
+    }
+    betterResponse.responseBetterJson(res, {peerId, potHash}, rs);
   });
 
 router
@@ -182,11 +191,18 @@ router
         $in : ids
       }
     }).exec();
+    const gs = await gasSim.find({
+      peerId : {
+        $in : ids
+      }
+    }).exec();
     list = _.map(list, (item)=>{
       const tmp = _.find(cs, (x)=>x.peerId===item.peerId);
+      const tmp1 = _.find(gs, (x)=>x.peerId===item.peerId);
       const rs = {
         ...item.toJSON(),
-        creditScore : tmp.creditScore
+        creditScore : tmp.creditScore,
+        gas : tmp1.gasBalance
       };
       return rs;
     });
@@ -199,6 +215,7 @@ router
     const {peerId} = req.query;
     
     try{
+      await gasSim.remove({peerId});
       await creditScore.remove({peerId});
       await potSchema.remove({peerId});
 
