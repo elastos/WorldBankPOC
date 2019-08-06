@@ -13,7 +13,7 @@
         _.delay(()=>{
           el.find('.js_title').html('Peer : '+ d.name);
           el.find('.js_score').html(d.creditScore);
-          el.find('.js_geo').html(d.value.join(' - '));
+          el.find('.js_geo').html(d.location.join(' - '));
           el.find('.js_hash').html(d.potHash);
         }, 100);
       });
@@ -138,9 +138,10 @@
       const d = util.createRandomGeoLocation();
       _.delay(()=>{
         $('#ma_peerId').val('');
+        $('#ma_leo').val(10);
         $('#ma_lat').val(d[0]);
         $('#ma_lng').val(d[1]);
-        $('#ma_hacked')[0].checked = true;
+        $('#ma_hacked')[0].checked = false;
       }, 100);
       
     },
@@ -164,26 +165,61 @@
         return false;
       }
 
-      val.json = 1;
-      val.depositGasTxId = 'test_123';
+      const amt = $('#ma_leo').val();
+      if(!amt || parseInt(amt) < 10){
+        alert('invalid LEO number');
+        return false;
+      }
+
       $.ajax({
-        url : '/poc/newNodeJoin',
+        url : '/poc/faucetGasToPeer',
         type : 'get',
-        // dataType : 'json',
-        data : val,
-        success : (rs)=>{
-          if(rs.code < 0){
-            alert(rs.error);
-            return;
-          }
-
-          alert('create success');
-          console.log(rs.data);
-          $('#js_create_modal').modal('hide');
-
-          F.renderData();
+        data : {
+          json : 1,
+          peerId : val.peerId,
+          amt : amt
         }
+      }).then((rs)=>{
+        if(rs.code < 0){
+          alert(rs.error);
+          return false;
+        }
+        return $.ajax({
+          url : '/poc/newJoinNodeDeposit',
+          type : 'get',
+          data : {
+            json : 1,
+            peerId : val.peerId,
+            depositGasAmt : amt
+          }
+        })
+      }).then((rs)=>{
+        if(rs.code < 0){
+          alert(rs.error);
+          return false;
+        }
+        val.json = 1;
+        val.depositGasTxId = rs.data.gasTransactionId._id;
+
+        return $.ajax({
+          url : '/poc/newNodeJoin',
+          type : 'get',
+          // dataType : 'json',
+          data : val
+        });
+      }).then((rs)=>{
+        if(rs.code < 0){
+          alert(rs.error);
+          return false;
+        }
+
+        alert('create success');
+        console.log(rs.data);
+        $('#js_create_modal').modal('hide');
+
+        F.renderData();
       });
+
     },
     addCreditScore(score){
       const d = $('#js_node_detail').data('json');
@@ -229,6 +265,35 @@
           $('#js_node_detail').modal('hide');
           F.renderData();
         }
+      });
+    },
+
+    showTxLogs(){
+      const d = $('#js_node_detail').data('json');
+      $.ajax({
+        url : '/poc/txLogs/'+d.name,
+        type : 'get',
+        data : {}
+      }).then((rs)=>{
+        console.log(rs);
+        $('#js_node_detail').modal('hide');
+        $('#js_tx_logs').modal('show');
+
+        _.delay(()=>{
+          let html = '';
+          _.each(rs.data, (item)=>{
+            html += `
+              <li class="list-group-item">From Peer Id : ${item.fromPeerId}</li>
+              <li class="list-group-item">To Peer Id : ${item.toPeerId}</li>
+              <li class="list-group-item">Amount : ${item.amt}</li>
+              <li class="list-group-item">Type : ${item.referenceEventType}</li>
+              <li class="list-group-item">Token Type : ${item.tokenType}</li>
+              <li style="list-style:none;"><h4></h4></li>
+            `;
+          });
+          console.log(11, html);
+          $('#js_tx_logs').find('.js_box').html(html);
+        }, 100);
       });
     }
   };

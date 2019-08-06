@@ -21,29 +21,45 @@ router
 router
   .route('/faucetGasToPeer')
   .get(async (req,res) => {
-    const {peerId, amt} = req.query;
+    const {peerId, amt, json} = req.query;
     const amtNumber = Number.parseInt(amt);
     const gasTransactionId = await gasSim.transferGasFromEscrow(peerId, amtNumber, "FaucetGasTransfer_ref_peerId", peerId);
+    if(json){
+      return result(res, 1, gasTransactionId);
+    }
     betterResponse.responseBetterJson(res, {peerId, amtNumber}, {gasTransactionId});
   });
 router
   .route('/newJoinNodeDeposit')
   .get(async (req, res) => {
-    const {peerId, depositGasAmt} = req.query;
+    const {peerId, depositGasAmt, json} = req.query;
     const credit = await creditScore.get(peerId);
     console.log('credit obj,', credit);
     if(credit && credit.creditScore && credit.creditScore > 0){
+      if(json){
+        return result(res, -1, 'Please change peerID, since this peerId has existed');
+      }
       return betterResponse.responseBetterJson(res, {peerId, depositGasAmt}, {error:'Please change peerID, since this peerId has existed'});
     }
-    if(! depositGasAmt){
+
+    const depositGasAmtNumber = Number.parseInt(depositGasAmt || 0);
+    if(! depositGasAmt || depositGasAmtNumber < 10){
+      if(json){
+        return result(res, -1, 'Deposit gas for intial remote attestion need to be more than 10');
+      }
       return betterResponse.responseBetterJson(res, {peerId, depositGasAmt}, {error:'Deposit gas for intial remote attestion need to be more than 10'});
     }
-    const depositGasAmtNumber = Number.parseInt(depositGasAmt);
-    if (depositGasAmtNumber < 10){
-      return betterResponse.responseBetterJson(res, {peerId, depositGasAmt}, {error:'Deposit gas for intial remote attestion need to be more than 10'});
-    }
+    
+    // if (depositGasAmtNumber < 10){
+    //   return betterResponse.responseBetterJson(res, {peerId, depositGasAmt}, {error:'Deposit gas for intial remote attestion need to be more than 10'});
+    // }
+
     console.log('depositGasAmtNumber', depositGasAmtNumber)
     const gasTransactionId = await gasSim.transferGasToEscrow(peerId, depositGasAmtNumber, "NewNodeJoinDepositGas_ref_peerId", peerId);
+
+    if(json){
+      return result(res, 1, {peerId, depositGasAmt, gasTransactionId});
+    }
     betterResponse.responseBetterJson(res, {peerId, depositGasAmt}, {gasTransactionId});
   });
 
@@ -193,5 +209,14 @@ router
     
 
     
+  });
+
+router
+  .route('/txLogs/:peerId')
+  .get(async (req, res)=>{
+    const { peerId } = req.params;
+    const list = await txLogSchema.getAllByPeerId(peerId);
+
+    return result(res, 1, list);
   });
 module.exports = router;

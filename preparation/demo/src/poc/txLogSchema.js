@@ -55,14 +55,23 @@ txLogSchema.statics = {
   },
   async doValidationOnGasTx(txId, validateFunction){
 
-    // add fack txId to pass validate
-    if(txId === 'test_123'){
-      return true;
-    }
-
     const tx = await this.findOne({_id:txId}).exec();
     if(! tx) return false;
     return validateFunction(tx);
+  },
+  async getAllByPeerId(peerId){
+    const list = await this.find({
+      $or: [
+        {
+          fromPeerId : peerId
+        },
+        {
+          toPeerId : peerId
+        }
+      ]
+    }).sort({updatedAt : -1}).exec();
+
+    return list;
   }
 };
 
