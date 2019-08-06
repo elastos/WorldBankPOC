@@ -36,6 +36,10 @@ const raLogSchema = new mongoose.Schema({
     type: Number,
     required: true, 
   },
+  myPayDepositResultTxId:{
+    type:String,
+    required:true,
+  },
   threshold:{
     type:Number,
     requried: true,
@@ -64,8 +68,8 @@ raLogSchema.statics = {
     const pot = await this.find({potHash, finalized:false}).exec();
     return pot;
   },
-  async addNewRaLog({peerId, potHash, pi, vrfHash, blockHeight, creditScoreAtBlockHeightTime, raResult}){
-    const newRaLog = {peerId, potHash, pi, vrfHash, blockHeight, creditScoreAtBlockHeightTime, raResult, finalized: false};
+  async addNewRaLog({peerId, potHash, pi, vrfHash, myPayDepositResultTxId, blockHeight, creditScoreAtBlockHeightTime, raResult}){
+    const newRaLog = {peerId, potHash, pi, vrfHash, myPayDepositResultTxId, blockHeight, creditScoreAtBlockHeightTime, raResult, finalized: false};
     return this.create(newRaLog);
   },
   async finalizeRaLogs(idArray){

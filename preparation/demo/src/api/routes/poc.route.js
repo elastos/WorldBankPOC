@@ -18,13 +18,21 @@ router
     res.send('You will see updates here');
   });
 
-  //newJoinNodeDeposit
+router
+  .route('/faucetGasToPeer')
+  .get(async (req,res) => {
+    const {peerId, amt} = req.query;
+    const amtNumber = Number.parseInt(amt);
+    const gasTransactionId = await gasSim.transferGasFromEscrow(peerId, amtNumber, "FaucetGasTransfer_ref_peerId", peerId);
+    betterResponse.responseBetterJson(res, {peerId, amtNumber}, {gasTransactionId});
+  });
 router
   .route('/newJoinNodeDeposit')
   .get(async (req, res) => {
     const {peerId, depositGasAmt} = req.query;
     const credit = await creditScore.get(peerId);
-    if(credit){
+    console.log('credit obj,', credit);
+    if(credit && credit.creditScore && credit.creditScore > 0){
       return betterResponse.responseBetterJson(res, {peerId, depositGasAmt}, {error:'Please change peerID, since this peerId has existed'});
     }
     if(! depositGasAmt){
@@ -44,7 +52,7 @@ router
   .get(async (req, res) => {
     const {peerId, hacked, depositGasTxId, json, lat, lng} = req.query;
     const credit = await creditScore.get(peerId);
-    if(credit){
+    if(credit && credit.creditScore && credit.creditScore > 0){
       if(json){
         return result(res, -1, 'Please change peerID, since this peerId has existed');
       }
@@ -57,8 +65,18 @@ router
       return betterResponse.responseBetterJson(res, {peerId, hacked, depositGasTxId}, {error:'In order to join the trusted network, you have to pay a init gas fee for other trusted nodes to give you an approval based on PoT value. This is called Remote Attestation. Please attach the txId of your deposit to Escrow account'});
     
     }
-    
-    if(! await txLogSchema.doValidationOnGasTx(depositGasTxId, remoteAttestationSim.depositGasTxIdValidation)){
+    const depositGasTxIdValidation = ({fromPeerId, toPeerId, amt, tokenType, referenceEventType, referenceEventId})=>{
+      if(fromPeerId != constValue.gasFaucetPeerId){
+        if(fromPeerId != peerId) return false;
+      }
+      if(amt < 10)  return false;
+      
+      if(tokenType != 'gas') return false;
+      if(referenceEventType != 'NewNodeJoinDepositGas_ref_peerId') return false;
+      if((referenceEventId != constValue.gasFaucetPeerId) && (referenceEventId != peerId)) return false;
+      return true;
+    }; 
+    if(! await txLogSchema.doValidationOnGasTx(depositGasTxId, depositGasTxIdValidation)){
       return betterResponse.responseBetterJson(res, {peerId, hacked, depositGasTxId}, {error:'We cannot find the Proof of Payment from the TxId You attached. In order to join the trusted network, you have to pay a init gas fee for other trusted nodes to give you an approval based on PoT value. This is called Remote Attestation. Please attach the txId of your deposit to Escrow account'});
     
     }

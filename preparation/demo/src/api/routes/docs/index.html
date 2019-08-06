@@ -45,6 +45,7 @@
       </code>
     </p>
   </li>
+
   <li>
       <h2>Deposit Escrow Gas Fee for Init Approval Cost before New Node Join Network</h2>
       <p>
@@ -56,15 +57,24 @@
       <p>
         If you are too poor to pay 10 gas for test purpose, just type "faucet" in the peerId textbox, Santa Claus will pay for you.
       </p>
+      <p>
+        <form action="/poc/faucetGasToPeer" method="get">
+          Ask Santa Claus send Gas To Your PeerId: <input type="text" name="peerId"><br>
+          Amount: <input type="text" name="amt"><br>
+          <input type="submit" value="Submit">
+        </form>
+      </p>
+      <p>
+        <form action="/poc/newJoinNodeDeposit" method="get">
+          PeerId: <input type="text" name="peerId"><br>
+          Escrow Gas Deposit Amount (must higher than 10): <input type="text" name="depositGasAmt"><br>
+          <input type="submit" value="Submit">
+        </form>
+      </p>
+      <p><b>Remember to copy the gasTransactionId._id in the response json. </b>You will need this ID in your further steps</p>
 
-          <form action="/poc/newJoinNodeDeposit" method="get">
-            PeerId: <input type="text" name="peerId"><br>
-            Escrow Gas Deposit Amount (must higher than 10): <input type="text" name="depositGasAmt"><br>
-            <input type="submit" value="Submit">
-          </form>
-        </p>
-        <p><b>Remember to copy the gasTransactionId._id in the response json. </b>You will need this ID in your further steps</p>
-  </li>
+      </p>
+ </li>
   <li>
       <h2> New Node Join Network Asking for Initial Remote Attestation</h2>
       <p>If you (or Santa Claus) have paid the deposit in last step, please copy the transaction ID as the Proof of Payment in this step.</p>
