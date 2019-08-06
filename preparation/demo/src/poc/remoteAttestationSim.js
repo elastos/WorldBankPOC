@@ -37,7 +37,7 @@ const luckyDraw = async ({peerId, potHash, creditScore, privKey}) => {
 };
 
 const runRaConsensus = async ({potHash}) => {
-  const activeRaLogss = await raLogSchema.getAllActiveRaLogFromPotHash({potHash});
+  const activeRaLogs = await raLogSchema.getAllActiveRaLogFromPotHash({potHash});
   const verifyVrf = (pot) => {
     //placeholder
     return true;
@@ -54,20 +54,20 @@ const runRaConsensus = async ({potHash}) => {
     return accumulator;
   }
 
-  const accum = activeRaLogss.reduce(reducer, {weightedScore:0, raPeerCount:0});
+  const accum = activeRaLogs.reduce(reducer, {weightedScore:0, raPeerCount:0});
   console.log('accum,', accum);
   if( accum.raPeerCount < 5){
-    return {result: false, message:'less than 5 remote attestators, please wait for more attestators to verify', activeRaLogss}
+    return {result: false, message:'less than 5 remote attestators, please wait for more attestators to verify', activeRaLogs}
   }else{
-    const potIds = activeRaLogss.map(p=>p._id);
+    const potIds = activeRaLogs.map(p=>p._id);
     raLogSchema.finalizeRaLogs(potIds);
     
     if(accum.weightedScore < STATIC_THRESHOLD_FOR_REMOTE_ATTESTATION){
-      const rewardedGasAndCredit =  await runSmartContractToDistributeGasAndCredit(activeRaLogss, false, potHash);
-      return {result: false, message:'we have enough remote attestators, but the result is false', accum, activeRaLogss};
+      const rewardedGasAndCredit =  await runSmartContractToDistributeGasAndCredit(activeRaLogs, false, potHash);
+      return {result: false, message:'we have enough remote attestators, but the result is false', accum, activeRaLogs};
     }else{
-      const rewardedGasAndCredit =  await runSmartContractToDistributeGasAndCredit(activeRaLogss, true, potHash);
-      return {result: true, message:'we have enough remote attestators support you. Welcome to our trusted network', rewardedGasAndCredit, accum, activeRaLogss};
+      const rewardedGasAndCredit =  await runSmartContractToDistributeGasAndCredit(activeRaLogs, true, potHash);
+      return {result: true, message:'we have enough remote attestators support you. Welcome to our trusted network', rewardedGasAndCredit, accum, activeRaLogs};
     }
   }
    
@@ -75,30 +75,40 @@ const runRaConsensus = async ({potHash}) => {
 
 const runSmartContractToDistributeGasAndCredit = async (activeRaLogs, raResult, potHash)=>{
   //those ra nodes who vote result is the same is final result get reward, thsoe ra nodes who vote against the final result get penalty
-  const reducer = async (accum, current) => {
+
+  let rewardPoolGas = 0;
+  let rewardPeers = [];
+  let penaltyPeers = [];
+  //console.log('activeRaLogs', activeRaLogs);
+  for(i = 0; i < activeRaLogs.length; i ++){
+    const current = activeRaLogs[i];
+    //console.log('current', current);
     const {peerId, myPayDepositResultTxId} = current;
     if(current.raResult == raResult){//this RA actually WIN the Ra, so this node should be reward
-      accum.rewardPeer.push(peerId);
+      rewardPeers.push(peerId);
       
     } else{  //this node against the final result. this user should be pentalty
-      accum.pentaltyPeer.push(peerId);
+      penaltyPeers.push(peerId);
     }
-    const raNodeDepositGas = await txLogSchema.txByTxId(myPayDepositResultTxId);
-    accum.rewardPoolGas += raNodeDepositGas;
+    const raNodeDepositGasTx = await txLogSchema.txByTxId(myPayDepositResultTxId);
+    //console.log('raNodeDepositGas', raNodeDepositGas);
+    
+    rewardPoolGas += raNodeDepositGasTx.amt;
   };
 
-  const accum = activePots.reduce(reducer, {rewardPeer:[], penaltyPeer:[], rewardPoolGas:0});
-  const rewardGasToEachWinnerPeer = accum.rewardPoolGas / accum.rewardPeer.len();
-  const rewardCreditToEachWinnerPeer = constValue.creditPentaltyToEverySuccessfulRa;
-  const penaltyCreditToEachLoserPeer = constValue.creditPentaltyToEverySuccessfulRa;
+  //console.log('rewardPeers', rewardPeers, penaltyPeers, rewardPoolGas);
 
-  const RewardPeersTxList = accum.rewardPeer.map(async (peerId) => {
-    const creditRewardTxId = await creditScoreSim.withdrawFromReserve(peerId, rewardGasToEachWinnerPeer);
+  const rewardGasToEachWinnerPeer = rewardPeers.length == 0? 0: rewardPoolGas / rewardPeers.length;
+  const rewardCreditToEachWinnerPeer = constValue.creditRewardToEverySuccessfulRa;
+  const penaltyCreditToEachLoserPeer = constValue.creditPentaltyToEverySuccessfulRa;
+  
+  const RewardPeersTxList = rewardPeers.map(async (peerId) => {
+    const creditRewardTxId = await creditScoreSim.withdrawFromReserve(peerId, rewardGasToEachWinnerPeer, "RaReward_ref_potHash", potHash);
     const gasRewardTxId = await gasSim.transferGasFromEscrow(peerId, rewardGasToEachWinnerPeer, "RaReward_ref_potHash", potHash);
     return {peerId, creditRewardTxId, gasRewardTxId};
   });
-  const PenaltyPeersTxList = accum.penaltyPeer.map(async (peerId) => {
-    const creditPentaltyTxId = await creditScoreSim.withdrawFromReserve(peerId, penaltyCreditToEachLoserPeer);
+  const PenaltyPeersTxList = penaltyPeers.map(async (peerId) => {
+    const creditPentaltyTxId = await creditScoreSim.withdrawFromReserve(peerId, penaltyCreditToEachLoserPeer, "RaReward_ref_potHash", potHash);
     return {peerId, creditPentaltyTxId};
   });
   
@@ -107,7 +117,7 @@ const runSmartContractToDistributeGasAndCredit = async (activeRaLogs, raResult, 
 
 
 const payEqualDepositToStartRa =  async (myPeerId, depositGasTxId)=>{
-  const originalDepositTxObj = txLogSchema.txByTxId(depositGasTxId);
+  const originalDepositTxObj = await txLogSchema.txByTxId(depositGasTxId);
   const {amt, referenceEventType, referenceEventId} = originalDepositTxObj;
   return gasSim.transferGasToEscrow(myPeerId, amt, referenceEventType, referenceEventId);
 };
@@ -126,18 +136,19 @@ exports.tryRa = async ({peerId, potHash}) => {
     return {result:'error', message: 'potHash not exists'};
   }
   const {depositGasTxId} = pot;
-  const depositGasTxIdValidation = ({fromPeerId, toPeerId, amt, tokenType, referenceEventType, referenceEventId})=>{
+  const depositGasTxIdValidation = (shouldPaidFromPeerId, {fromPeerId, toPeerId, amt, tokenType, referenceEventType, referenceEventId})=>{
     if(fromPeerId != constValue.gasFaucetPeerId){
-      if(fromPeerId != peerId) return false;
+      if(fromPeerId != shouldPaidFromPeerId) return false;
     }
     if(amt < 10)  return false;
     
     if(tokenType != 'gas') return false;
     if(referenceEventType != 'NewNodeJoinDepositGas_ref_peerId') return false;
-    if((referenceEventId != constValue.gasFaucetPeerId) && (referenceEventId != peerId)) return false;
+    if((referenceEventId != constValue.gasFaucetPeerId) && (referenceEventId != shouldPaidFromPeerId)) return false;
     return true;
   };
-  if(! await txLogSchema.doValidationOnGasTx(depositGasTxId, depositGasTxIdValidation)){
+  const shouldPaidFromPeerId = pot.peerId;
+  if(! await txLogSchema.doValidationOnGasTx(depositGasTxId, shouldPaidFromPeerId, depositGasTxIdValidation)){
     //return betterResponse.responseBetterJson(res, {peerId, hacked, depositGasTxId}, {error:'We cannot find the Proof of Payment from the TxId You attached. In order to join the trusted network, you have to pay a init gas fee for other trusted nodes to give you an approval based on PoT value. This is called Remote Attestation. Please attach the txId of your deposit to Escrow account'});
     return {
       result: 'error',
@@ -154,7 +165,10 @@ exports.tryRa = async ({peerId, potHash}) => {
   }
   console.log("I am lucky, I have the chance to run RA, ", luckyDrawResult.vrfHash, luckyDrawResult.threshold);
   console.log("But I have to pay the gas deposit before start RA. The deposit will be the same amount as the new Join Node's deposit. If I failed, I will lose my deposit, but if I win, I will win it back plus shared New Node'deposit and credit too.")
-  const myPayDepositResultTxId = await payEqualDepositToStartRa(peerId, depositGasTxId);
+  console.log('depositGasTxId', depositGasTxId);
+  const myPayDepositResultTx = await payEqualDepositToStartRa(peerId, depositGasTxId);
+  const myPayDepositResultTxId = myPayDepositResultTx._id;
+  console.log('myPayDepositResultTxId', myPayDepositResultTxId);
   if(! myPayDepositResultTxId){
     return {result: 'error', message: 'RaNode failed to pay deposit before Ra'};
   }

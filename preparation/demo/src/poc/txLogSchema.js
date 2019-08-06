@@ -43,7 +43,7 @@ const txLogSchema = new mongoose.Schema({
 
 txLogSchema.statics = {
   async txByTxId(id){
-    const tx = await this.findOne(id).exec();
+    const tx = await this.findById(id).exec();
     return tx;
   },
   async txByRefTypeId({referenceEventType, referenceEventId}){
@@ -53,16 +53,16 @@ txLogSchema.statics = {
   async addNewTxLog(tx){
     return this.create(tx);
   },
-  async doValidationOnGasTx(txId, validateFunction){
+  async doValidationOnGasTx(txId, shouldPaidFromPeerId, validateFunction){
 
     // add fack txId to pass validate
     if(txId === 'test_123'){
       return true;
     }
 
-    const tx = await this.findOne({_id:txId}).exec();
+    const tx = await this.findById(txId).exec();
     if(! tx) return false;
-    return validateFunction(tx);
+    return validateFunction(shouldPaidFromPeerId, tx);
   }
 };
 

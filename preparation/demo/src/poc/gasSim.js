@@ -65,9 +65,11 @@ gasSchema.statics = {
     if(fromPeerId != constValue.gasFaucetPeerId){
       const fromPeer =await this.findOne({peerId:fromPeerId}).exec();
       if(! fromPeer) return {txId: null, err:'From Peer Not Exists'};
+      console.log('fromPeer', fromPeer, amt);
       const newBalance = fromPeer.gasBalance - amt;
+      console.log('newBalance', newBalance);
       if(newBalance < 0) return {txId: null, err:'From Peer Doesnot have enough balance'};
-      await this.findOneAndUpdate({peerId:fromPeerId}, {gasBalance:newBalance}).exec();
+      await this.findOneAndUpdate({peerId:fromPeerId}, {$inc:{gasBalance:newBalance}}).exec();
     }
     let toPeer;
     if(toPeerId != constValue.gasBurnPeerId){
@@ -78,7 +80,7 @@ gasSchema.statics = {
     }
 
     const newToPeerBalance = toPeer? toPeer.gasBalance + amt: amt;
-    await this.findOneAndUpdate({peerId:toPeerId}, {gasBalance:newToPeerBalance}).exec();
+    await this.findOneAndUpdate({peerId:toPeerId}, {$inc:{gasBalance:newToPeerBalance}}).exec();
     //During placeholder stage, we do not guarantee transaction and atom transaction, we assume all transaction go through successfully
     return await txLogSchema.addNewTxLog({
       fromPeerId,
