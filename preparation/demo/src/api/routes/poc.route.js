@@ -236,4 +236,16 @@ router
 
     return result(res, 1, list);
   });
+
+router
+  .route('/createGenesisPot')
+  .get(async (req, res)=>{
+    try{
+      await potSim.createGenesisPot();
+      return result(res, 1, 'ok');
+    }catch(e){
+      return result(res, -1, e);
+    }
+      
+  });
 module.exports = router;

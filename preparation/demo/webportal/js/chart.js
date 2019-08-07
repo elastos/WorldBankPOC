@@ -366,6 +366,24 @@
           return false;
         }
       })
+    },
+
+    createGenesisNode(){
+      $.ajax({
+        url : '/poc/createGenesisPot',
+        type : 'get',
+        data : {
+          json : 1
+        }
+      }).then((rs)=>{
+        if(rs.code < 0){
+          alert(rs.error);
+          return false;
+        }
+
+        alert('success');
+        F.renderData();
+      })
     }
   };
 
