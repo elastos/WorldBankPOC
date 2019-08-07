@@ -23,8 +23,7 @@ const TaskSchema = new mongoose.Schema({
   },
   status : {
     type : String,   // elect, processing, completed
-    required : false,
-    default : 'start'
+    required : true
   },
   type : {
     type : String,  // remote_attestation, caculate
