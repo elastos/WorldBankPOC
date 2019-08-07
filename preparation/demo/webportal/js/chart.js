@@ -91,7 +91,6 @@
               normal: {
                 color: (e)=>{
                   const d = e.data;
-                  console.log(1, d);
                   if(d.hacked){
                     return '#f00';
                   }

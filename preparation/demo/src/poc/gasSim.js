@@ -43,7 +43,7 @@ gasSchema.method({
  */
 gasSchema.statics = {
   async get(peerId) {
-      return credit = await this.findOne({peerId}).exec();
+    return await this.findOne({peerId}).exec();
   },
 
   async set(peerId, gas){

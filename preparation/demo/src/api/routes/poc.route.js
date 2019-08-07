@@ -1,3 +1,5 @@
+import service from '../../service';
+
 const express = require('express');
 const sha256 = require('js-sha256');
 const {creditScore, potSim, remoteAttestationSim, potSchema, betterResponse, gasSim, result, constValue, txLogSchema} = require('../../poc');
@@ -199,11 +201,10 @@ router
     list = _.map(list, (item)=>{
       const tmp = _.find(cs, (x)=>x.peerId===item.peerId);
       const tmp1 = _.find(gs, (x)=>x.peerId===item.peerId);
-      const rs = {
-        ...item.toJSON(),
-        creditScore : tmp.creditScore,
-        gas : tmp1.gasBalance
-      };
+
+      const rs = item.toJSON();
+      rs.creditScore = tmp.creditScore;
+      rs.gas = tmp1.gasBalance
       return rs;
     });
     return result(res, 1, list);
@@ -244,8 +245,23 @@ router
       await potSim.createGenesisPot();
       return result(res, 1, 'ok');
     }catch(e){
-      return result(res, -1, e);
+      return result(res, -1, e.toString());
     }
       
   });
+
+router
+  .route('/createNewCaculateTask')
+  .get(async (req, res)=>{
+    const {peerId, amt} = req.query; 
+
+    const taskService = service.getTaskService();
+    try{
+      const rs = await taskService.createNewCaculateTask(peerId, _.toNumber(amt));
+      return result(res, 1, rs);
+    }catch(e){
+      return result(res, -1, e.toString());
+    }
+  });
+
 module.exports = router;

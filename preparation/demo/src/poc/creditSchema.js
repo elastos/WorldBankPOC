@@ -65,13 +65,13 @@ creditSchema.statics = {
    * @returns {Promise<CreditScore, APIError>}
    */
   async get(peerId) {
-      return credit = await this.findOne({peerId}).exec();
+    return await this.findOne({peerId}).exec();
   },
 
   async set(peerId, score){
     const n = Number.parseInt(score);
   
-    credit = await this.findOne({peerId}).exec();
+    const credit = await this.findOne({peerId}).exec();
     if(credit){
       console.log('l82', credit);
       credit.creditScore = n;
