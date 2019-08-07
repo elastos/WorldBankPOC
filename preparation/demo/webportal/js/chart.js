@@ -70,6 +70,7 @@
             coordinateSystem: 'geo',
             data: opts.data || [],
             // symbol: 'diamond',
+            // symbol: 'path://M832 160 192 160c-38.4 0-64 32-64 64l0 448c0 38.4 32 64 64 64l256 0 0 64L352 800C332.8 800 320 812.8 320 832c0 19.2 12.8 32 32 32l320 0c19.2 0 32-12.8 32-32 0-19.2-12.8-32-32-32L576 800l0-64 256 0c38.4 0 64-32 64-64l0-448C896 192 864 160 832 160zM832 672l-640 0 0-448 640 0 0 0L832 672z',
             symbolSize: (val)=>{
               return util.symbolSize(val[2]);
             },
@@ -89,8 +90,16 @@
             itemStyle: {
               normal: {
                 color: (e)=>{
-                  const isPass = e.data.hacked;
-                  return !isPass ? '#0f0' : '#ff0';
+                  const d = e.data;
+                  console.log(1, d);
+                  if(d.hacked){
+                    return '#f00';
+                  }
+                  if(d.creditScore < 1){
+                    return '#ff0';
+                  }
+
+                  return '#0f0';
                 },
                 shadowBlur: 10,
                 shadowColor: '#333'
@@ -101,9 +110,12 @@
               formatter(e){
                 const d = e.data;
                 return `
+                ${d.hacked ? 'Hacked <br/>' : ''}
+                ${d.creditScore < 1 ? 'Untrusted <br/>' : ''}
+                ${d.hacked || d.creditScore < 1 ? '<div style="height:1px; background:#cdcdcd;"></div>' : ''}
                 peerId: ${d.peerId} <br/>
                 score: ${d.creditScore} <br/>
-                gas: ${d.gas}
+                gas: ${d.gas} <br/>
                 `;
               }
             }
@@ -384,6 +396,10 @@
         alert('success');
         F.renderData();
       })
+    },
+
+    refresh(){
+      F.renderData();
     }
   };
 

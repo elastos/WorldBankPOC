@@ -121,9 +121,7 @@ const payEqualDepositToStartRa =  async (myPeerId, depositGasTxId)=>{
   const originalDepositTxObj = await txLogSchema.txByTxId(depositGasTxId);
   const {amt, referenceEventType, referenceEventId} = originalDepositTxObj;
   const rs = await gasSim.transferGasToEscrow(myPeerId, amt, referenceEventType, referenceEventId);
-
-  // return tx id;
-  return rs._id;
+  return rs;
 };
 
 exports.tryRa = async ({peerId, potHash}) => {
@@ -172,8 +170,8 @@ exports.tryRa = async ({peerId, potHash}) => {
 
   const myPayDepositResultTx = await payEqualDepositToStartRa(peerId, depositGasTxId);
   const myPayDepositResultTxId = myPayDepositResultTx._id;
-  if(myPayDepositResultTxId.err){
-    return {result: 'error', message: myPayDepositResultTxId.err};
+  if(myPayDepositResultTx.err){
+    return {result: 'error', message: myPayDepositResultTx.err};
   }
   if(! myPayDepositResultTxId){
     return {result: 'error', message: 'RaNode failed to pay deposit before Ra'};
