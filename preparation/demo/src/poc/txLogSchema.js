@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const httpStatus = require('http-status');
 const APIError = require('../api/utils/APIError');
+const _ = require('lodash');
 
 const txLogSchema = new mongoose.Schema({
   fromPeerId: {
@@ -43,7 +44,12 @@ const txLogSchema = new mongoose.Schema({
 
 txLogSchema.statics = {
   async txByTxId(id){
+
+    if(_.isString(id)){
+      id = mongoose.Types.ObjectId(id);
+    }
     const tx = await this.findById(id).exec();
+
     return tx;
   },
   async txByRefTypeId({referenceEventType, referenceEventId}){
@@ -55,6 +61,7 @@ txLogSchema.statics = {
   },
   async doValidationOnGasTx(txId, shouldPaidFromPeerId, validateFunction){
 
+
     // add fack txId to pass validate
     if(txId === 'test_123'){
       return true;
@@ -63,6 +70,21 @@ txLogSchema.statics = {
     const tx = await this.findById(txId).exec();
     if(! tx) return false;
     return validateFunction(shouldPaidFromPeerId, tx);
+
+  },
+  async getAllByPeerId(peerId){
+    const list = await this.find({
+      $or: [
+        {
+          fromPeerId : peerId
+        },
+        {
+          toPeerId : peerId
+        }
+      ]
+    }).sort({updatedAt : -1}).exec();
+
+    return list;
   }
 };
 

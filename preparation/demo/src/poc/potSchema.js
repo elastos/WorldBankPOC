@@ -45,7 +45,7 @@ const potSchema = new mongoose.Schema({
 
   },
   location : {
-    type: [Number],  // [lat, long]
+    type: [Number],  // [lat, lng]
     required: false
   }
 

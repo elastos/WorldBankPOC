@@ -28,6 +28,7 @@ const luckyDraw = async ({peerId, potHash, creditScore, privKey}) => {
   const {pi, outputHash} = vrfSim.createVrf({peerId, privKey, inputHash: potHash});
   const threshold = weightedThreshold(creditScore);
   const vrfHash = outputHash;
+  console.log('lucky draw =>', vrfHash, threshold);
   if(vrfHash < threshold){
     return {result: true, vrfHash, pi, threshold};
     
@@ -83,6 +84,7 @@ const runSmartContractToDistributeGasAndCredit = async (activeRaLogs, raResult, 
   for(i = 0; i < activeRaLogs.length; i ++){
     const current = activeRaLogs[i];
     //console.log('current', current);
+
     const {peerId, myPayDepositResultTxId} = current;
     if(current.raResult == raResult){//this RA actually WIN the Ra, so this node should be reward
       rewardPeers.push(peerId);
@@ -90,13 +92,12 @@ const runSmartContractToDistributeGasAndCredit = async (activeRaLogs, raResult, 
     } else{  //this node against the final result. this user should be pentalty
       penaltyPeers.push(peerId);
     }
+
     const raNodeDepositGasTx = await txLogSchema.txByTxId(myPayDepositResultTxId);
     //console.log('raNodeDepositGas', raNodeDepositGas);
     
     rewardPoolGas += raNodeDepositGasTx.amt;
   };
-
-  //console.log('rewardPeers', rewardPeers, penaltyPeers, rewardPoolGas);
 
   const rewardGasToEachWinnerPeer = rewardPeers.length == 0? 0: rewardPoolGas / rewardPeers.length;
   const rewardCreditToEachWinnerPeer = constValue.creditRewardToEverySuccessfulRa;
@@ -119,7 +120,10 @@ const runSmartContractToDistributeGasAndCredit = async (activeRaLogs, raResult, 
 const payEqualDepositToStartRa =  async (myPeerId, depositGasTxId)=>{
   const originalDepositTxObj = await txLogSchema.txByTxId(depositGasTxId);
   const {amt, referenceEventType, referenceEventId} = originalDepositTxObj;
-  return gasSim.transferGasToEscrow(myPeerId, amt, referenceEventType, referenceEventId);
+  const rs = await gasSim.transferGasToEscrow(myPeerId, amt, referenceEventType, referenceEventId);
+
+  // return tx id;
+  return rs._id;
 };
 
 exports.tryRa = async ({peerId, potHash}) => {
@@ -165,10 +169,12 @@ exports.tryRa = async ({peerId, potHash}) => {
   }
   console.log("I am lucky, I have the chance to run RA, ", luckyDrawResult.vrfHash, luckyDrawResult.threshold);
   console.log("But I have to pay the gas deposit before start RA. The deposit will be the same amount as the new Join Node's deposit. If I failed, I will lose my deposit, but if I win, I will win it back plus shared New Node'deposit and credit too.")
-  console.log('depositGasTxId', depositGasTxId);
+
   const myPayDepositResultTx = await payEqualDepositToStartRa(peerId, depositGasTxId);
   const myPayDepositResultTxId = myPayDepositResultTx._id;
-  console.log('myPayDepositResultTxId', myPayDepositResultTxId);
+  if(myPayDepositResultTxId.err){
+    return {result: 'error', message: myPayDepositResultTxId.err};
+  }
   if(! myPayDepositResultTxId){
     return {result: 'error', message: 'RaNode failed to pay deposit before Ra'};
   }
@@ -184,6 +190,7 @@ exports.tryRa = async ({peerId, potHash}) => {
   const saveNewRaLog = await raLogSchema.addNewRaLog({
     peerId, potHash, pi, vrfHash, myPayDepositResultTxId, blockHeight, creditScoreAtBlockHeightTime: creditScore, raResult, threshold
   });
+
 
   const currentRaConsensusResult = await runRaConsensus({potHash});
   return {result:true, raResult, currentRaConsensusResult};

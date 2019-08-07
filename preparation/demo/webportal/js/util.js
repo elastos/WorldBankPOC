@@ -36,27 +36,7 @@ this.util = {
   },
 
   async requestList(){
-    // const data = [
-    //   {
-    //     peerId : '1',
-    //     geo : util.createRandomGeoLocation(),
-    //     creditScore : 10,
-    //     hacked : true,
-    //   },
-    //   {
-    //     peerId : '2',
-    //     geo : util.createRandomGeoLocation(),
-    //     creditScore : 32,
-    //     hacked : false,
-    //   },
-    //   {
-    //     peerId : '3',
-    //     geo : util.createRandomGeoLocation(),
-    //     creditScore : 100,
-    //     hacked : false
-    //   }
-    // ];
-
+    
     return new Promise((resolve)=>{
       $.ajax({
         url : '/poc/potList',

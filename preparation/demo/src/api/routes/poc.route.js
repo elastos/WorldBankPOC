@@ -21,29 +21,45 @@ router
 router
   .route('/faucetGasToPeer')
   .get(async (req,res) => {
-    const {peerId, amt} = req.query;
+    const {peerId, amt, json} = req.query;
     const amtNumber = Number.parseInt(amt);
     const gasTransactionId = await gasSim.transferGasFromEscrow(peerId, amtNumber, "FaucetGasTransfer_ref_peerId", peerId);
+    if(json){
+      return result(res, 1, gasTransactionId);
+    }
     betterResponse.responseBetterJson(res, {peerId, amtNumber}, {gasTransactionId});
   });
 router
   .route('/newJoinNodeDeposit')
   .get(async (req, res) => {
-    const {peerId, depositGasAmt} = req.query;
+    const {peerId, depositGasAmt, json} = req.query;
     const credit = await creditScore.get(peerId);
     console.log('credit obj,', credit);
     if(credit && credit.creditScore && credit.creditScore > 0){
+      if(json){
+        return result(res, -1, 'Please change peerID, since this peerId has existed');
+      }
       return betterResponse.responseBetterJson(res, {peerId, depositGasAmt}, {error:'Please change peerID, since this peerId has existed'});
     }
-    if(! depositGasAmt){
+
+    const depositGasAmtNumber = Number.parseInt(depositGasAmt || 0);
+    if(! depositGasAmt || depositGasAmtNumber < 10){
+      if(json){
+        return result(res, -1, 'Deposit gas for intial remote attestion need to be more than 10');
+      }
       return betterResponse.responseBetterJson(res, {peerId, depositGasAmt}, {error:'Deposit gas for intial remote attestion need to be more than 10'});
     }
-    const depositGasAmtNumber = Number.parseInt(depositGasAmt);
-    if (depositGasAmtNumber < 10){
-      return betterResponse.responseBetterJson(res, {peerId, depositGasAmt}, {error:'Deposit gas for intial remote attestion need to be more than 10'});
-    }
+    
+    // if (depositGasAmtNumber < 10){
+    //   return betterResponse.responseBetterJson(res, {peerId, depositGasAmt}, {error:'Deposit gas for intial remote attestion need to be more than 10'});
+    // }
+
     console.log('depositGasAmtNumber', depositGasAmtNumber)
     const gasTransactionId = await gasSim.transferGasToEscrow(peerId, depositGasAmtNumber, "NewNodeJoinDepositGas_ref_peerId", peerId);
+
+    if(json){
+      return result(res, 1, {peerId, depositGasAmt, gasTransactionId});
+    }
     betterResponse.responseBetterJson(res, {peerId, depositGasAmt}, {gasTransactionId});
   });
 
@@ -149,9 +165,18 @@ router
 router
   .route('/tryRa')
   .get(async (req, res, next) => {
-    const {peerId, potHash} = req.query;
-    const result = await remoteAttestationSim.tryRa({peerId, potHash});
-    betterResponse.responseBetterJson(res, {peerId, potHash}, result);
+    const {peerId, potHash, json} = req.query;
+    const rs = await remoteAttestationSim.tryRa({peerId, potHash});
+    console.log('tryRa => ', rs);
+    if(json){
+      if(rs.result && rs.result !== 'error'){
+        return result(res, 1, rs);
+      }else{
+        return result(res, -1, rs.message)
+      }
+      
+    }
+    betterResponse.responseBetterJson(res, {peerId, potHash}, rs);
   });
 
 router
@@ -166,11 +191,18 @@ router
         $in : ids
       }
     }).exec();
+    const gs = await gasSim.find({
+      peerId : {
+        $in : ids
+      }
+    }).exec();
     list = _.map(list, (item)=>{
       const tmp = _.find(cs, (x)=>x.peerId===item.peerId);
+      const tmp1 = _.find(gs, (x)=>x.peerId===item.peerId);
       const rs = {
         ...item.toJSON(),
-        creditScore : tmp.creditScore
+        creditScore : tmp.creditScore,
+        gas : tmp1.gasBalance
       };
       return rs;
     });
@@ -183,6 +215,7 @@ router
     const {peerId} = req.query;
     
     try{
+      await gasSim.remove({peerId});
       await creditScore.remove({peerId});
       await potSchema.remove({peerId});
 
@@ -193,5 +226,14 @@ router
     
 
     
+  });
+
+router
+  .route('/txLogs/:peerId')
+  .get(async (req, res)=>{
+    const { peerId } = req.params;
+    const list = await txLogSchema.getAllByPeerId(peerId);
+
+    return result(res, 1, list);
   });
 module.exports = router;
