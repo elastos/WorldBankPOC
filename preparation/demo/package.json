@@ -32,7 +32,8 @@
     "docker:start": "cross-env NODE_ENV=production pm2-docker start ./src/index.js",
     "docker:prod": "docker-compose -f docker-compose.yml -f docker-compose.prod.yml up",
     "docker:dev": "docker-compose -f docker-compose.yml -f docker-compose.dev.yml up",
-    "docker:test": "docker-compose -f docker-compose.yml -f docker-compose.test.yml up --abort-on-container-exit"
+    "docker:test": "docker-compose -f docker-compose.yml -f docker-compose.test.yml up --abort-on-container-exit",
+    "compile": "browserify ./src/poc/simulator/nodesim.js -o ./src/api/routes/simulator/js/app.js -d"
   },
   "repository": {
     "type": "git",
@@ -87,7 +88,11 @@
     "pm2": "^3.0.0",
     "uuid": "^3.1.0",
     "winston": "^3.1.0",
-    "js-sha256": "^0.9.0"
+    "js-sha256": "^0.9.0",
+    "browserify": "^16.2.3",
+    "http-server": "^0.11.1",
+    "ipfs": "^0.33.1",
+    "ipfs-pubsub-room": "^1.2.1"
   },
   "devDependencies": {
     "apidoc": "^0.17.5",
