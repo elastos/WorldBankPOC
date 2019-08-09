@@ -13,6 +13,7 @@ console.log('dir', __dirname );
  * GET docs
  */
 router.use('/', express.static(__dirname + '/docs'));
+router.use('/simulator', express.static(__dirname + '/simulator'));
 
 router.use('/poc', pocRoutes);
 
