@@ -42,7 +42,14 @@ const TaskSchema = new mongoose.Schema({
 });
 
 TaskSchema.statics = {
-  
+  async addTaskJoiner(peerId, taskId){
+    const rs = await this.findOneAndUpdate({_id: taskId}, {
+      joiner : {
+        $push : peerId
+      }
+    }).exec();
+    return rs;
+  }
 };
 
 export default mongoose.model('Task', TaskSchema);
