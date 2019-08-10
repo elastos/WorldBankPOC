@@ -2,15 +2,17 @@ const IPFS = require('ipfs')
 const Room = require('ipfs-pubsub-room')
 const PeerId = require('peer-id');
 const {demoPeerKeys} = require('../demoPeerIdKeys');
-let ipfs;
-function repo () {
-  return 'ipfs-leo/poc/' + Math.random()
-}
+const roomMessageHandler = require('./roomMeesageHandler');
+const townHall = require('./townHall');
+const taskRoom = require('./taskRoom');
+const blockRoom = require('./blockRoom');
+
 async function main(){
   //const peer = await PeerId.createFromJSON(demoPeerKeys[0]);
-
-  ipfs = new IPFS({
-    repo: repo(),
+  window.IPFS = IPFS;
+  console.log('before IPFS.create');
+  ipfs = await IPFS.create({
+    repo: 'ipfs-leo/poc/' + Math.random(),
     EXPERIMENTAL: {
       pubsub: true
     },
@@ -25,38 +27,9 @@ async function main(){
       }
     }
   });
-
-  ipfs.once('ready', () => ipfs.id((err, info) => {
-    if (err) { throw err }
-    console.log('IPFS node ready with address ' + info.id)
-
-    const room = Room(ipfs, 'townhall')
-
-    room.on('peer joined', (peer) => console.log('peer ' + peer + ' joined'))
-    room.on('peer left', (peer) => console.log('peer ' + peer + ' left'))
-
-    // send and receive messages
-
-    room.on('peer joined', (peer) => room.sendTo(peer, 'Hello ' + peer + '!'))
-    room.on('message', (message) => console.log('got message from ' + message.from + ': ' + message.data.toString()))
-
-
-    room.on('subscribed',(m) => {
-      console.log("...... subscribe....", m);
-    });
-
-    const taskRoom = Room(ipfs, 'poc-task-room');
-    const blockRoom = Room(ipfs, 'poc-block-room');
-    const testRoom = Room(ipfs, 'poc-test-roo ');
-
-
-      
-
-
-      // broadcast message every 2 seconds
-
-      //setInterval(() => room.broadcast('hey everyone!'), 2000)
-  }));
+  console.log('IPFS node is ready');
+  console.log("taskroom", taskRoom, townHall);
+  window.ipfs = ipfs;
   ipfs.on('error', error=>{
     console.log('IPFS on error:', error);
   });
@@ -64,10 +37,33 @@ async function main(){
   ipfs.on('init', error=>{
     console.log('IPFS on init:', error);
   });
+  // async function store () {
+  //   const toStore = document.getElementById('source').value
 
+  //   const res = await node.add(Buffer.from(toStore))
 
-  window.peerId = PeerId;
-  window.ipfs = ipfs;
+  //   res.forEach((file) => {
+  //     if (file && file.hash) {
+  //       console.log('successfully stored', file.hash)
+  //       display(file.hash)
+  //     }
+  //   })
+  // }
+
+  // async function display (hash) {
+  //   // buffer: true results in the returned result being a buffer rather than a stream
+  //   const data = await node.cat(hash)
+  //   document.getElementById('hash').innerText = hash
+  //   document.getElementById('content').innerText = data
+  // }
+
+  // document.getElementById('store').onclick = store
+  console.log("taskroom", taskRoom, townHall);
+  roomMessageHandler(ipfs, 'taskRoom', taskRoom);
+  roomMessageHandler(ipfs, 'townHall', townHall);
+  window.blockRoom = roomMessageHandler(ipfs, 'blockRoom', blockRoom);
 
 };
+
+
 document.addEventListener('DOMContentLoaded', main);
