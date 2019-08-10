@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+  <head>
+      <!-- when using the mode "code", it's important to specify charset utf-8 -->
+      <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+  
+      <link href="css/jsoneditor.min.css" rel="stylesheet" type="text/css">
+      <script src="js/jsoneditor.min.js"></script>
+  </head>
+  <body>
+    <h1>Node Simulator in Browser</h1>
+    <div id="jsoneditor" style="width: 400px; height: 400px;"></div>
+
+    <script>
+        // create the editor
+        var container = document.getElementById("jsoneditor");
+        var options = {};
+        var editor = new JSONEditor(container, options);
+
+        // set json
+        var json = {
+            "Array": [1, 2, 3],
+            "Boolean": true,
+            "Null": null,
+            "Number": 123,
+            "Object": {"a": "b", "c": "d"},
+            "String": "Hello World"
+        };
+        editor.set(json);
+
+        // get json
+        var json = editor.get();
+    </script>
+  </body>
+</html>
+
