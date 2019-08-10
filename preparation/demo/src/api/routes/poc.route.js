@@ -1,5 +1,5 @@
 import service from '../../service';
-
+;
 const express = require('express');
 const sha256 = require('js-sha256');
 const {creditScore, potSim, remoteAttestationSim, potSchema, betterResponse, gasSim, result, constValue, txLogSchema} = require('../../poc');
@@ -20,6 +20,18 @@ router
     res.send('You will see updates here');
   });
 
+router
+  .route('/newBlockPub')
+  .get((req, res)=>{
+    const pubsubRooms = req.app.get('pubsubRooms');
+    const newBlock = {
+      height:9999,
+      title:"New Block Broadcast using PubSub",
+      message:"Jacky, you can see this block if you go to localhost:3000/simulator and open the console",
+      others:"Whatever you want to add here"
+    }
+    pubsubRooms.blockRoom.broadcast(JSON.stringify(newBlock));
+  });
 router
   .route('/faucetGasToPeer')
   .get(async (req,res) => {
