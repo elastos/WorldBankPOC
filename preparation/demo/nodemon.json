@@ -1,0 +1,22 @@
+{
+  "restartable": "rs",
+  "delay": "2500",
+  "watch": [
+    "index.js",
+    "src/**/*.js"
+  ],
+  "events": {
+    "restart": "echo display notification \"App restarted due to:\n'$FILENAME'\" with title \"nodemon\""
+  },
+  "ext": "ts js json",
+  "ignore": [
+    "node_modules/**/*",
+    "node_modules/**/node_modules",
+    ".hg",
+    ".git",
+    ".idea",
+    "src/**/*.spec.js",
+    "webportal"
+  ],
+  "exec": "babel-node ./src/index.js"
+}

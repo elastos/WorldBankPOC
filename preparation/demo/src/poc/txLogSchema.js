@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const httpStatus = require('http-status');
 const APIError = require('../api/utils/APIError');
 const _ = require('lodash');
+const {gasBurnPeerId} = require('./constValue');
 
 const txLogSchema = new mongoose.Schema({
   fromPeerId: {

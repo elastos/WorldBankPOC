@@ -70,6 +70,7 @@
             coordinateSystem: 'geo',
             data: opts.data || [],
             // symbol: 'diamond',
+            // symbol: 'path://M832 160 192 160c-38.4 0-64 32-64 64l0 448c0 38.4 32 64 64 64l256 0 0 64L352 800C332.8 800 320 812.8 320 832c0 19.2 12.8 32 32 32l320 0c19.2 0 32-12.8 32-32 0-19.2-12.8-32-32-32L576 800l0-64 256 0c38.4 0 64-32 64-64l0-448C896 192 864 160 832 160zM832 672l-640 0 0-448 640 0 0 0L832 672z',
             symbolSize: (val)=>{
               return util.symbolSize(val[2]);
             },
@@ -89,8 +90,15 @@
             itemStyle: {
               normal: {
                 color: (e)=>{
-                  const isPass = e.data.hacked;
-                  return !isPass ? '#0f0' : '#ff0';
+                  const d = e.data;
+                  if(d.hacked){
+                    return '#f00';
+                  }
+                  if(d.creditScore < 1){
+                    return '#ff0';
+                  }
+
+                  return '#0f0';
                 },
                 shadowBlur: 10,
                 shadowColor: '#333'
@@ -101,9 +109,12 @@
               formatter(e){
                 const d = e.data;
                 return `
+                ${d.hacked ? 'Hacked <br/>' : ''}
+                ${d.creditScore < 1 ? 'Untrusted <br/>' : ''}
+                ${d.hacked || d.creditScore < 1 ? '<div style="height:1px; background:#cdcdcd;"></div>' : ''}
                 peerId: ${d.peerId} <br/>
                 score: ${d.creditScore} <br/>
-                gas: ${d.gas}
+                gas: ${d.gas} <br/>
                 `;
               }
             }
@@ -365,6 +376,139 @@
           alert(rs.data.currentRaConsensusResult.message);
           return false;
         }
+      })
+    },
+
+    createGenesisNode(){
+      $.ajax({
+        url : '/poc/createGenesisPot',
+        type : 'get',
+        data : {
+          json : 1
+        }
+      }).then((rs)=>{
+        if(rs.code < 0){
+          alert(rs.error);
+          return false;
+        }
+
+        alert('success');
+        F.renderData();
+      })
+    },
+
+    refresh(){
+      F.renderData();
+    },
+
+    createCommonTask(type){
+      const val = parseInt(prompt('please input task gas you want', '20'), 10);
+      const d = $('#js_node_detail').data('json');
+      if(_.isNumber(val) && !_.isNaN(val)){
+        go();
+      }
+      else{
+        alert('invalid input');
+      }
+
+      function go(){
+        $.ajax({
+          url : '/poc/crateNewTask',
+          data : {
+            peerId : d.peerId,
+            amt : val,
+            type : type || 'calculate',
+            json : 1
+          },
+          type : 'get'
+        }).then((rs)=>{
+          if(rs.code < 0){
+            alert(rs.error);
+            return false;
+          }
+
+          alert('success');
+          $('#js_node_detail').modal('hide');
+        });
+      }
+    },
+
+    showTaskLog(taskId){
+      $.ajax({
+        url : '/poc/taskLog',
+        type : 'get',
+        data : {
+          taskId,
+          json: 1
+        }
+      }).then((rs)=>{
+        const list = rs.data;
+        _.each(list, (item)=>{
+          console.log(item.type + ' => '+item.content);
+          if(item.data){
+            console.log(JSON.stringify(item.data));
+          }
+          
+        })
+      });
+    },
+
+    showTaskListBox(){
+      const getLi1 = (item, peerId)=>{
+        return `<li style="justify-content: space-between;display:flex;" class="list-group-item"><span>${item._id} | ${item.name} | ${item.type} | ${item.amount}</span> <span><button class="btn btn-primary" onClick="poc.joinTask('${peerId}', '${item._id}')">Join</button></span></li>`;
+      };
+      const getLi2 = (item, peerId)=>{
+        return `<li style="justify-content: space-between;display:flex;" class="list-group-item"><span>${item._id} | ${item.name} | ${item.type} | ${item.status} | ${item.amount}</span> <span><button class="btn btn-primary" onClick="poc.showTaskLog('${item._id}')">SHOW LOG</button></span></li>`;
+      };
+
+      const d = $('#js_node_detail').data('json');
+      $.ajax({
+        url : '/poc/taskList',
+        type : 'get',
+        data : {
+          json:1,
+          peerId : d.peerId
+        }
+      }).then((rs)=>{
+        const list1 = _.map(rs.data.can_join_list, (item)=>{
+          return getLi1(item, d.peerId);
+        });
+        const list2 = _.map(rs.data.join_list, (item)=>{
+          return getLi2(item);
+        });
+        const list3 = _.map(rs.data.own_list, (item)=>{
+          return getLi2(item);
+        });
+
+        const dom = $('#js_task_list');
+        $('#js_node_detail').modal('hide');
+        dom.modal('show');
+
+        _.delay(()=>{
+          dom.find('.js_list1').html(list1.join(''));
+          dom.find('.js_list2').html(list2.join(''));
+          dom.find('.js_list3').html(list3.join(''));
+        }, 100);
+         
+      });
+    },
+
+    joinTask(peerId, taskId){
+      console.log(peerId, taskId);
+      $.ajax({
+        url : '/poc/joinTask',
+        type : 'get',
+        data : {
+          peerId, taskId,
+          json : 1
+        }
+      }).then((rs)=>{
+        if(rs.code < 0){
+          alert(rs.error);
+          return;
+        }
+        alert('success');
+        $('#js_task_list').modal('hide');
       })
     }
   };

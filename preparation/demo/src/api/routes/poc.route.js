@@ -1,3 +1,5 @@
+import service from '../../service';
+
 const express = require('express');
 const sha256 = require('js-sha256');
 const {creditScore, potSim, remoteAttestationSim, potSchema, betterResponse, gasSim, result, constValue, txLogSchema} = require('../../poc');
@@ -199,11 +201,10 @@ router
     list = _.map(list, (item)=>{
       const tmp = _.find(cs, (x)=>x.peerId===item.peerId);
       const tmp1 = _.find(gs, (x)=>x.peerId===item.peerId);
-      const rs = {
-        ...item.toJSON(),
-        creditScore : tmp.creditScore,
-        gas : tmp1.gasBalance
-      };
+
+      const rs = item.toJSON();
+      rs.creditScore = tmp.creditScore;
+      rs.gas = tmp1.gasBalance
       return rs;
     });
     return result(res, 1, list);
@@ -236,4 +237,92 @@ router
 
     return result(res, 1, list);
   });
+
+router
+  .route('/createGenesisPot')
+  .get(async (req, res)=>{
+    try{
+      await potSim.createGenesisPot();
+      return result(res, 1, 'ok');
+    }catch(e){
+      return result(res, -1, e.toString());
+    }
+      
+  });
+
+router 
+  .route('/joinTask')
+  .get(async (req, res)=>{
+    const {peerId, taskId} = req.query;
+
+    const taskService = service.getTaskService();
+    try{
+      const rs = await taskService.joinToElectHandleTask(peerId, taskId);
+      return result(res, 1, rs);
+    }catch(e){
+      return result(res, -1, e.toString());
+    }
+  });
+router
+  .route('/crateNewTask')
+  .get(async (req, res)=>{
+    const {peerId, amt, type} = req.query;
+
+    const taskService = service.getTaskService();
+    try{
+      let rs = '';
+      if(type === 'ra'){
+        return result(res, -1, 'ra task will coming soon');
+      }
+      else{
+        rs = await taskService.createNewCalculateTask(peerId, _.toNumber(amt));
+      }
+      return result(res, 1, rs);
+    }catch(e){
+      return result(res, -1, e.toString());
+    }
+  });
+
+router
+  .route('/taskList')
+  .get(async (req, res)=>{
+    const taskService = service.getTaskService();
+    const {peerId} = req.query;
+    try{
+      const can_join_list = await taskService.getAllTask({
+        status : 'elect',
+        $nor : [
+          {
+            joiner: peerId
+          }
+        ]
+      });
+      const join_list = await taskService.getAllTask({
+        joiner : peerId
+      });
+      const own_list = await taskService.getAllTask({peerId});
+      return result(res, 1, {
+        can_join_list, join_list, own_list
+      });
+    }catch(e){
+      return result(res, -1, e.toString());
+    }
+  });
+
+router
+  .route('/taskLog')
+  .get(async (req, res)=>{
+    const taskService = service.getTaskService();
+    const {taskId} = req.query;
+    try{
+      
+      const list = await taskService.getAllTaskLog({taskId});
+      return result(res, 1, list);
+    }catch(e){
+      return result(res, -1, e.toString());
+    }
+  })
+
+
+
 module.exports = router;

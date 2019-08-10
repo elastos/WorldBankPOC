@@ -20,7 +20,11 @@
 
 <body style="background: #eee;">
   <div style="width: 1200px; margin: 20px auto 0; height: 40px;">
+    
+    <button class="btn btn-success" onClick="poc.createGenesisNode()">Generate Genesis Nodes</button>
     <button class="btn btn-success" onClick="poc.showCreateNodeModal()">Add new node</button>
+
+    <button class="btn btn-primary" style="float:right;" onClick="poc.refresh()">Refresh</button>
   </div>
   <div id="echart-div" style="margin: 5px auto; width: 1200px; min-height: 700px;"></div>
 
@@ -102,17 +106,19 @@
           <li style="list-style: none;margin-top:24px;"><h4>Actions</h4></li>
           <li class="list-group-item">
             <button class="btn btn-primary" onClick="poc.setCreditScore()">Set Credit Score</button>
-            
-            <button style="float:right;margin-left: 12px;" class="btn btn-success" onClick="poc.addCreditScore(100)">Add 100 credit score</button>
-            <button style="float:right;" class="btn btn-success" onClick="poc.addCreditScore(10)">Add 10 credit score</button>
+            <button style="" class="btn btn-primary" onClick="poc.setGasBalance()">Add Gas Balance</button>
+            <!-- <button style="float:right;margin-left: 12px;" class="btn btn-success" onClick="poc.addCreditScore(100)">Add 100 credit score</button>
+            <button style="float:right;" class="btn btn-success" onClick="poc.addCreditScore(10)">Add 10 credit score</button> -->
             
           </li>
           <li class="list-group-item">
-            <button style="" class="btn btn-primary" onClick="poc.setGasBalance()">Add Gas Balance</button>
+              <button class="btn btn-primary" onClick="poc.createCommonTask('')">Create Task</button>
+            <button style="float:right;" class="btn btn-primary" onClick="poc.showTaskListBox()">Show Task List</button>
           </li>
           <li class="list-group-item">
             <button class="btn btn-primary" onClick="poc.showTxLogs()">Show TX Logs</button>
-            <button class="btn btn-primary" onClick="poc.tryRA()">Try Remote Attestation</button>
+            <!-- <button class="btn btn-primary" onClick="poc.tryRA()">Try Remote Attestation</button> -->
+            
           </li>
           <li class="list-group-item">
             <button class="btn btn-danger" onClick="poc.deleteNode()">Remove Node</button>
@@ -139,6 +145,32 @@
       </div>
       <div class="modal-body" style="overflow: auto;max-height: 550px;">
         <ul class="list-group js_box">
+
+        </ul>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="js_task_list" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Task List</h5>
+      </div>
+      <div class="modal-body" style="overflow: auto;max-height: 550px;">
+        <b>Could Join</b>
+        <ul class="list-group js_list1">
+
+        </ul>
+        <b>Already Join</b>
+        <ul class="list-group js_list2">
+
+        </ul>
+        <b>Created</b>
+        <ul class="list-group js_list3">
 
         </ul>
         
