@@ -144,7 +144,7 @@ export default class extends Base {
     for(let i=0, len=penaltyPeers.length; i<len; i++){
       const pp = penaltyPeers[i];
       result_peer[pp] = {
-        gas : -task.amount,
+        gas : 0,
         credit : -constant.PENALTY_FOR_CREDIT_SCORE
       };
       await txService.penaltyCreditFromPeer(pp, constant.PENALTY_FOR_CREDIT_SCORE);
@@ -181,7 +181,8 @@ export default class extends Base {
   }
 
   async produceJoinerResult(joinerPeerId){
-    return true;
+    // return true;
+    return _.random(1, 9)%2;
   }
 
   async addTaskJoiner(task, peer){
