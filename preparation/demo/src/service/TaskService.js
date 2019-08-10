@@ -1,4 +1,5 @@
 import TaskSchema from './TaskSchema';
+import TaskLogSchema from './TaskLogSchema';
 import constant from './constant';
 import _ from 'lodash';
 
@@ -9,7 +10,7 @@ import VrfService from './VrfService';
 
 export default class extends Base {
 
-  async createNewCaculateTask(ownerPeerId, gasAmount){
+  async createNewCalculateTask(ownerPeerId, gasAmount){
     if(gasAmount < 10){
       throw 'Task gas must greater than 10';
     }
@@ -28,22 +29,25 @@ export default class extends Base {
 
     // deposit gas
     const txService = this.getService(TxLogService);
-    await txService.depositGasForTask(ownerPeerId, gasAmount, constant.txlog_type.PUBLISH_CACULATE);
+    await txService.depositGasForTask(ownerPeerId, gasAmount, constant.txlog_type.PUBLISH_CALCULATE);
 
     // create
     const data = {
       peerId : ownerPeerId,
-      name : `Test caculate task by peer[${ownerPeerId}]`,
-      description : 'caculate task description',
+      name : `Test calculate task by peer[${ownerPeerId}]`,
+      description : 'calculate task description',
       amount : gasAmount,
       status : constant.task_status.ELECT,
-      type : constant.task_type.CACULATE,
+      type : constant.task_type.CALCULATE,
       joiner : []
     };
     const rs = await TaskSchema.create(data);
 
     // decrease gas
     await this.util.setGas(ownerPeerId, gas-gasAmount);
+
+    // log
+    await TaskLogSchema.logForCreated(rs._id, ownerPeerId);
 
     return rs;
   }
@@ -59,7 +63,7 @@ export default class extends Base {
       throw 'invalid peer id => '+ownerPeerId;
     }
 
-    if(task.status !== constant.task_type.ELECT){
+    if(task.status !== constant.task_status.ELECT){
       throw 'Task is not in elect status';
     }
 
@@ -73,7 +77,7 @@ export default class extends Base {
     const vrfService = this.getService(VrfService);
     const ld = await vrfService.luckyDraw(peer);
     if(!ld.result){
-      throw 'not lucky enought';
+      throw 'not lucky enough';
     }
 
     // add joiner
@@ -93,9 +97,92 @@ export default class extends Base {
       return false;
     }
 
+    await TaskSchema.setStatus(taskId, constant.task_status.PROCESSING);
 
+    await TaskLogSchema.logForReadyToProcess(taskId);
+
+    const vrfService = this.getService(VrfService);
+    const txService = this.getService(TxLogService);
+
+    // calculate each node weightedThreshold to produce a winner
+    let winner = '';
+    let tmp_w = 0;
+    for(let i=0, len=task.joiner.length; i<len; i++){
+      const w = await vrfService.weightedThreshold(task.joiner[i]);
+      if(w > tmp_w){
+        tmp_w = w;
+        winner = task.joiner[i];
+      }
+    }
+    await TaskLogSchema.logForSelectWinner(taskId, winner);
+
+    // each joiner produce the task result
+    const peer_result = {};
+    for(let i=0, len=task.joiner.length; i<len; i++){
+      const rs = await this.produceJoinerResult(task.joiner[i]);
+      _.set(peer_result, task.joiner[i], rs);
+    }
+    await TaskLogSchema.logForProduceJoinerResult(taskId, peer_result);
+
+    // run consensus
+    const {rewardPeers, penaltyPeers} = await this.runConsensus(peer_result, winner);
+    await TaskLogSchema.logForRunConsensus(taskId, rewardPeers, penaltyPeers);
+
+    // reward and penalty
+    await TaskLogSchema.logForReadyToReward(taskId);
+    const gas_reward = (task.amount*(1+penaltyPeers.length))/rewardPeers.length;
+    const result_peer = {};
+    for(let i=0, len=rewardPeers.length; i<len; i++){
+      const rp = rewardPeers[i];
+      result_peer[rp] = {
+        gas : gas_reward,
+        credit : constant.REWARD_FOR_CREDIT_SCORE
+      };
+      await txService.rewardGasToPeer(rp, task.amount + gas_reward);
+      await txService.rewardCreditToPeer(rp, constant.REWARD_FOR_CREDIT_SCORE);
+    }
+    for(let i=0, len=penaltyPeers.length; i<len; i++){
+      const pp = penaltyPeers[i];
+      result_peer[pp] = {
+        gas : -task.amount,
+        credit : -constant.PENALTY_FOR_CREDIT_SCORE
+      };
+      await txService.penaltyCreditFromPeer(pp, constant.PENALTY_FOR_CREDIT_SCORE);
+    }
+    await TaskLogSchema.logForRewardFinish(taskId, result_peer);
+
+    // finish
+    await TaskSchema.setStatus(taskId, constant.task_status.COMPLETED);
+    await TaskLogSchema.logForFinish(taskId);
+
+    return true;
   }
 
+  async runConsensus(peer_result, winner){
+    // include smart contract execute
+
+    const winner_result = peer_result[winner];
+    const rewardPeers = [];
+    const penaltyPeers = [];
+
+    _.each(peer_result, (rs, peer)=>{
+      if(rs === winner_result){
+        rewardPeers.push(peer);
+      }
+      else{
+        penaltyPeers.push(peer);
+      }
+    });
+
+    return {
+      rewardPeers,
+      penaltyPeers
+    }
+  }
+
+  async produceJoinerResult(joinerPeerId){
+    return true;
+  }
 
   async addTaskJoiner(task, peer){
     // check peer join before or not
@@ -105,9 +192,23 @@ export default class extends Base {
 
     // deposit gas
     const txService = this.getService(TxLogService);
-    await txService.depositGasForTask(peer.peerId, task.amount, constant.txlog_type.JOIN_CACULATE);
+    await txService.depositGasForTask(peer.peerId, task.amount, constant.txlog_type.JOIN_CALCULATE);
+
+    //log
+    await TaskLogSchema.logForJoin(task._id, peer.peerId);
 
     return await TaskSchema.addTaskJoiner(peer.peerId, task._id);
+  }
+
+  async getAllTask(query){
+    return await TaskSchema.find(query).sort({
+      updatedAt: -1
+    }).exec();
+  }
+  async getAllTaskLog(query){
+    return await TaskLogSchema.find(query).sort({
+      updatedAt: 1
+    }).exec();
   }
 
 

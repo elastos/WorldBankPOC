@@ -399,6 +399,117 @@
 
     refresh(){
       F.renderData();
+    },
+
+    createCommonTask(type){
+      const val = parseInt(prompt('please input task gas you want', '20'), 10);
+      const d = $('#js_node_detail').data('json');
+      if(_.isNumber(val) && !_.isNaN(val)){
+        go();
+      }
+      else{
+        alert('invalid input');
+      }
+
+      function go(){
+        $.ajax({
+          url : '/poc/crateNewTask',
+          data : {
+            peerId : d.peerId,
+            amt : val,
+            type : type || 'calculate',
+            json : 1
+          },
+          type : 'get'
+        }).then((rs)=>{
+          if(rs.code < 0){
+            alert(rs.error);
+            return false;
+          }
+
+          alert('success');
+          $('#js_node_detail').modal('hide');
+        });
+      }
+    },
+
+    showTaskLog(taskId){
+      $.ajax({
+        url : '/poc/taskLog',
+        type : 'get',
+        data : {
+          taskId,
+          json: 1
+        }
+      }).then((rs)=>{
+        const list = rs.data;
+        _.each(list, (item)=>{
+          console.log(item.type + ' => '+item.content);
+          if(item.data){
+            console.log(JSON.stringify(item.data));
+          }
+          
+        })
+      });
+    },
+
+    showTaskListBox(){
+      const getLi1 = (item, peerId)=>{
+        return `<li style="justify-content: space-between;display:flex;" class="list-group-item"><span>${item._id} | ${item.name} | ${item.type} | ${item.amount}</span> <span><button class="btn btn-primary" onClick="poc.joinTask('${peerId}', '${item._id}')">Join</button></span></li>`;
+      };
+      const getLi2 = (item, peerId)=>{
+        return `<li style="justify-content: space-between;display:flex;" class="list-group-item"><span>${item._id} | ${item.name} | ${item.type} | ${item.status} | ${item.amount}</span> <span><button class="btn btn-primary" onClick="poc.showTaskLog('${item._id}')">SHOW LOG</button></span></li>`;
+      };
+
+      const d = $('#js_node_detail').data('json');
+      $.ajax({
+        url : '/poc/taskList',
+        type : 'get',
+        data : {
+          json:1,
+          peerId : d.peerId
+        }
+      }).then((rs)=>{
+        const list1 = _.map(rs.data.can_join_list, (item)=>{
+          return getLi1(item, d.peerId);
+        });
+        const list2 = _.map(rs.data.join_list, (item)=>{
+          return getLi2(item);
+        });
+        const list3 = _.map(rs.data.own_list, (item)=>{
+          return getLi2(item);
+        });
+
+        const dom = $('#js_task_list');
+        $('#js_node_detail').modal('hide');
+        dom.modal('show');
+
+        _.delay(()=>{
+          dom.find('.js_list1').html(list1.join(''));
+          dom.find('.js_list2').html(list2.join(''));
+          dom.find('.js_list3').html(list3.join(''));
+        }, 100);
+         
+      });
+    },
+
+    joinTask(peerId, taskId){
+      console.log(peerId, taskId);
+      $.ajax({
+        url : '/poc/joinTask',
+        type : 'get',
+        data : {
+          peerId, taskId,
+          json : 1
+        }
+      }).then((rs)=>{
+        if(rs.code < 0){
+          alert(rs.error);
+          return;
+        }
+        alert('success');
+        $('#js_task_list').modal('hide');
+      })
     }
   };
 

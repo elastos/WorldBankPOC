@@ -26,7 +26,7 @@ const TaskSchema = new mongoose.Schema({
     required : true
   },
   type : {
-    type : String,  // remote_attestation, caculate
+    type : String,  // remote_attestation, calculate
     required : true
   },
   joiner : {
@@ -44,9 +44,15 @@ const TaskSchema = new mongoose.Schema({
 TaskSchema.statics = {
   async addTaskJoiner(peerId, taskId){
     const rs = await this.findOneAndUpdate({_id: taskId}, {
-      joiner : {
-        $push : peerId
+      $push : {
+        joiner : peerId
       }
+    }).exec();
+    return rs;
+  },
+  async setStatus(taskId, status){
+    const rs = await this.findOneAndUpdate({_id: taskId}, {
+      status
     }).exec();
     return rs;
   }

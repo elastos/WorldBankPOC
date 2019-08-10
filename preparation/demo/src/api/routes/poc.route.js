@@ -250,18 +250,79 @@ router
       
   });
 
-router
-  .route('/createNewCaculateTask')
+router 
+  .route('/joinTask')
   .get(async (req, res)=>{
-    const {peerId, amt} = req.query; 
+    const {peerId, taskId} = req.query;
 
     const taskService = service.getTaskService();
     try{
-      const rs = await taskService.createNewCaculateTask(peerId, _.toNumber(amt));
+      const rs = await taskService.joinToElectHandleTask(peerId, taskId);
       return result(res, 1, rs);
     }catch(e){
       return result(res, -1, e.toString());
     }
   });
+router
+  .route('/crateNewTask')
+  .get(async (req, res)=>{
+    const {peerId, amt, type} = req.query;
+
+    const taskService = service.getTaskService();
+    try{
+      let rs = '';
+      if(type === 'ra'){
+        return result(res, -1, 'ra task will coming soon');
+      }
+      else{
+        rs = await taskService.createNewCalculateTask(peerId, _.toNumber(amt));
+      }
+      return result(res, 1, rs);
+    }catch(e){
+      return result(res, -1, e.toString());
+    }
+  });
+
+router
+  .route('/taskList')
+  .get(async (req, res)=>{
+    const taskService = service.getTaskService();
+    const {peerId} = req.query;
+    try{
+      const can_join_list = await taskService.getAllTask({
+        status : 'elect',
+        $nor : [
+          {
+            joiner: peerId
+          }
+        ]
+      });
+      const join_list = await taskService.getAllTask({
+        joiner : peerId
+      });
+      const own_list = await taskService.getAllTask({peerId});
+      return result(res, 1, {
+        can_join_list, join_list, own_list
+      });
+    }catch(e){
+      return result(res, -1, e.toString());
+    }
+  });
+
+router
+  .route('/taskLog')
+  .get(async (req, res)=>{
+    const taskService = service.getTaskService();
+    const {taskId} = req.query;
+    try{
+      
+      const list = await taskService.getAllTaskLog({taskId});
+      return result(res, 1, list);
+    }catch(e){
+      return result(res, -1, e.toString());
+    }
+  })
+
+
 
 module.exports = router;
