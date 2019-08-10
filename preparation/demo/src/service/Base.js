@@ -2,6 +2,8 @@ import potSchema from '../poc/potSchema';
 import gasSim from '../poc/gasSim';
 import creditScheam from '../poc/creditSchema';
 import constant from './constant';
+import sha256 from 'js-sha256';
+import txLogSchema from '../poc/txLogSchema';
 
 class Util {
   async getPeer(peerId){
@@ -11,6 +13,15 @@ class Util {
   async getGas(peerId){
     const gas = await gasSim.get(peerId);
     return gas.gasBalance;
+  }
+  gasSchema(){
+    return gasSim;
+  }
+  creditSchema(){
+    return creditScheam;
+  }
+  txLogSchema(){
+    return txLogSchema;
   }
   async getScore(peerId){
     const cs = await creditScheam.get(peerId);
@@ -36,12 +47,20 @@ class Util {
     return await creditScheam.transferCreditBalanced(fromPeerId, constant.CREDIT_SCORE_POOL, amt, referenceEventType, referenceEventId);
   }
 
+  hash(str){
+    return sha256(str);
+  }
+
 };
 
 export default class {
 
   constructor(){
     this.util = new Util();
+
+    if(this.init){
+      this.init();
+    }
   }
 
   getService(Service){

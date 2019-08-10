@@ -4,7 +4,6 @@ const TaskSchema = new mongoose.Schema({
   peerId : {
     type: String, 
     required: true,
-    unique: true,
     trim: true,
     lowercase: true,
   },
