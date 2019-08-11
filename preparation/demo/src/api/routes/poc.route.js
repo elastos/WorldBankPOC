@@ -6,6 +6,8 @@ const {creditScore, potSim, remoteAttestationSim, potSchema, betterResponse, gas
 
 const _ = require('lodash');
 
+const {tryVrf} = require('../../poc/tryVrf')
+
 const router = express.Router();
 console.log("credit", creditScore);
 router
@@ -18,6 +20,12 @@ router
   .route('/status')
   .get((req, res) => {
     res.send('You will see updates here');
+  });
+
+router
+  .route('/vrf')
+  .get((req, res)=>{
+    tryVrf(req, res);
   });
 
 router
