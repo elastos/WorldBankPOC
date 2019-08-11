@@ -64,7 +64,6 @@
   ],
   "dependencies": {
     "axios": "^0.18.0",
-    "babel-core": "^6.26.0",
     "babel-plugin-transform-async-to-generator": "^6.24.1",
     "babel-plugin-transform-runtime": "^6.23.0",
     "babel-preset-env": "^1.6.1",
@@ -101,6 +100,7 @@
     "winston": "^3.1.0"
   },
   "devDependencies": {
+    "@babel/plugin-transform-runtime": "^7.5.5",
     "apidoc": "^0.17.5",
     "babel-cli": "^6.26.0",
     "babel-preset-env": "^1.7.0",

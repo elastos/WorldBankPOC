@@ -15,7 +15,6 @@ module.exports = (room) => {
     handler: (message) => {
       try {
         const block = JSON.parse(message.data);
-        handleBlock(block);
         console.log('a new block from' + message.from + '..... block is:', block);
       }
       catch (e){
@@ -26,6 +25,3 @@ module.exports = (room) => {
   return messageHandlers;
 };
 
-const handleBlock = (block)=>{
-
-};
