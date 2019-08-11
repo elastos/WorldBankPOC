@@ -29,6 +29,9 @@ export default class extends Base {
   async penaltyCreditFromPeer(penaltyPeer, credit){
     return await this.util.transferCreditToPool(penaltyPeer, credit, constant.txlog_type.PENALTY_CREDIT, penaltyPeer);
   }
+  async rewardCreditForRaPass(peer, credit=1){
+    return await this.util.transferCreditFromPool(peer, credit, constant.txlog_type.REWARD_CREDIT_FOR_RA_PASS, peer);
+  }
 
 
 

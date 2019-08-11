@@ -22,12 +22,16 @@ export default {
 
   txlog_type : {
     'PUBLISH_CAlCULATE' : 'CalculateTaskDepositGas_ref_peer',
+    'PUBLISH_RA' : 'RaTaskDepositGas',
+    'JOSIN_RA' : 'RaTaskDepositGas',
     'JOIN_CAlCULATE' : 'CalculateTaskDepositGas_join_ref_peer',
     'REWARD_GAS' : 'Task_reward_gas',
     'REWARD_CREDIT': 'Task_reward_credit',
-    'PENALTY_CREDIT': 'Task_penalty_credit'
+    'PENALTY_CREDIT': 'Task_penalty_credit',
+    'REWARD_CREDIT_FOR_RA_PASS': 'Task_reward_gas_for_ra_pass'
   },
 
+  RA_TASK_GAS : 10,
 
 
   MAX_TASK_JOINER : 5

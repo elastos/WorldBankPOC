@@ -29,6 +29,8 @@ export default class extends Base {
     const d = {
       prev_hash : '-1',
       total_gas : 0,
+      gas : {},
+      credit : {},
       total_credit : 0,
       tx_log : [],
       block_owner : 'God',
@@ -54,13 +56,15 @@ export default class extends Base {
 
   async generateBlock(){
     const prev_block = await this.getLatestBlock();
-    const total_gas = await this.getTotalGas();
-    const total_credit = await this.getTotalCredit();
+    const {total_gas, gas} = await this.getTotalGas();
+    const {total_credit, credit} = await this.getTotalCredit();
     const tx_log = await this.getTxLogs(prev_block);
     const d = {
       prev_hash : prev_block.hash,
       total_gas,
+      gas,
       total_credit,
+      credit,
       tx_log,
       block_owner : this.selectBlockOwner(),
       height : prev_block.height+1
@@ -74,21 +78,31 @@ export default class extends Base {
     const gasSchema = this.util.gasSchema();
     let total = 0;
     const list = await gasSchema.find({}).exec();
+    const map = {};
     _.each(list, (item)=>{
+      map[item.peerId] = item.gasBalance;
       total += item.gasBalance;
     });
 
-    return total;
+    return {
+      total_gas : total, 
+      gas: map
+    };
   }
 
   async getTotalCredit(){
     const creditSchema = this.util.creditSchema();
     let total = 0;
+    const map = {};
     const list = await creditSchema.find({}).exec();
     _.each(list, (item)=>{
+      map[item.peerId] = item.creditScore;
       total += item.creditScore;
     });
-    return total;
+    return {
+      total_credit: total, 
+      credit: map
+    };;
   }
 
   async getTxLogs(prev_block){

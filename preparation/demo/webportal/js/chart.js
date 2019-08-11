@@ -401,6 +401,26 @@
       F.renderData();
     },
 
+    createRaTask(){
+      const d = $('#js_node_detail').data('json');
+      $.ajax({
+        url : '/poc/crateNewTask',
+        data : {
+          peerId : d.peerId,
+          type : 'ra',
+          json : 1
+        },
+        type : 'get'
+      }).then((rs)=>{
+        if(rs.code < 0){
+          alert(rs.error);
+          return false;
+        }
+
+        alert('success');
+        $('#js_node_detail').modal('hide');
+      });
+    },
     createCommonTask(type){
       const val = parseInt(prompt('please input task gas you want', '20'), 10);
       const d = $('#js_node_detail').data('json');
@@ -443,13 +463,17 @@
         }
       }).then((rs)=>{
         const list = rs.data;
+        const html = [];
         _.each(list, (item)=>{
           console.log(item.type + ' => '+item.content);
+          html.push(item.type + ' => ' + item.content);
           if(item.data){
             console.log(JSON.stringify(item.data));
+            html.push(JSON.stringify(item.data));
           }
-          
-        })
+        });
+
+        $('#js_task_list').find('.js_log').html(html.join('<br/>'));
       });
     },
 
@@ -488,6 +512,7 @@
           dom.find('.js_list1').html(list1.join(''));
           dom.find('.js_list2').html(list2.join(''));
           dom.find('.js_list3').html(list3.join(''));
+          dom.find('.js_log').html('no logs');
         }, 100);
          
       });

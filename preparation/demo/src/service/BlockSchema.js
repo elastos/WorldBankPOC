@@ -9,6 +9,14 @@ const BlockSchema = new mongoose.Schema({
     type : Number,
     required : true
   },
+  gas : {
+    type : Object,
+    required : true
+  },
+  credit : {
+    type : Object,
+    required : true
+  },
   total_credit : {
     type : Number,
     required : true
