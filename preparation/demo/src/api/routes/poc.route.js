@@ -21,33 +21,70 @@ router
   });
 
 router
-  .route('/newBlockPub')
+  .route('/newBlockPub/:blockId')
   .get(async (req, res)=>{
+    const {blockId} = req.params;
     const pubsubRooms = req.app.get('pubsubRooms');
     const ipfs = req.app.get('ipfs');
-    
-    const titleCid = await ipfs.dag.put({title:"New Block Broadcast using PubSub"});
-    const messageCid = await ipfs.dag.put({message:"Jacky, you can see this block if you go to localhost:3000/simulator and open the console"});
-    
-    const arrayExample = [];
-    arrayExample.push( await ipfs.dag.put("Whatever"));
-    arrayExample.push( await ipfs.dag.put("you"));
-    arrayExample.push( await ipfs.dag.put("want"));
-    arrayExample.push( await ipfs.dag.put("tp"));
-    arrayExample.push( await ipfs.dag.put("here"));
-    arrayExample.push( await ipfs.dag.put("in "));
-    arrayExample.push( await ipfs.dag.put("array"));
-    const othersCid = await ipfs.dag.put({arrayExample: arrayExample});
-
-    const newBlock = {
-      title: titleCid,
-      message: messageCid,
-      others: othersCid
-    };
-    const newBlockCid = await ipfs.dag.put(newBlock);
     const townHall = pubsubRooms.townHall;
-    const result = await pubsubRooms.townHall.broadcast(newBlockCid.toBaseEncodedString());
-    res.send(JSON.stringify("<html><head></head><body>sending CID:" + newBlockCid.toBaseEncodedString() + "</body></html"));
+    const tx0 = {
+      hash:"asdfasdfasdf",
+      content:"Hey, I am Satoshi."
+    }
+    const block0 = {
+      height:0,
+      txs:[(await ipfs.dag.put(tx0))]
+    };
+    const block0Cid = await ipfs.dag.put(block0);
+    if(blockId == 0){
+      
+      const result = await pubsubRooms.townHall.broadcast(block0Cid.toBaseEncodedString());
+      console.log("broadcast result:", result);
+      return res.send(JSON.stringify("<html><head></head><body>Block " + blockId + " is sent. Its CID is " + block0Cid.toBaseEncodedString() + "</body></html"));
+    }
+    const tx1 = {
+      hash:"fjalsahd",
+      content:"I am James Bond. I am following Satoshi!"
+    }
+    const tx2 = {
+      hash: "fjslsaaisdhf",
+      content: "Send me 1000 BTC, or I will kill you"
+    }
+    const block1 = {
+      height: 1,
+      previousBlockCid: block0Cid,
+      txs:[(
+        await ipfs.dag.put(tx1)
+      ),
+      (
+        await ipfs.dag.put(tx2)
+      )]
+    };
+    const block1Cid = await ipfs.dag.put(block1);
+    
+    if(blockId == 1){
+      const result = await pubsubRooms.townHall.broadcast(block1Cid.toBaseEncodedString());
+      console.log("broadcast result:", result);
+      return res.send(JSON.stringify("<html><head></head><body>Block " + blockId + " is sent. Its CID:" + block1Cid.toBaseEncodedString() + "</body></html"));
+    }
+    const tx3 = {
+      hash:"fjalsdkashgldf",
+      content:"Bang, Satoshi died, game over"
+    }
+    const block2 = {
+      height: 2,
+      previousBlockCid: block1Cid,
+      txs:[(
+        await ipfs.dag.put(tx3))
+      ]
+    };
+    const block2Cid = await ipfs.dag.put(block2);
+    
+    if(blockId == 2){
+      const result = await pubsubRooms.townHall.broadcast(block2Cid.toBaseEncodedString());
+      console.log("broadcast result:", result);
+      return res.send(JSON.stringify("<html><head></head><body>Block " + blockId + " is sent. Its CID:" + block2Cid.toBaseEncodedString() + "</body></html"));
+    }
   });
 router
   .route('/faucetGasToPeer')
