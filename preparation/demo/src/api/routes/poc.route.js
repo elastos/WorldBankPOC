@@ -25,17 +25,29 @@ router
   .get(async (req, res)=>{
     const pubsubRooms = req.app.get('pubsubRooms');
     const ipfs = req.app.get('ipfs');
-    ipfs.dag.put 
+    
+    const titleCid = await ipfs.dag.put({title:"New Block Broadcast using PubSub"});
+    const messageCid = await ipfs.dag.put({message:"Jacky, you can see this block if you go to localhost:3000/simulator and open the console"});
+    
+    const arrayExample = [];
+    arrayExample.push( await ipfs.dag.put("Whatever"));
+    arrayExample.push( await ipfs.dag.put("you"));
+    arrayExample.push( await ipfs.dag.put("want"));
+    arrayExample.push( await ipfs.dag.put("tp"));
+    arrayExample.push( await ipfs.dag.put("here"));
+    arrayExample.push( await ipfs.dag.put("in "));
+    arrayExample.push( await ipfs.dag.put("array"));
+    const othersCid = await ipfs.dag.put({arrayExample: arrayExample});
+
     const newBlock = {
-      height:9999,
-      title:"New Block Broadcast using PubSub",
-      message:"Jacky, you can see this block if you go to localhost:3000/simulator and open the console",
-      others:"Whatever you want to add here"
-    }
+      title: titleCid,
+      message: messageCid,
+      others: othersCid
+    };
     const newBlockCid = await ipfs.dag.put(newBlock);
     const townHall = pubsubRooms.townHall;
     const result = await pubsubRooms.townHall.broadcast(newBlockCid.toBaseEncodedString());
-    res.send(result);
+    res.send(JSON.stringify("<html><head></head><body>sending CID:" + newBlockCid.toBaseEncodedString() + "</body></html"));
   });
 router
   .route('/faucetGasToPeer')
