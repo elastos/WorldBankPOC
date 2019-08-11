@@ -22,15 +22,20 @@ router
 
 router
   .route('/newBlockPub')
-  .get((req, res)=>{
+  .get(async (req, res)=>{
     const pubsubRooms = req.app.get('pubsubRooms');
+    const ipfs = req.app.get('ipfs');
+    ipfs.dag.put 
     const newBlock = {
       height:9999,
       title:"New Block Broadcast using PubSub",
       message:"Jacky, you can see this block if you go to localhost:3000/simulator and open the console",
       others:"Whatever you want to add here"
     }
-    pubsubRooms.blockRoom.broadcast(JSON.stringify(newBlock));
+    const newBlockCid = await ipfs.dag.put(newBlock);
+    const townHall = pubsubRooms.townHall;
+    const result = await pubsubRooms.townHall.broadcast(newBlockCid.toBaseEncodedString());
+    res.send(result);
   });
 router
   .route('/faucetGasToPeer')
