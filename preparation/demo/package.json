@@ -33,7 +33,9 @@
     "docker:prod": "docker-compose -f docker-compose.yml -f docker-compose.prod.yml up",
     "docker:dev": "docker-compose -f docker-compose.yml -f docker-compose.dev.yml up",
     "docker:test": "docker-compose -f docker-compose.yml -f docker-compose.test.yml up --abort-on-container-exit",
-    "compile": "browserify ./src/poc/simulator/ipfsPubSub.js -t [babelify --plugins transform-runtime] -o ./src/api/routes/simulator/js/ipfsPubSub.js -d && browserify ./src/poc/simulator/simulator.js -t [babelify --plugins transform-runtime] -o ./src/api/routes/simulator/js/simulator.js -d",
+    "compile:ipfspubsub": "browserify ./src/poc/simulator/ipfsPubSub.js -t [babelify --plugins transform-runtime] -o ./src/api/routes/simulator/js/ipfsPubSub.js -d",
+    "compile:simulator": "browserify ./src/poc/simulator/simulator.js -t [babelify --plugins transform-runtime] -o ./src/api/routes/simulator/js/simulator.js -d ",
+    "compile:taskgen": "browserify ./src/poc/simulator/taskGen.js -t [babelify --plugins transform-runtime] -o ./src/api/routes/simulator/js/taskGen.js -d",
     "compile:wp_ipfs": "browserify ./webportal/src/ipfs.js -t babelify -o ./webportal/dist/ipfs.js -d"
   },
   "repository": {

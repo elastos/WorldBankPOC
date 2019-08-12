@@ -9,29 +9,14 @@
       <script src="js/ipfsPubSub.js"></script>
   </head>
   <body>
-    <h1>Node Simulator in Browser</h1>
+    <h1>Generate Task and Publish to PubSub in Browser</h1>
     <div id="jsoneditor" style="width: 400px; height: 400px;"></div>
 
-    <script>
-        // create the editor
-        var container = document.getElementById("jsoneditor");
-        var options = {};
-        var editor = new JSONEditor(container, options);
-
-        // set json
-        var json = {
-            "Array": [1, 2, 3],
-            "Boolean": true,
-            "Null": null,
-            "Number": 123,
-            "Object": {"a": "b", "c": "d"},
-            "String": "Hello World"
-        };
-        editor.set(json);
-
-        // get json
-        var json = editor.get();
-    </script>
+    <script src="js/taskGen.js"></script>
+    <p><button id='showjson'>Show JSON in Console</button></p>
+    <p><button id='pubtaskroom'>Publish to Task Room</button></p>
+    <p><button id='pubtownhall'>Publish to Town Hall</button></p>
+    <p><button id='pubblockroom'>Publish to Block Room</button></p>
   </body>
 </html>
 
