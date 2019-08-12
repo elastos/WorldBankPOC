@@ -22,6 +22,7 @@ exports.ipfsStart = async (app)=>{
       }
     }
   });
+  app.set('ipfs', ipfs);
   console.log('IPFS node is ready');
   ipfs.on('error', error=>{
     console.log('IPFS on error:', error);
