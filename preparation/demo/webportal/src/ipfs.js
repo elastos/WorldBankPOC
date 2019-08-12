@@ -2,7 +2,7 @@ const IPFS = require('ipfs');
 const Room = require('ipfs-pubsub-room');
 const PeerId = require('peer-id');;
 
-let ipfs = null;
+let _ipfs = null;
 const F = {
   createIPFS(cb){
     window.IPFS = IPFS;
@@ -22,12 +22,14 @@ const F = {
       }
     }).then((ipfs)=>{
       console.log('IPFS node is ready');
-      // window.ipfs = ipfs;
+      _ipfs = ipfs;
+      window.ipfs = ipfs;
       ipfs.on('error', error=>{
         console.log('IPFS on error:', error);
       });
     
       ipfs.on('init', error=>{
+        console.log('ipfs init')
         console.log('IPFS on init:', error);
       });
       
@@ -37,19 +39,24 @@ const F = {
       // window.blockRoom = roomMessageHandler(ipfs, 'blockRoom', blockRoom);
       cb(ipfs);
     });
-  }
+  },
+
+  log(str){
+    console.log(str);
+    return '<div style="font-size:13px;">'+str+'</div>';
+  },
 };
 
 F.room = {
-  resiger(roomName, messageHandler){
-    if(!ipfs){
+  register(roomName, messageHandler){
+    if(!_ipfs){
       console.error('ipfs not initialize.')
       return false;
     }
 
-    const room = Room(ipfs, roomName);
-    const handlers = messageHandler(ipfs, room);
-    handlers.map ((m)=>{
+    const room = Room(_ipfs, roomName);
+    const handlers = messageHandler(_ipfs, room);
+    handlers.map((m)=>{
       room.on(m.message, m.handler);
     });
     

@@ -34,7 +34,7 @@
     "docker:dev": "docker-compose -f docker-compose.yml -f docker-compose.dev.yml up",
     "docker:test": "docker-compose -f docker-compose.yml -f docker-compose.test.yml up --abort-on-container-exit",
     "compile": "browserify ./src/poc/simulator/nodesim.js -t [babelify --plugins transform-runtime] -o ./src/api/routes/simulator/js/app.js -d",
-    "compile:wp_ipfs": "browserify ./webportal/src/ipfs.js -t babelify -o ./webportal/dist/ipfs.js -d"
+    "compile:wp_ipfs": "browserify ./webportal/src/ipfs_test.js -t [babelify --plugins transform-runtime] -o ./webportal/dist/ipfs_test.js -d"
   },
   "repository": {
     "type": "git",
