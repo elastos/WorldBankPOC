@@ -33,7 +33,8 @@
     "docker:prod": "docker-compose -f docker-compose.yml -f docker-compose.prod.yml up",
     "docker:dev": "docker-compose -f docker-compose.yml -f docker-compose.dev.yml up",
     "docker:test": "docker-compose -f docker-compose.yml -f docker-compose.test.yml up --abort-on-container-exit",
-    "compile": "browserify ./src/poc/simulator/nodesim.js -t babelify -o ./src/api/routes/simulator/js/app.js -d"
+    "compile": "browserify ./src/poc/simulator/nodesim.js -t [babelify --plugins transform-runtime] -o ./src/api/routes/simulator/js/app.js -d",
+    "compile:wp_ipfs": "browserify ./webportal/src/ipfs.js -t babelify -o ./webportal/dist/ipfs.js -d"
   },
   "repository": {
     "type": "git",
@@ -65,9 +66,7 @@
   "dependencies": {
     "axios": "^0.18.0",
     "babel-plugin-transform-async-to-generator": "^6.24.1",
-    "babel-plugin-transform-runtime": "^6.23.0",
     "babel-preset-env": "^1.6.1",
-    "babelify": "^8.0.0",
     "bcryptjs": "2.4.3",
     "bluebird": "^3.5.0",
     "body-parser": "^1.17.0",
@@ -101,10 +100,12 @@
     "winston": "^3.1.0"
   },
   "devDependencies": {
-    "@babel/plugin-transform-runtime": "^7.5.5",
+    "@babel/core": "^7.5.5",
     "apidoc": "^0.17.5",
     "babel-cli": "^6.26.0",
+    "babel-plugin-transform-runtime": "^6.23.0",
     "babel-preset-env": "^1.7.0",
+    "babelify": "^8.0.0",
     "chai": "^4.1.0",
     "chai-as-promised": "^7.1.1",
     "coveralls": "^3.0.0",

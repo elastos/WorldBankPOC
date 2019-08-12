@@ -346,7 +346,7 @@ router
     try{
       let rs = '';
       if(type === 'ra'){
-        return result(res, -1, 'ra task will coming soon');
+        rs = await taskService.createNewRATask(peerId);
       }
       else{
         rs = await taskService.createNewCalculateTask(peerId, _.toNumber(amt));

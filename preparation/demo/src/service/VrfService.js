@@ -10,8 +10,9 @@ export default class extends Base {
       pi, outputHash
     };
   }
-  async verify(){
-
+  async verifyPeer(peerId, targetPeerId){
+    // return [true, false][_.random(0, 1)];
+    return true;
   }
   async weightedThreshold(peerId){
     const creditScore = await this.util.getScore(peerId);
