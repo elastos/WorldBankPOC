@@ -6,11 +6,26 @@ const roomMessageHandler = require('./roomMeesageHandler');
 const townHall = require('./townHall');
 const taskRoom = require('./taskRoom');
 const blockRoom = require('./blockRoom');
+const {presetUsers} = require('../constValue');
 
 function main(){
   //const peer = await PeerId.createFromJSON(demoPeerKeys[0]);
+  const getUrlVars = ()=>{
+    const vars = {};
+    const parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, (m,key,value) =>{
+        vars[key] = value;
+    });
+    return vars;
+  }
+  const userIndex = parseInt(getUrlVars().u || '1');
+  const user = presetUsers[userIndex];
+  console.log("User logged in as:", user);
+  document.getElementById('userName').innerText = user.name;
+  document.getElementById('pubkey').innerText = user.pub;
+  document.getElementById('privkey').innerText = user.pri;
+  
+
   window.IPFS = IPFS;
-  console.log('before IPFS.create');
   IPFS.create({
     repo: 'ipfs-leo/poc/' + Math.random(),
     EXPERIMENTAL: {
@@ -28,7 +43,7 @@ function main(){
     }
   }).then((ipfs)=>{
     console.log('IPFS node is ready');
-    console.log("taskroom", taskRoom, townHall);
+    //console.log("taskroom", taskRoom, townHall);
     window.ipfs = ipfs;
     ipfs.on('error', error=>{
       console.log('IPFS on error:', error);
@@ -58,10 +73,11 @@ function main(){
     // }
   
     // document.getElementById('store').onclick = store
-    console.log("taskroom", taskRoom, townHall);
-    roomMessageHandler(ipfs, 'taskRoom', taskRoom);
-    roomMessageHandler(ipfs, 'townHall', townHall);
-    window.blockRoom = roomMessageHandler(ipfs, 'blockRoom', blockRoom);
+    const rooms = {};
+    rooms.taskRoom = roomMessageHandler(ipfs, 'taskRoom', taskRoom);
+    rooms.towHall = roomMessageHandler(ipfs, 'townHall', townHall);
+    rooms.blockRoom = roomMessageHandler(ipfs, 'blockRoom', blockRoom);
+    window.rooms = rooms;
   });
   
 

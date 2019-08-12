@@ -41,10 +41,15 @@ exports.tryVrf = (req, res)=>{
     user.pub = pub;
     user.pri = pri;
     user.j = []
-    users.unshift(user);
+    users.push(user);
     
     totalCoins += user.owns;
   }
+
+  // console.log(JSON.stringify(users.map((u)=>{
+  //   return {name:u.name, pub:u.pub.toString('hex'), pri:u.pri.toString('hex')};
+  // })));
+
 
   const W = totalCoins;
 
