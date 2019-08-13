@@ -27,6 +27,8 @@ document.addEventListener("DOMContentLoaded", ()=>{
 const showJsonHandler = ()=>{
   const json = editor.get();
   console.log('json, ', json);
+
+  document.getElementById('jsontext').innerHTML = JSON.stringify(json, null, 2);
 };
 
 const pubTaskRoomHandler = ()=>{

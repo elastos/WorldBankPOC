@@ -10,10 +10,25 @@
   </head>
   <body>
     <h1>Generate Task and Publish to PubSub in Browser</h1>
-    <div id="jsoneditor" style="width: 400px; height: 400px;"></div>
-
+    <p>
+      <div id="jsoneditor" style="width: 400px; height: 400px;"></div>
+    </p>
+    
+    <p><button id='showjson'>Copy JSON Object to The Form</button></p>
+    
+    <p>
+      <form action="/poc/publish2room" method="post">
+        <textarea id="jsontext" name="jsontext" style="width: 400px; height: 800px; border:1px solid #eee; display:block" name="message">check JSON before send</textarea>
+        <br>
+        
+        <input type="radio" name="room" value="townhall" >Town Hall<br>
+        <input type="radio" name="room" value="taskroom" checked>Task Rooml<br>
+        <input type="radio" name="room" value="blockroom">Block Room<br>
+        <input type="submit">
+      </form>
+    </p>
     <script src="js/taskGen.js"></script>
-    <p><button id='showjson'>Show JSON in Console</button></p>
+    
     <p><button id='pubtaskroom'>Publish to Task Room</button></p>
     <p><button id='pubtownhall'>Publish to Town Hall</button></p>
     <p><button id='pubblockroom'>Publish to Block Room</button></p>
