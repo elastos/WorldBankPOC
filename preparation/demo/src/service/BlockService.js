@@ -114,7 +114,8 @@ export default class extends Base {
       }
     }).exec();
 
-    const tx_ids = _.map(list, (item)=>item._id);
+    //const tx_ids = _.map(list, (item)=>item._id);
+    const tx_ids = _.map(list, (item)=>item.cid);
     return tx_ids;
   }
 

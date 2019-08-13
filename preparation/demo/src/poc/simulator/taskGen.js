@@ -27,16 +27,3 @@ const showJsonHandler = ()=>{
 
   document.getElementById('jsontext').innerHTML = JSON.stringify(json, null, 2);
 };
-
-const pubTaskRoomHandler = ()=>{
-
-};
-
-const pubBlockRoomHandler = ()=>{
-
-};
-
-const pubTownHallHandler = ()=>{
-
-};
-
