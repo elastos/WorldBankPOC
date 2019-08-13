@@ -15,9 +15,29 @@ document.addEventListener("DOMContentLoaded", ()=>{
 
 
   document.getElementById('showjson').onclick = showJsonHandler;
-  document.getElementById('pubtaskroom').onclick = pubTaskRoomHandler;
-  document.getElementById('pubtownhall').onclick = pubBlockRoomHandler;
-  document.getElementById('pubblockroom').onclick = pubTownHallHandler;
+  document.getElementById('btn1').onclick = ()=>{
+    editor.set({
+      txType:"gasTransfer",
+      fromPeerId:"user#2",
+      toPeerId:"user#3",
+      amt:1
+    })
+  };
+  document.getElementById('btn2').onclick = ()=>{
+    editor.set({
+      txType:"newNodeJoin",
+      newNodePeerId:"user#4",
+      depositAmt:10,
+    })
+  };;
+  document.getElementById('btn3').onclick = ()=>{
+    editor.set({
+      txType:"gasTransfer",
+      fromPeerId:"user#2",
+      toPeerId:"user#3",
+      amt:1
+    })
+  };;
   
 });
 
