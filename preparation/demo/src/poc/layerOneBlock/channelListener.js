@@ -1,5 +1,5 @@
 import roomMessageHandler from '../simulator/roomMeesageHandler';
-
+import townHallMessageHandler from './townHallMessageHandler';
 const createGenesysBlock = async (globalState, ipfs)=>{
   globalState.txsPool = [];
   globalState.gasMap = {};
@@ -8,7 +8,7 @@ const createGenesysBlock = async (globalState, ipfs)=>{
 
 }
 
-const taskRoomHandler = (ipfs, room) => {
+const taskRoomHandlers = (ipfs, room, options) => {
   const option = {};
   const roomName = 'taskRoom';
   const messageHandlers = [];
@@ -26,11 +26,11 @@ const taskRoomHandler = (ipfs, room) => {
   return messageHandlers;
 };
 
-const townHallHandler = (ipfs, room) => {
+const townHallHandlers = (ipfs, room, options) => {
   const option = {};
   const roomName = 'townHall';
   const messageHandlers = [];
-  
+  const {globalState} = options;
   const peerJoinedHandler = (peer)=>console.log('peer ' + peer + ' joined townhall room');
   messageHandlers.push({message: 'peer joined', handler: peerJoinedHandler});
   const peerLeftHandler = (peer) => console.log('peer ' + peer + ' left townhall room');
@@ -39,12 +39,12 @@ const townHallHandler = (ipfs, room) => {
   messageHandlers.push({message:'subscribed', handler: (m) => {console.log("...... subscribe towhall....", m)}});
   messageHandlers.push({
     message: 'message',
-    handler: (message) => console.log('In townhall room got message from ' + message.from + ': ' + message.data.toString())
+    handler: (m)=>townHallMessageHandler(m, ipfs, room, globalState)
   });
   return messageHandlers;
 };
 
-const blockRoomHandler = (ipfs, room) => {
+const blockRoomHandlers = (ipfs, room, options) => {
   const option = {};
   const roomName = 'blockRoom';
   const messageHandlers = [];
@@ -70,11 +70,11 @@ export default (globalState) =>{
     //We assume every time we start the demo, it starts from genesis block
     globalState.block = createGenesysBlock(globalState, ipfs);
 
-    
+    const options = {};//default placeholder
     const rooms = {};
-    rooms.taskRoom = roomMessageHandler(ipfs, 'taskRoom', taskRoomHandler);
-    rooms.towHall = roomMessageHandler(ipfs, 'townHall', townHallHandler);
-    rooms.blockRoom = roomMessageHandler(ipfs, 'blockRoom', blockRoomHandler);
+    rooms.taskRoom = roomMessageHandler(ipfs, 'taskRoom', options, taskRoomHandlers);
+    rooms.townHall = roomMessageHandler(ipfs, 'townHall', {globalState}, townHallHandlers);
+    rooms.blockRoom = roomMessageHandler(ipfs, 'blockRoom', options, blockRoomHandlers);
     return rooms;
   }
 };

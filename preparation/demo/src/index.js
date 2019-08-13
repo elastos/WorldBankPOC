@@ -21,6 +21,7 @@ ipfsStart(app)
 })
 .then((pubsubRooms)=>{
   app.set('pubsubRooms', pubsubRooms);
+  console.log("in index.js init, pubsubRooms in app:", pubsubRooms);
 })
 
 //blockService.init(app);

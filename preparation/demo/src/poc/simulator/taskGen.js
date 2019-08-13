@@ -38,7 +38,11 @@ document.addEventListener("DOMContentLoaded", ()=>{
       amt:1
     })
   };;
-  
+  document.getElementById('btn4').onclick = ()=>{
+    editor.set({
+      txType:"showGlobalState"
+    })
+  };;
 });
 
 const showJsonHandler = ()=>{

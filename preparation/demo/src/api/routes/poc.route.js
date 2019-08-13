@@ -32,8 +32,8 @@ router
   .post( async (req, res)=>{
     const pubsubRooms = req.app.get('pubsubRooms');
     const ipfs = req.app.get('ipfs');
-
     const {jsontext, room} = req.body;
+    
     let channelRoom;
     switch(room){
       case "townhall":
@@ -49,10 +49,14 @@ router
       default:
         return res.send("unsupported pubsub room,", room);
     }
-    const jsonObj = JSON.parse(jsontext);
-    const cid = await ipfs.dag.put(jsonObj);
-    channelRoom.broadcast(cid.toBaseEncodedString());
-    return res.send(cid.toBaseEncodedString());
+    
+    channelRoom.broadcast(jsontext);
+    return res.send(jsontext);
+
+    // const jsonObj = JSON.parse(jsontext);
+    // const cid = await ipfs.dag.put(jsonObj);
+    // channelRoom.broadcast(cid.toBaseEncodedString());
+    // return res.send(cid.toBaseEncodedString());
   });
 router
   .route('/newBlockPub/:blockId')
