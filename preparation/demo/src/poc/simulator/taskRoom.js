@@ -1,4 +1,3 @@
-const roomMessageHandler = require('./roomMeesageHandler');
 module.exports = (ipfs, room) => {
   const option = {};
   const roomName = 'taskRoom';

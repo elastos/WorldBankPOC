@@ -5,7 +5,8 @@ import BlockSchema from './BlockSchema';
 
 
 export default class extends Base {
-  init(){
+  init(app){
+    app.notdefined();
     this.generateGenesisBlock();
 
     const s = 1000*60;
@@ -21,6 +22,7 @@ export default class extends Base {
   }
 
   async generateGenesisBlock(){
+    console.log("**************************** generateGenersisBlock ******************")
     const count = await BlockSchema.count({}).exec();
     if(count > 0){
       return false;

@@ -1,5 +1,5 @@
 import TaskService from './TaskService';
-import BlockService from './BlockService';
+import BlockService from './BlockServices';
 
 const _ts = new TaskService();
 const _bs = new BlockService();

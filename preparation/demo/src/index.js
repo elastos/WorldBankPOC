@@ -6,16 +6,28 @@ const { port, env } = require('./config/vars');
 const logger = require('./config/logger');
 const app = require('./config/express');
 const mongoose = require('./config/mongoose');
-const {ipfsStart} = require('./poc/ipfsMod');
-
-app.set('json spaces', 2);
+const {ipfsStart, ipfsPubSubInit} = require('./poc/ipfsMod');
+const {channelListener, blokLoop} = require('./poc/layerOneBlock');
+//const blockService = require('./service/BlockServices');
 // open mongoose connection
 mongoose.connect();
 
-// listen to requests
 
+
+ipfsStart(app)
+.then(async (ipfs)=>{
+  app.set('ipfs', ipfs);
+  return channelListener(app.get('ipfs'));
+})
+.then((pubsubRooms)=>{
+  app.set('pubsubRooms', pubsubRooms);
+})
+
+//blockService.init(app);
+
+// listen to requests
 app.listen(port, () => logger.info(`server started on port ${port} (${env})`));
-ipfsStart(app);
+
 /**
 * Exports express
 * @public

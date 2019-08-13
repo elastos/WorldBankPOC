@@ -16,7 +16,9 @@
     ".git",
     ".idea",
     "src/**/*.spec.js",
-    "webportal"
+    "webportal",
+    "src/api/routes/simulator",
+    "src/api/routes/docs"
   ],
   "exec": "babel-node ./src/index.js --harmony"
 }
