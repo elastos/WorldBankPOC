@@ -25,17 +25,14 @@ document.addEventListener("DOMContentLoaded", ()=>{
   };
   document.getElementById('btn2').onclick = ()=>{
     editor.set({
-      txType:"newNodeJoin",
-      newNodePeerId:"user#4",
-      depositAmt:10,
+      txType:"newNodeJoinNeedRa",
+      cid:""
     })
   };;
   document.getElementById('btn3').onclick = ()=>{
     editor.set({
-      txType:"gasTransfer",
-      fromPeerId:"user#2",
-      toPeerId:"user#3",
-      amt:1
+      txType:"computationTask",
+      cid:""
     })
   };;
   document.getElementById('btn4').onclick = ()=>{

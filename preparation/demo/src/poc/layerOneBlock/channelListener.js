@@ -1,10 +1,27 @@
 import roomMessageHandler from '../simulator/roomMeesageHandler';
 import townHallMessageHandler from './townHallMessageHandler';
-const createGenesysBlock = async (globalState, ipfs)=>{
-  globalState.txsPool = [];
-  globalState.gasMap = {};
-  globalState.blockHeight = 0;
-  return globalState;
+import {presetUsers} from '../constValue';
+
+
+const createGenesysBlock = (ipfs)=>{
+  console.log("**** Generating Genesis Block **** In our demo, we assume everytime we start the system we will start from the very beginning...")
+  const block = {};
+  block.txsPool = [];
+  block.gasMap = {};
+  block.creditMap = {};
+  let totalGas = 0;
+  let totalCredit = 0;
+  for(let i = 0; i < presetUsers.length; i ++){
+    const u = presetUsers[i];
+    block.gasMap[u.name] = i * 100 + 20; //we add 20 to make sure User#0 still have 20 gas in his account;
+    totalGas += block.gasMap[u.name];
+    block.creditMap[u.name] = i * 100; // we do not add 20, so that User#0 will have money to pay for RA, but he doesn't have credit, that means he is not trustable yet
+    totalCredit += block.creditMap[u.name];
+  }
+  block.totalGas = totalGas;
+  block.totalCredit = totalCredit;
+  block.latestBlockHeight = 0;
+  return block;
 
 }
 
@@ -68,8 +85,7 @@ const blockRoomHandlers = (ipfs, room, options) => {
 export default (globalState) =>{
   return (ipfs)=>{
     //We assume every time we start the demo, it starts from genesis block
-    globalState.block = createGenesysBlock(globalState, ipfs);
-
+    globalState.block = createGenesysBlock(ipfs);
     const options = {};//default placeholder
     const rooms = {};
     rooms.taskRoom = roomMessageHandler(ipfs, 'taskRoom', options, taskRoomHandlers);
