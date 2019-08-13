@@ -7,12 +7,9 @@ document.addEventListener("DOMContentLoaded", ()=>{
     // Handler when the DOM is fully loaded
     // set json
   var json = {
-    "Array": [1, 2, 3],
-    "Boolean": true,
-    "Null": null,
-    "Number": 123,
-    "Object": {"a": "b", "c": "d"},
-    "String": "Hello World"
+    taskType:"RaNewNode",
+    potCid:"--placeholder--",
+    paymentTxId:"--placeholder--"
   };
   editor.set(json);
 
