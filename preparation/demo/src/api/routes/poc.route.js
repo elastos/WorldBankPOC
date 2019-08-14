@@ -39,7 +39,7 @@ router
       let cid;
       const broadcastObj = {txType};
       switch(txType){
-        case "gasTransfer":
+        case "gasTransfer":{
           channelRoom = pubsubRooms.taskRoom;
           const {fromPeerId, toPeerId, amt} = jsonObj;
           const cid = await ipfs.dag.put({
@@ -47,26 +47,33 @@ router
           });
           broadcastObj.cid = cid.toBaseEncodedString();
           break;
+        }
         case "showGlobalState":
           channelRoom = pubsubRooms.townHall;
           break;
-        case "taskroom":
+        case "newNodeJoinNeedRa":{
           channelRoom = pubsubRooms.taskRoom;
+          const {newPeerId, depositAmt, ipfsPeerId} = jsonObj;
+          const cid = await ipfs.dag.put({
+            newPeerId, depositAmt, ipfsPeerId
+          });
+          broadcastObj.cid = cid.toBaseEncodedString();
           break;
+        }
   
         case "blockroom":
           channelRoom = pubsubRooms.blockRoom;
           break;
         default:
-          return res.send("unsupported pubsub room,", room);
+          return res.status(502).send("unsupported pubsub room,", room);
       }
       console.log('broadcastObj', broadcastObj);
       channelRoom.broadcast(JSON.stringify(broadcastObj));
-      return res.send(JSON.stringify(broadcastObj));
+      return res.status(20).send(JSON.stringify(broadcastObj));
 
     }
     catch(e){
-      res.send(e);
+      res.status(502).send(e);
     }
   });
 
@@ -134,7 +141,7 @@ router
     if(blockId == 2){
       const result = await pubsubRooms.townHall.broadcast(block2Cid.toBaseEncodedString());
       console.log("broadcast result:", result);
-      return res.send(JSON.stringify("<html><head></head><body>Block " + blockId + " is sent. Its CID:" + block2Cid.toBaseEncodedString() + "</body></html"));
+      return res.status(20).send(JSON.stringify("<html><head></head><body>Block " + blockId + " is sent. Its CID:" + block2Cid.toBaseEncodedString() + "</body></html"));
     }
   });
 router

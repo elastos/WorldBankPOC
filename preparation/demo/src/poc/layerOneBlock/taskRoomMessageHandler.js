@@ -1,30 +1,30 @@
-import {tryParseJson} from '../constValue'
+import {tryParseJson, minimalNewNodeJoinRaDeposit} from '../constValue'
 
 
 export default (ipfs, room, options)=>{
   return async (m)=>{
     const {globalState} = options;
     const messageString = m.data.toString();
-    try{
-      const messageObj = tryParseJson(messageString);
-      if( typeof messageObj == "undefined") return false;
-      if(messageObj.txType == "gasTransfer"){
-        if(await gasTransferProcess(ipfs, room, options, messageObj.cid)){
-          globalState.txPool.push(messageObj.cid);
-          console.log("after gas transfer, globalState is,", globalState);
-          
-        }
-        else{
-          //drop the tx since it cannot be handled or invalid
-          console.log("gasTransfer tx has been dropped,", messageObj.cid);
-        }
-        
-      }else{
+    
+    const messageObj = tryParseJson(messageString);
+    if( typeof messageObj == "undefined") return false;
+    let processResult;
+    switch(messageObj.txType){
+      case "gasTransfer":
+        processResult = await gasTransferProcess(ipfs, room, options, messageObj.cid);
+        break;
+      case "newNodeJoinNeedRa":
+        processResult = await newNodeJoinNeedRaProcess(ipfs, room, options, messageObj.cid);
+        break;
+      default:
         console.log("taskRoom Unhandled message, ", messageObj);
-      }
     }
-    catch(e){
-
+    if(processResult){
+      globalState.txPool.push(messageObj.cid);
+      console.log("after process tx cid=", messageObj.cid,  " the globalState is,", globalState);
+    }
+    else{
+      console.log("process task failed, tx is dropped, ", messageObj.cid);
     }
   }
 };
@@ -44,6 +44,34 @@ const gasTransferProcess = async (ipfs, room, options, cid)=>{
     globalState.gasMap[fromPeerId] -= amt;
     if(! globalState.gasMap[toPeerId])  globalState.gasMap[toPeerId] = amt;
     else globalState.gasMap[toPeerId] += amt;
+    return true;
+  }else{
+    console.log("globalState error,", globalState);
+    return false;
+  };
+
+}
+
+const newNodeJoinNeedRaProcess = async (ipfs, room, options, cid)=>{
+  const {globalState} = options;
+  if(!cid) return false;
+  const tx = await ipfs.dag.get(cid)
+
+  if(!tx) return false;
+
+  const {newPeerId, depositAmt, ipfsPeerId} = tx.value;
+  if (depositAmt < minimalNewNodeJoinRaDeposit){
+    console.log("Please pay more deposit to get your new node verified. Minimal is,", minimalNewNodeJoinRaDeposit);
+    return false;
+  }
+  if (!newPeerId || ! ipfsPeerId)  return false;
+  if( globalState && globalState.gasMap && globalState.gasMap[newPeerId] && globalState.gasMap[newPeerId] > depositAmt)
+  {
+    globalState.gasMap[newPeerId] -= depositAmt;
+    if (! globalState.lockGasMap) globalState.lockGasMap = {};
+    if (! globalState.lockGasMap[newPeerId])  globalState.lockGasMap[newPeerId] = depositAmt;
+    else globalState.lockGasMap[newPeerId] += depositAmt;
+    
     return true;
   }else{
     console.log("globalState error,", globalState);

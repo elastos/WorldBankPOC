@@ -26,7 +26,10 @@ document.addEventListener("DOMContentLoaded", ()=>{
   document.getElementById('btn2').onclick = ()=>{
     editor.set({
       txType:"newNodeJoinNeedRa",
-      cid:""
+      newPeerId:"user #0",
+      depositAmt:20,
+      ipfsPeerId:"placeholder"
+
     })
   };;
   document.getElementById('btn3').onclick = ()=>{
