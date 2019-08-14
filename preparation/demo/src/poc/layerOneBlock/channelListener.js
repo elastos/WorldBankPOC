@@ -9,7 +9,7 @@ import Room from 'ipfs-pubsub-room';
 const createGenesysBlock = (ipfs)=>{
   console.log("**** Generating Genesis Block **** In our demo, we assume everytime we start the system we will start from the very beginning...")
   const block = {};
-
+  block.txPool = [];
   block.gasMap = {};
   block.creditMap = {};
   let totalGas = 0;
@@ -31,9 +31,7 @@ const createGenesysBlock = (ipfs)=>{
 
 exports.channelListener = (ipfs)=>{
   //We assume every time we start the demo, it starts from genesis block
-  const globalState = {};
-  globalState.txPool = [];
-  globalState.block = createGenesysBlock(ipfs);
+  const globalState = createGenesysBlock(ipfs);
   const options = {globalState};//default placeholder
   const rooms = {};
   const taskRoom = Room(ipfs, 'taskRoom');

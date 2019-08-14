@@ -18,8 +18,8 @@ document.addEventListener("DOMContentLoaded", ()=>{
   document.getElementById('btn1').onclick = ()=>{
     editor.set({
       txType:"gasTransfer",
-      fromPeerId:"user#2",
-      toPeerId:"user#3",
+      fromPeerId:"user #2",
+      toPeerId:"user #3",
       amt:1
     })
   };
