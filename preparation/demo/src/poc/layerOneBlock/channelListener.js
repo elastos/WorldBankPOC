@@ -53,5 +53,5 @@ exports.channelListener = (ipfs)=>{
   blockRoom.on('subscribed', (m) => console.log("...... subscribe task room....", m));
   blockRoom.on('message', blockRoomMessageHandler(ipfs, rooms.blockRoom, options));
 
-  return {taskRoom, townHall, blockRoom};
+  return {ipfs, globalState, pubsubRooms:{taskRoom, townHall, blockRoom}};
 }
