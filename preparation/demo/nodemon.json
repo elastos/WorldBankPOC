@@ -16,7 +16,8 @@
     ".git",
     ".idea",
     "src/**/*.spec.js",
-    "webportal"
+    "webportal",
+    "src/shared"
   ],
   "exec": "babel-node ./src/index.js --harmony"
 }

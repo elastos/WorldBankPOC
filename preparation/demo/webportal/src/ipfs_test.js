@@ -1,64 +1,52 @@
-const _ipfs = require('./ipfs');
+const MyIpfs = require('../../src/shared/MyIpfs');
+const IPFS = require('ipfs');
+const PeerId = require('peer-id');
 
 const log = (str)=>{
-  const html = _ipfs.log(str);
+  const html = MyIpfs.log(str);
   $('.js_html').append(html);
 }
-window.poc = {
-  joinRoom(roomName){
-    _ipfs.createIPFS(async (ipfs)=>{
-      
-  
-      log('ipfs init success');
-  
-      _ipfs.room.register(roomName, (ipfs, room)=>{
-        const option = {};
-  
-        const messageHandlers = [];
-        
-        messageHandlers.push({
-          message: 'peer joined', 
-          handler: (peer)=>{
-            log('peer ' + peer + ' joined room');
-          }
-        });
-        messageHandlers.push({
-          message: 'peer left', 
-          handler: (peer)=>{
-            log('peer ' + peer + ' left room');
-          }
-        });
-        messageHandlers.push({
-          message: 'peer joined', 
-          handler: (peer) => {
-            log('Hello ' + peer + ' welcome join the Room!');
-            room.sendTo(peer, 'Hello ' + peer + ' welcome join the Room!')
-          }
-        });
-        messageHandlers.push({
-          message:'subscribed', 
-          handler: (m) => {
-            log("...... subscribe...."+m);
-          }
-        });
-        messageHandlers.push({
-          message: 'message',
-          handler: (message) => {
-            log('test_block room got message from ' + message.from + ': ' + message.data.toString())
-          }
-        });
 
-  
-        window._room = room;
-        return messageHandlers;
-      });
-  
-      const d = await ipfs.id();
-      log(JSON.stringify(d));
+const C = {
+  room : 'blockRoom',
+
+};
+
+let myIpfs = null;
+window.poc = {
+  async joinRoom(){
+
+    const index = parseInt(location.search.replace('?', ''), 10);
+    
+    myIpfs = new MyIpfs(index);
+    await myIpfs.start();
+    const id = await myIpfs.node.id();
+    log(JSON.stringify(id));
+    window.myIpfs = myIpfs;
+    const room = myIpfs.registerRoom(C.room, {
+      join(peer){
+        log('peer ' + peer + ' joined room');
+      },
+      left(peer){
+        log('peer ' + peer + ' left room');
+      },
+      subscribe(m){
+        log("...... subscribe.... => "+m);
+      },
+      message(msg){
+        log('test_block room got message from ' + msg.from + ': ' + msg.data.toString())
+      }
     });
+
+    window._room = room;
   },
 
-  broadcast(roomName, msg){
-    _room.broadcast(msg);
+  broadcast(msg){
+    myIpfs.broadcast(C.room, msg);
+  },
+
+  getPeers(){
+    const list = myIpfs.getRoomPeers(C.room);
+    log(list);
   }
 };
