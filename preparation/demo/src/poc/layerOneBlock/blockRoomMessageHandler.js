@@ -1,5 +1,4 @@
 import {tryParseJson} from '../constValue';
-import { ExceptionHandler } from 'winston';
 
 export default (ipfs, room, options)=>{
   return async (m)=>{
@@ -17,6 +16,9 @@ export default (ipfs, room, options)=>{
       const newBlock = await ipfs.dag.get(cid);
       if(cid != options.globalState.blockCid){
         throw new Exception("the new block is not the one server genreated!!!!!");
+      }
+      else{
+        console.log("received new block, CID matches:", cid);
       }
       //console.log("Retreive block from IPFS:", newBlock);
       //console.log("Cid and Current globalState", cid, options.globalState.blockCid);

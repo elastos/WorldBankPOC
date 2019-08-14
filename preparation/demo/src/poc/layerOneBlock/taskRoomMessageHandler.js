@@ -16,6 +16,9 @@ export default (ipfs, room, options)=>{
       case "newNodeJoinNeedRa":
         processResult = await newNodeJoinNeedRaProcess(ipfs, room, options, messageObj.cid);
         break;
+      case "remoteAttestationDone":
+        processResult = await remoteAttestationDone(ipfs, room, options, messageObj.cid);
+        break;
       default:
         console.log("taskRoom Unhandled message, ", messageObj);
     }
@@ -46,7 +49,7 @@ const gasTransferProcess = async (ipfs, room, options, cid)=>{
     else globalState.gasMap[toPeerId] += amt;
     return true;
   }else{
-    console.log("globalState error,", globalState);
+    console.log("gasTransferProcess error tx.value, globalState,", tx.value, globalState);
     return false;
   };
 
@@ -54,10 +57,16 @@ const gasTransferProcess = async (ipfs, room, options, cid)=>{
 
 const newNodeJoinNeedRaProcess = async (ipfs, room, options, cid)=>{
   const {globalState} = options;
-  if(!cid) return false;
+  if(!cid) {
+    console.log("in newNodeJoinNeedRaProcess, cid is not existing,", cid);
+    return false
+  };
   const tx = await ipfs.dag.get(cid)
 
-  if(!tx) return false;
+  if(!tx){ 
+    console.log("in newNodeJoinNeedRaProcess, tx is not existing", tx);
+    return false;
+  }
 
   const {newPeerId, depositAmt, ipfsPeerId} = tx.value;
   if (depositAmt < minimalNewNodeJoinRaDeposit){
@@ -74,8 +83,15 @@ const newNodeJoinNeedRaProcess = async (ipfs, room, options, cid)=>{
     
     return true;
   }else{
-    console.log("globalState error,", globalState);
+    console.log("newNodeJoinNeedRaProcess error tx.value, globalState,", tx.value, globalState);
     return false;
   };
 
+}
+
+
+
+const remoteAttestationDone = async (ipfs, room, options, cid)=>{
+  console.log("remoteAttestationDone - Not impplemented yet");
+  return false;
 }

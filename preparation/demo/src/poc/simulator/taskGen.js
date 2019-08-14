@@ -27,7 +27,7 @@ document.addEventListener("DOMContentLoaded", ()=>{
     editor.set({
       txType:"newNodeJoinNeedRa",
       newPeerId:"user #0",
-      depositAmt:20,
+      depositAmt:10,
       ipfsPeerId:"placeholder"
 
     })
