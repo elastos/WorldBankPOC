@@ -37,21 +37,21 @@ exports.channelListener = (ipfs)=>{
   const options = {globalState};//default placeholder
   const rooms = {};
   const taskRoom = Room(ipfs, 'taskRoom');
-  taskRoom.on('peer joined', (peer)=>console.log(console.log('peer ' + peer + ' joined task room')));
-  taskRoom.on('peer left', peer=>console.log('peer ' + peer + ' left task room'));
+  taskRoom.on('peer joined', (peer)=>peer);//console.log(console.log('peer ' + peer + ' joined task room')));
+  taskRoom.on('peer left', peer=>peer);//console.log('peer ' + peer + ' left task room'));
   taskRoom.on('subscribed', (m) => console.log("...... subscribe task room....", m));
   taskRoom.on('message', taskRoomMessageHandler(ipfs, rooms.taskRoom, options));
 
   
   const townHall = Room(ipfs, 'townHall');
-  townHall.on('peer joined', (peer)=>console.log(console.log('peer ' + peer + ' joined task room')));
-  townHall.on('peer left', peer=>console.log('peer ' + peer + ' left task room'));
+  townHall.on('peer joined', (peer)=>peer);//console.log(console.log('peer ' + peer + ' joined task room')));
+  townHall.on('peer left', peer=>peer);//console.log('peer ' + peer + ' left task room'));
   townHall.on('subscribed', (m) => console.log("...... subscribe task room....", m));
   townHall.on('message', townHallMessageHandler(ipfs, rooms.townHall, options));
 
   const blockRoom = Room(ipfs, 'blockRoom');
-  blockRoom.on('peer joined', (peer)=>console.log(console.log('peer ' + peer + ' joined task room')));
-  blockRoom.on('peer left', peer=>console.log('peer ' + peer + ' left task room'));
+  blockRoom.on('peer joined', (peer)=>peer);//console.log(console.log('peer ' + peer + ' joined task room')));
+  blockRoom.on('peer left', peer=>peer);//console.log('peer ' + peer + ' left task room'));
   blockRoom.on('subscribed', (m) => console.log("...... subscribe task room....", m));
   blockRoom.on('message', blockRoomMessageHandler(ipfs, rooms.blockRoom, options));
 
