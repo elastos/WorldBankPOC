@@ -33,7 +33,7 @@ ipfsStart()
     }
     presetUsers.push(u);
   }
-  console.log("preserusers,", presetUsers);
+  console.log("presetUsers,", presetUsers);
   app.set('presetUsers', presetUsers);
   return channelListener(app.get('ipfs'), randRoomPostfix, presetUsers);
 })

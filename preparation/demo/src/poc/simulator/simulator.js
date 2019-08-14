@@ -2,18 +2,18 @@ const {presetUsers} = require('../constValue');
 
 const getUrlVars = ()=>{
   const vars = {};
-  const parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, (m,key,value) =>{
+  const decodedUri = decodeURI(window.location.href);
+  const parts = decodedUri.replace(/[?&]+([^=&]+)=([^&]*)/gi, (m,key,value) =>{
       vars[key] = value;
   });
   return vars;
 }
-const userIndex = parseInt(getUrlVars().u || '1');
+const userName = getUrlVars().u;
 const randRoomPostfix = getUrlVars().r || "";
-const user = presetUsers[userIndex];
-console.log("User logged in as:", user);
+const pubicKey = getUrlVars().pub || "";
+const privateKey = getUrlVars().pri || "";
 
 document.getElementById('roomPostfix').innerText = randRoomPostfix;
-document.getElementById('roomPostfix2').innerText = randRoomPostfix;
-document.getElementById('userName').innerText = user.name;
-document.getElementById('pubkey').innerText = user.pub;
-document.getElementById('privkey').innerText = user.pri;
+document.getElementById('userName').innerText = userName;
+document.getElementById('pubkey').innerText = pubicKey;
+document.getElementById('privkey').innerText = privateKey;

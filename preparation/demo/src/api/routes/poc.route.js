@@ -13,10 +13,11 @@ router
   .route('/')
   .get((req, res) => {
     
-    const users = req.app.get('users');
-    const loopUserLink = users.map((u, i)=>{
-      return "<p><a href='/simulator?u=" + i + "&&r=" +  req.app.get('randRoomPostfix') + "'>Enter Simulator</a></p>"
-    });
+    const users = req.app.get('presetUsers');
+    let loopUserLink = users.reduce((accumulator, u)=>{
+
+      return accumulator + "<a href='/simulator?u=" + u.name + "&&r=" +  req.app.get('randRoomPostfix') + "&&pub=" + u.pub + "&&pri=" + u.pri + "'  target='_blank'>Simulator for " + u.name + "</a></br>";
+    }, "");
     
     const template = "<html><head></head><body>" 
     + "<p> Random Room Name Protfix is" + req.app.get('randRoomPostfix') + "</p><p>"
