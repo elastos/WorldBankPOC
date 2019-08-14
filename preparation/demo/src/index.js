@@ -5,17 +5,16 @@ require("babel-polyfill");
 const { port, env } = require('./config/vars');
 const logger = require('./config/logger');
 const app = require('./config/express');
-const mongoose = require('./config/mongoose');
-const {ipfsStart, ipfsPubSubInit} = require('./poc/ipfsMod');
-const {channelListener, blokLoop} = require('./poc/layerOneBlock');
+const {ipfsStart} = require('./poc/ipfsMod');
+const {channelListener} = require('./poc/layerOneBlock/channelListener');
 //const blockService = require('./service/BlockServices');
 // open mongoose connection
-mongoose.connect();
+//mongoose.connect();
 
 
 
 ipfsStart(app)
-.then(async (ipfs)=>{
+.then((ipfs)=>{
   app.set('ipfs', ipfs);
   return channelListener(app.get('ipfs'));
 })

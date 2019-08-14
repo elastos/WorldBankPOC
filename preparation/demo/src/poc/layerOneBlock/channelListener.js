@@ -1,12 +1,15 @@
-import roomMessageHandler from '../simulator/roomMeesageHandler';
 import townHallMessageHandler from './townHallMessageHandler';
+import taskRoomMessageHandler from './taskRoomMessageHandler';
+import blockRoomMessageHandler from './blockRoomMessageHandler';
+
 import {presetUsers} from '../constValue';
+import Room from 'ipfs-pubsub-room';
 
 
 const createGenesysBlock = (ipfs)=>{
   console.log("**** Generating Genesis Block **** In our demo, we assume everytime we start the system we will start from the very beginning...")
   const block = {};
-  block.txsPool = [];
+
   block.gasMap = {};
   block.creditMap = {};
   let totalGas = 0;
@@ -25,72 +28,32 @@ const createGenesysBlock = (ipfs)=>{
 
 }
 
-const taskRoomHandlers = (ipfs, room, options) => {
-  const option = {};
-  const roomName = 'taskRoom';
-  const messageHandlers = [];
+
+exports.channelListener = (ipfs)=>{
+  //We assume every time we start the demo, it starts from genesis block
+  const globalState = {};
+  globalState.txPool = [];
+  globalState.block = createGenesysBlock(ipfs);
+  const options = {globalState};//default placeholder
+  const rooms = {};
+  const taskRoom = Room(ipfs, 'taskRoom');
+  taskRoom.on('peer joined', (peer)=>console.log(console.log('peer ' + peer + ' joined task room')));
+  taskRoom.on('peer left', peer=>console.log('peer ' + peer + ' left task room'));
+  taskRoom.on('subscribed', (m) => console.log("...... subscribe task room....", m));
+  taskRoom.on('message', taskRoomMessageHandler(ipfs, rooms.taskRoom, options));
+
   
-  const peerJoinedHandler = (peer)=>console.log('peer ' + peer + ' joined task room');
-  messageHandlers.push({message: 'peer joined', handler: peerJoinedHandler});
-  const peerLeftHandler = (peer) => console.log('peer ' + peer + ' left task room');
-  messageHandlers.push({message: 'peer left', handler: peerLeftHandler});
-  messageHandlers.push({message: 'peer joined', handler: (peer) => room.sendTo(peer, 'Hello ' + peer + ' welcome join the Task Room!')});
-  messageHandlers.push({message:'subscribed', handler: (m) => {console.log("...... subscribe task room....", m)}});
-  messageHandlers.push({
-    message: 'message',
-    handler: (message) => console.log('In task room got message from ' + message.from + ': ' + message.data.toString())
-  });
-  return messageHandlers;
-};
+  const townHall = Room(ipfs, 'townHall');
+  townHall.on('peer joined', (peer)=>console.log(console.log('peer ' + peer + ' joined task room')));
+  townHall.on('peer left', peer=>console.log('peer ' + peer + ' left task room'));
+  townHall.on('subscribed', (m) => console.log("...... subscribe task room....", m));
+  townHall.on('message', townHallMessageHandler(ipfs, rooms.townHall, options));
 
-const townHallHandlers = (ipfs, room, options) => {
-  const option = {};
-  const roomName = 'townHall';
-  const messageHandlers = [];
-  const {globalState} = options;
-  const peerJoinedHandler = (peer)=>console.log('peer ' + peer + ' joined townhall room');
-  messageHandlers.push({message: 'peer joined', handler: peerJoinedHandler});
-  const peerLeftHandler = (peer) => console.log('peer ' + peer + ' left townhall room');
-  messageHandlers.push({message: 'peer left', handler: peerLeftHandler});
-  messageHandlers.push({message: 'peer joined', handler: (peer) => room.sendTo(peer, 'Hello ' + peer + ' welcome join the townhall Room!')});
-  messageHandlers.push({message:'subscribed', handler: (m) => {console.log("...... subscribe towhall....", m)}});
-  messageHandlers.push({
-    message: 'message',
-    handler: (m)=>townHallMessageHandler(m, ipfs, room, globalState)
-  });
-  return messageHandlers;
-};
+  const blockRoom = Room(ipfs, 'blockRoom');
+  blockRoom.on('peer joined', (peer)=>console.log(console.log('peer ' + peer + ' joined task room')));
+  blockRoom.on('peer left', peer=>console.log('peer ' + peer + ' left task room'));
+  blockRoom.on('subscribed', (m) => console.log("...... subscribe task room....", m));
+  blockRoom.on('message', blockRoomMessageHandler(ipfs, rooms.blockRoom, options));
 
-const blockRoomHandlers = (ipfs, room, options) => {
-  const option = {};
-  const roomName = 'blockRoom';
-  const messageHandlers = [];
-  
-  const peerJoinedHandler = (peer)=>console.log('peer ' + peer + ' joined block room');
-  messageHandlers.push({message: 'peer joined', handler: peerJoinedHandler});
-  const peerLeftHandler = (peer) => console.log('peer ' + peer + ' left block room');
-  messageHandlers.push({message: 'peer left', handler: peerLeftHandler});
-  messageHandlers.push({message: 'peer joined', handler: (peer) => room.sendTo(peer, 'Hello ' + peer + ' welcome join the block Room!')});
-  messageHandlers.push({message:'subscribed', handler: (m) => {console.log("...... subscribe blockroom....", m)}});
-  messageHandlers.push({
-    message: 'message',
-    handler: (message) => console.log('In block room got message from ' + message.from + ': ' + message.data.toString())
-  });
-  return messageHandlers;
-};
-
-
-
-
-export default (globalState) =>{
-  return (ipfs)=>{
-    //We assume every time we start the demo, it starts from genesis block
-    globalState.block = createGenesysBlock(ipfs);
-    const options = {};//default placeholder
-    const rooms = {};
-    rooms.taskRoom = roomMessageHandler(ipfs, 'taskRoom', options, taskRoomHandlers);
-    rooms.townHall = roomMessageHandler(ipfs, 'townHall', {globalState}, townHallHandlers);
-    rooms.blockRoom = roomMessageHandler(ipfs, 'blockRoom', options, blockRoomHandlers);
-    return rooms;
-  }
-};
+  return {taskRoom, townHall, blockRoom};
+}
