@@ -6,8 +6,7 @@ let ipfs = null;
 const F = {
   createIPFS(cb){
     window.IPFS = IPFS;
-    console.log('before IPFS.create');
-
+    
     IPFS.create({
       repo: 'ipfs-leo/poc/' + Math.random(),
       EXPERIMENTAL: {

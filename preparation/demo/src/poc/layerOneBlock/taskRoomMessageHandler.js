@@ -3,7 +3,6 @@ export default (ipfs, room, options)=>{
     const {globalState} = options;
     const messageString = m.data.toString();
 
-    console.log("messageString,", messageString);
     const messageObj = JSON.parse(messageString);
     if(messageObj.txType == "gasTransfer"){
       globalState.txPool.push(messageObj.cid);

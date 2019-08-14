@@ -8,7 +8,7 @@ const _ = require('lodash');
 const {tryVrf} = require('../../poc/tryVrf')
 
 const router = express.Router();
-console.log("credit", creditScore);
+//console.log("credit", creditScore);
 router
   .route('/')
   .get((req, res) => {
