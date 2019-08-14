@@ -1,12 +1,10 @@
 import townHallMessageHandler from './townHallMessageHandler';
 import taskRoomMessageHandler from './taskRoomMessageHandler';
 import blockRoomMessageHandler from './blockRoomMessageHandler';
-
-import {presetUsers} from '../constValue';
 import Room from 'ipfs-pubsub-room';
 
 
-const createGenesysBlock = (ipfs)=>{
+const createGenesysBlock = (ipfs, presetUsers)=>{
   console.log("**** Generating Genesis Block **** In our demo, we assume everytime we start the system we will start from the very beginning...")
   const block = {};
   block.txPool = [];
@@ -29,25 +27,26 @@ const createGenesysBlock = (ipfs)=>{
 }
 
 
-exports.channelListener = (ipfs)=>{
+exports.channelListener = (ipfs, randRoomPostfix, presetUsers)=>{
+  
   //We assume every time we start the demo, it starts from genesis block
-  const globalState = createGenesysBlock(ipfs);
+  const globalState = createGenesysBlock(ipfs, presetUsers);
   const options = {globalState};//default placeholder
   const rooms = {};
-  const taskRoom = Room(ipfs, 'taskRoom');
+  const taskRoom = Room(ipfs, 'taskRoom' + randRoomPostfix);
   taskRoom.on('peer joined', (peer)=>peer);//console.log(console.log('peer ' + peer + ' joined task room')));
   taskRoom.on('peer left', peer=>peer);//console.log('peer ' + peer + ' left task room'));
   taskRoom.on('subscribed', (m) => console.log("...... subscribe task room....", m));
   taskRoom.on('message', taskRoomMessageHandler(ipfs, rooms.taskRoom, options));
 
   
-  const townHall = Room(ipfs, 'townHall');
+  const townHall = Room(ipfs, 'townHall' + randRoomPostfix);
   townHall.on('peer joined', (peer)=>peer);//console.log(console.log('peer ' + peer + ' joined task room')));
   townHall.on('peer left', peer=>peer);//console.log('peer ' + peer + ' left task room'));
   townHall.on('subscribed', (m) => console.log("...... subscribe task room....", m));
   townHall.on('message', townHallMessageHandler(ipfs, rooms.townHall, options));
 
-  const blockRoom = Room(ipfs, 'blockRoom');
+  const blockRoom = Room(ipfs, 'blockRoom' + randRoomPostfix);
   blockRoom.on('peer joined', (peer)=>peer);//console.log(console.log('peer ' + peer + ' joined task room')));
   blockRoom.on('peer left', peer=>peer);//console.log('peer ' + peer + ' left task room'));
   blockRoom.on('subscribed', (m) => console.log("...... subscribe task room....", m));

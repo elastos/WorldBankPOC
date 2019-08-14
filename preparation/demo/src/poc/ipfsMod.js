@@ -1,7 +1,7 @@
 const IPFS = require('ipfs');
 import {townHall, taskRoom, blockRoom, roomMessageHandler} from './simulator'
 
-exports.ipfsStart = async (app)=>{
+exports.ipfsStart = async ()=>{
   const ipfs = await IPFS.create({
     repo: 'ipfs-storage-no-git/poc/' + Math.random(),
     EXPERIMENTAL: {
@@ -25,14 +25,3 @@ exports.ipfsStart = async (app)=>{
   });
   return ipfs;
 };
-
-
-exports.ipfsPubSubInit = async (ipfs)=>{
-  const pubsubRooms = {};
-  pubsubRooms.taskRoom = roomMessageHandler(ipfs, 'taskRoom', taskRoom);
-  pubsubRooms.townHall = roomMessageHandler(ipfs, 'townHall', townHall);
-  pubsubRooms.blockRoom = roomMessageHandler(ipfs, 'blockRoom', blockRoom);
-  console.log("pubsubRoom is ready");
-  
-  return pubsubRooms;
-}

@@ -12,7 +12,17 @@ const router = express.Router();
 router
   .route('/')
   .get((req, res) => {
-    res.send('You are doing great');
+    
+    const users = req.app.get('users');
+    const loopUserLink = users.map((u, i)=>{
+      return "<p><a href='/simulator?u=" + i + "&&r=" +  req.app.get('randRoomPostfix') + "'>Enter Simulator</a></p>"
+    });
+    
+    const template = "<html><head></head><body>" 
+    + "<p> Random Room Name Protfix is" + req.app.get('randRoomPostfix') + "</p><p>"
+    + loopUserLink
+    + "</p></body></html>";
+    res.status(200).send(template);
   });
 
 router
@@ -69,7 +79,7 @@ router
       }
       console.log('broadcastObj', broadcastObj);
       channelRoom.broadcast(JSON.stringify(broadcastObj));
-      return res.status(20).send(JSON.stringify(broadcastObj));
+      return res.status(200).send(JSON.stringify(broadcastObj));
 
     }
     catch(e){
@@ -141,7 +151,7 @@ router
     if(blockId == 2){
       const result = await pubsubRooms.townHall.broadcast(block2Cid.toBaseEncodedString());
       console.log("broadcast result:", result);
-      return res.status(20).send(JSON.stringify("<html><head></head><body>Block " + blockId + " is sent. Its CID:" + block2Cid.toBaseEncodedString() + "</body></html"));
+      return res.status(200).send(JSON.stringify("<html><head></head><body>Block " + blockId + " is sent. Its CID:" + block2Cid.toBaseEncodedString() + "</body></html"));
     }
   });
 router

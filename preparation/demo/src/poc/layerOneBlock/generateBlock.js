@@ -2,7 +2,7 @@
 
 
 exports.generateBlock = async ({ipfs, globalState, blockRoom})=>{
-  console.log("generating block, globalState:", globalState);
+  //console.log("generating block, globalState:", globalState);
   const gasMap = globalState.gasMap;
   const creditMap = globalState.creditMap;
   const processedTxs = globalState.txPool;

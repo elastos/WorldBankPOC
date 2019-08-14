@@ -9,16 +9,33 @@ const app = require('./config/express');
 const {ipfsStart} = require('./poc/ipfsMod');
 const {channelListener} = require('./poc/layerOneBlock/channelListener');
 const {generateBlock} = require('./poc/layerOneBlock/generateBlock');
+const {utils} = require('vrf.js');
 //const blockService = require('./service/BlockServices');
 // open mongoose connection
 //mongoose.connect();
 
 
 
-ipfsStart(app)
+
+ipfsStart()
 .then((ipfs)=>{
   app.set('ipfs', ipfs);
-  return channelListener(app.get('ipfs'));
+  const randRoomPostfix = Math.round(Math.random()*1000).toString();//Every time we start the server, we create a new rand string so that the pub sub channel would be different each time. This will help debuging since other users may also use the same code base to test and publish message to the same room
+  app.set('randRoomPostfix', randRoomPostfix);
+  console.log("Generating 100 preset users, please wait a few seconds...");
+  let presetUsers = [];
+  for(let i = 0; i < 100; i ++){
+    const [publicKey, privateKey] = utils.generatePair();
+    const u ={
+      name:'user #' + i,
+      pub:publicKey.toString('hex'),
+      pri:privateKey.toString('hex')
+    }
+    presetUsers.push(u);
+  }
+  console.log("preserusers,", presetUsers);
+  app.set('presetUsers', presetUsers);
+  return channelListener(app.get('ipfs'), randRoomPostfix, presetUsers);
 })
 .then(({ipfs, globalState, pubsubRooms})=>{
   app.set('pubsubRooms', pubsubRooms);

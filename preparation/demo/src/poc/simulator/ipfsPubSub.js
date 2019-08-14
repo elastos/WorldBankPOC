@@ -61,9 +61,9 @@ function main(){
   
     // document.getElementById('store').onclick = store
     const rooms = {};
-    rooms.taskRoom = roomMessageHandler(ipfs, 'taskRoom', taskRoom);
-    rooms.towHall = roomMessageHandler(ipfs, 'townHall', townHall);
-    rooms.blockRoom = roomMessageHandler(ipfs, 'blockRoom', blockRoom);
+    rooms.taskRoom = roomMessageHandler(ipfs, 'taskRoom' + randRoomPostfix, taskRoom);
+    rooms.towHall = roomMessageHandler(ipfs, 'townHall' + randRoomPostfix, townHall);
+    rooms.blockRoom = roomMessageHandler(ipfs, 'blockRoom' + randRoomPostfix, blockRoom);
     window.rooms = rooms;
   });
   
