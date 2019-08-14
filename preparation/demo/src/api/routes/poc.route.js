@@ -1,5 +1,4 @@
-import service from '../../service';
-;
+
 const express = require('express');
 const sha256 = require('js-sha256');
 const {creditScore, potSim, remoteAttestationSim, potSchema, betterResponse, gasSim, result, constValue, txLogSchema} = require('../../poc');
@@ -27,6 +26,49 @@ router
   .get((req, res)=>{
     tryVrf(req, res);
   });
+router
+  .route('/publish2room')
+  .post( async (req, res)=>{
+    const pubsubRooms = req.app.get('pubsubRooms');
+    const ipfs = req.app.get('ipfs');
+    const {jsontext, room} = req.body;
+    try{
+      const jsonObj = JSON.parse(jsontext);
+      const txType = jsonObj.txType;
+      let channelRoom;
+      let cid;
+      const broadcastObj = {txType};
+      switch(txType){
+        case "gasTransfer":
+          channelRoom = pubsubRooms.taskRoom;
+          const {fromPeerId, toPeerId, amt} = jsonObj;
+          const cid = await ipfs.dag.put({
+            fromPeerId, toPeerId, amt
+          });
+          broadcastObj.cid = cid.toBaseEncodedString();
+          break;
+        case "showGlobalState":
+          channelRoom = pubsubRooms.townHall;
+          break;
+        case "taskroom":
+          channelRoom = pubsubRooms.taskRoom;
+          break;
+  
+        case "blockroom":
+          channelRoom = pubsubRooms.blockRoom;
+          break;
+        default:
+          return res.send("unsupported pubsub room,", room);
+      }
+      console.log('broadcastObj', broadcastObj);
+      channelRoom.broadcast(JSON.stringify(broadcastObj));
+      return res.send(JSON.stringify(broadcastObj));
+
+    }
+    catch(e){
+      res.send(e);
+    }
+  });
 
 router
   .route('/newBlockPub/:blockId')
@@ -34,6 +76,7 @@ router
     const {blockId} = req.params;
     const pubsubRooms = req.app.get('pubsubRooms');
     const ipfs = req.app.get('ipfs');
+    
     const townHall = pubsubRooms.townHall;
     const tx0 = {
       hash:"asdfasdfasdf",

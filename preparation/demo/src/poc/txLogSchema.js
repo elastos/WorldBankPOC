@@ -5,6 +5,12 @@ const _ = require('lodash');
 const {gasBurnPeerId} = require('./constValue');
 
 const txLogSchema = new mongoose.Schema({
+  cid:{
+    type: String,
+    required: true,
+    unique: false,
+    trim: true
+  },
   fromPeerId: {
     type: String,
     required: true,

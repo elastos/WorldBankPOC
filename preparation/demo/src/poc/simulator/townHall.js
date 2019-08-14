@@ -59,7 +59,6 @@ module.exports = (ipfs, room) => {
       prevBlockCid = currentBlockObj.value.previousBlockCid;
       
     }
-    console.log("--before return - fullTxs is,", fullTxs);
     return fullTxs;
   }
 
