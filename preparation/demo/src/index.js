@@ -1,6 +1,6 @@
 // make bluebird default Promise
 Promise = require('bluebird'); // eslint-disable-line no-global-assign
-const _ = require( 'underscore');
+const _ = require( 'lodash');
 require("babel-core/register");
 require("babel-polyfill");
 const { port, env } = require('./config/vars');
