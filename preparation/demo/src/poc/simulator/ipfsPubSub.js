@@ -1,7 +1,4 @@
 const IPFS = require('ipfs')
-const Room = require('ipfs-pubsub-room')
-const PeerId = require('peer-id');
-const {demoPeerKeys} = require('../demoPeerIdKeys');
 const roomMessageHandler = require('./roomMeesageHandler');
 const townHall = require('./townHall');
 const taskRoom = require('./taskRoom');
@@ -39,31 +36,22 @@ function main(){
     ipfs.on('init', error=>{
       console.log('IPFS on init:', error);
     });
-    // async function store () {
-    //   const toStore = document.getElementById('source').value
-  
-    //   const res = await node.add(Buffer.from(toStore))
-  
-    //   res.forEach((file) => {
-    //     if (file && file.hash) {
-    //       console.log('successfully stored', file.hash)
-    //       display(file.hash)
-    //     }
-    //   })
-    // }
-  
-    // async function display (hash) {
-    //   // buffer: true results in the returned result being a buffer rather than a stream
-    //   const data = await node.cat(hash)
-    //   document.getElementById('hash').innerText = hash
-    //   document.getElementById('content').innerText = data
-    // }
-  
-    // document.getElementById('store').onclick = store
+
+    const getUrlVars = ()=>{
+      const vars = {};
+      const decodedUri = decodeURI(window.location.href);
+      const parts = decodedUri.replace(/[?&]+([^=&]+)=([^&]*)/gi, (m,key,value) =>{
+          vars[key] = value;
+      });
+      return vars;
+    }
+    const randRoomPostfix = getUrlVars().r || "";
+    console.log("randRoomPostfix", randRoomPostfix);
     const rooms = {};
-    rooms.taskRoom = roomMessageHandler(ipfs, 'taskRoom', taskRoom);
-    rooms.towHall = roomMessageHandler(ipfs, 'townHall', townHall);
-    rooms.blockRoom = roomMessageHandler(ipfs, 'blockRoom', blockRoom);
+    const options = {ipfs, rooms};
+    //rooms.taskRoom = roomMessageHandler(ipfs, 'taskRoom' + randRoomPostfix, options, taskRoom);
+    //rooms.towHall = roomMessageHandler(ipfs, 'townHall' + randRoomPostfix, options, townHall);
+    rooms.blockRoom = roomMessageHandler(ipfs, 'blockRoom' + randRoomPostfix, options, blockRoom);
     window.rooms = rooms;
   });
   

@@ -18,15 +18,18 @@ document.addEventListener("DOMContentLoaded", ()=>{
   document.getElementById('btn1').onclick = ()=>{
     editor.set({
       txType:"gasTransfer",
-      fromPeerId:"user#2",
-      toPeerId:"user#3",
+      fromPeerId:"user #2",
+      toPeerId:"user #3",
       amt:1
     })
   };
   document.getElementById('btn2').onclick = ()=>{
     editor.set({
       txType:"newNodeJoinNeedRa",
-      cid:""
+      newPeerId:"user #0",
+      depositAmt:10,
+      ipfsPeerId:"placeholder"
+
     })
   };;
   document.getElementById('btn3').onclick = ()=>{

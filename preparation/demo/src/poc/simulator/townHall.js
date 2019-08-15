@@ -2,7 +2,7 @@ const roomMessageHandler = require('./roomMeesageHandler');
 
 
 
-module.exports = (ipfs, room) => {
+module.exports = (ipfs, room, options) => {
   const option = {};
   const roomName = 'townHall';
   const messageHandlers = [];
