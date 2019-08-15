@@ -49,8 +49,28 @@ const F = {
 
     myIpfs = new MyIpfs();
     myChart = new EChart($('#echart-div')[0], {
+      user: C.user,
       click(d){
-        console.log(d);
+        if(!d) return false;
+        
+        const el = $('#js_node_detail');
+        el.data('json', d).modal('show');
+        _.delay(()=>{
+          el.find('.js_title').html('Peer : '+ d.name);
+          el.find('.js_score').html(d.creditScore);
+          el.find('.js_gas').html(d.gas);
+          el.find('.js_geo').html(d.location.join(' - '));
+          el.find('.js_ipfs').html(d.ipfs_id);
+
+          if(d.peerId !== C.user.name){
+            el.find('.js_me').hide();
+            el.find('.js_other').show();
+          }
+          else{
+            el.find('.js_me').show();
+            el.find('.js_other').hide();
+          }
+        }, 100);
       }
     });
     myData = new Data(myIpfs);
@@ -60,11 +80,30 @@ const F = {
     window.myIpfs = myIpfs;
 
     F.initBlockRoom();
+    F.initTaskRoom();
+    F.initTownHall();
 
     myChart.render();
   },
 
-  initTaskRoom(){},
+  initTaskRoom(){
+    taskRoom = myIpfs.registerRoom(C.taskRoom, {
+      join(peer){
+        log('peer ' + peer + ' joined task room');
+      },
+      left(peer){
+        log('peer ' + peer + ' left task room');
+      },
+      subscribe(m){
+        log("...... subscribe .... task room => "+m);
+        
+      },
+      message(msg){
+        log('task room got message from ' + msg.from + ': ' + msg.data.toString())
+
+      }
+    });
+  },
   initBlockRoom(){
     blockRoom = myIpfs.registerRoom(C.blockRoom, {
       join(peer){
@@ -74,10 +113,12 @@ const F = {
 
       },
       left(peer){
-        log('peer ' + peer + ' left room');
+        log('peer ' + peer + ' left block room');
+
+        myData.removePeerByIpfsId(peer);
       },
       subscribe(m){
-        log("...... subscribe.... => "+m);
+        log("...... subscribe.... block room => "+m);
         
         F.publishSelfId()
       },
@@ -94,7 +135,7 @@ const F = {
 
   async publishSelfId(){
     const obj = await myIpfs.node.id();
-
+    C.user.ipfs_id = obj.id;
     _.delay(async ()=>{
       await $.ajax({
         url : '/poc/update_ipfs_id', 
@@ -148,7 +189,6 @@ const F = {
       myData.addBlock(block);
 
       log('receive new block, refresh data.');
-      console.log(11, myData.getAllListForChart());
       const list = myData.getAllListForChart();
       myChart.render(list);
       return true;
@@ -161,11 +201,68 @@ const F = {
 
 
 window.poc = {
+  createRaTask(){
+    const json = {
+      txType : 'newNodeJoinNeedRa',
+      newPeerId : C.user.name,
+      depositAmt : 10,
+      ipfsPeerId : C.user.ipfs_id
+    };
+    const config = {
+      url : '/poc/publish2room',
+      type : 'post',
+      data : {
+        jsontext : JSON.stringify(json),
+        room : ''
+      }
+    };
 
+    $.ajax(config).then((rs)=>{
+      console.log(rs);
+      alert('success');
+    })
+  },
+  transferGas(){
+    const val = parseInt(prompt('please input the number you what to transfer to him', '10'), 10);
 
-  getPeers(){
-    const list = myIpfs.getRoomPeers(C.room);
-    log(list);
+    if(!_.isNumber(val) || _.isNaN(val)){
+      alert('invalid input');
+      return false;
+    }
+    
+    const d = $('#js_node_detail').data('json');
+    const json = {
+      txType: 'gasTransfer',
+      fromPeerId: C.user.name,
+      toPeerId: d.name,
+      amt: val
+    };
+    const config = {
+      url : '/poc/publish2room',
+      type : 'post',
+      data : {
+        jsontext : JSON.stringify(json),
+        room : ''
+      }
+    };
+
+    $.ajax(config).then((rs)=>{
+      console.log(rs);
+      alert('success');
+    })
+
+  },
+  sendTaskMessage(){
+    const val = prompt('please leave the message to him', '');
+
+    if(!val){
+      alert('invalid input');
+      return false;
+    }
+    
+    const d = $('#js_node_detail').data('json');
+    taskRoom.sendTo(d.ipfs_id, val);
+    alert('success');
   }
 };
 

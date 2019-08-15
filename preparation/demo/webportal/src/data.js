@@ -18,6 +18,21 @@ const Data = class {
     this.peer_map[peer.name] = peer;
   }
 
+  removePeerById(id){
+    _.remove(this.peer_list, (item)=>{
+      return item.name === id;
+    });
+    delete this.peer_map[id];
+  }
+  removePeerByIpfsId(ipfs_id){
+    const tmp = _.find(this.peer_list, (item)=>{
+      return item.ipfs_id === ipfs_id;
+    });
+    if(tmp){
+      this.removePeerById(tmp.name);
+    }
+  }
+
   addBlock(block){
     console.log('add block => ', block);
     this.block_list.push(block);
@@ -31,6 +46,7 @@ const Data = class {
   refreshPeerList(){
     this.peer_list = _.map(this.peer_list, (item)=>{
       item.profile = this.getProfile(item.name);
+      item.profile.ipfs_id = item.ipfs_id;
       this.peer_map[item.name] = item;
       return item;
     });
