@@ -65,8 +65,11 @@ const handleNewNodeJoinNeedRa = async (newNodeJoinNeedRaTxsCid, options)=>{
 
     return ipfs.dag.get(cid)
   })
-  const results = await Promise.all(promises);
-  console.log("All NewNodeJoinNeedRa Tx from ipfs:", results);
+  const txs = await Promise.all(promises);
+  txs.forEach(tx=>{
+    console.log("received a RA task",tx.value);
+  })
+  
 }
 const handleRemoteAttestationDone = async (remoteAttestationDoneTxsCid, options)=>{
   const {ipfs} = options;
@@ -76,7 +79,7 @@ const handleRemoteAttestationDone = async (remoteAttestationDoneTxsCid, options)
   })
   const txs = await Promise.all(promises);
   txs.forEach(tx=>{
-    console.log("received a RA task",tx.value);
+    console.log("received a raDone task",tx.value);
   })
   
 }
