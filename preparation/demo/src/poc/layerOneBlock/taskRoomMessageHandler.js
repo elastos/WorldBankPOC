@@ -68,12 +68,13 @@ const newNodeJoinNeedRaProcess = async (ipfs, room, options, cid)=>{
     return false;
   }
 
-  const {newPeerId, depositAmt, ipfsPeerId} = tx.value;
+  const {newPeerId, depositAmt} = tx.value;
+  if (!newPeerId)  return false;
   if (depositAmt < minimalNewNodeJoinRaDeposit){
     console.log("Please pay more deposit to get your new node verified. Minimal is,", minimalNewNodeJoinRaDeposit);
     return false;
   }
-  if (!newPeerId || ! ipfsPeerId)  return false;
+  
   if( globalState && globalState.gasMap && globalState.gasMap[newPeerId] && globalState.gasMap[newPeerId] > depositAmt)
   {
     globalState.gasMap[newPeerId] -= depositAmt;
