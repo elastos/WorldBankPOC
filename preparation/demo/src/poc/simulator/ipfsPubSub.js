@@ -48,9 +48,9 @@ function main(){
     const randRoomPostfix = getUrlVars().r || "";
     console.log("randRoomPostfix", randRoomPostfix);
     const rooms = {};
-    const options = {};
-    rooms.taskRoom = roomMessageHandler(ipfs, 'taskRoom' + randRoomPostfix, options, taskRoom);
-    rooms.towHall = roomMessageHandler(ipfs, 'townHall' + randRoomPostfix, options, townHall);
+    const options = {ipfs, rooms};
+    //rooms.taskRoom = roomMessageHandler(ipfs, 'taskRoom' + randRoomPostfix, options, taskRoom);
+    //rooms.towHall = roomMessageHandler(ipfs, 'townHall' + randRoomPostfix, options, townHall);
     rooms.blockRoom = roomMessageHandler(ipfs, 'blockRoom' + randRoomPostfix, options, blockRoom);
     window.rooms = rooms;
   });

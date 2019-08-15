@@ -23,7 +23,7 @@ export default (ipfs, room, options)=>{
         console.log("taskRoom Unhandled message, ", messageObj);
     }
     if(processResult){
-      globalState.txPool.push(messageObj.cid);
+      globalState.txPool.push(messageObj);
       console.log("after process tx cid=", messageObj.cid,  " the globalState is,", globalState);
     }
     else{
