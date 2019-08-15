@@ -50,4 +50,4 @@ jspm_packages
 ipfs-storage-no-git
 #compiled js file
 webportal/dist
-src/api/routes/simulator/js
+src/api/routes/simulator/js/*.js
