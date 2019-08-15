@@ -1,5 +1,17 @@
 this.util = {
 
+  getUrlParam(key=null){
+    const vars = {};
+    const decodedUri = decodeURI(window.location.href);
+    const parts = decodedUri.replace(/[?&]+([^=&]+)=([^&]*)/gi, (m,key,value) =>{
+        vars[key] = value;
+    });
+    if(key){
+      return vars[key];
+    }
+    return vars;
+  },
+
   createRandomGeoLocation(){
     var data=[];   
     for (var i=0; i < 1; i++) {
