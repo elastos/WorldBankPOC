@@ -2,12 +2,11 @@ const IPFS = require('ipfs');
 const Room = require('ipfs-pubsub-room');
 const PeerId = require('peer-id');
 const _ = require('lodash');
-const ids = require('./ids');
 
 const MyIpfs = class  {
 
-  constructor(index){
-    this.peer = ids[index];
+  constructor(peerConfig){
+    this.peer = peerConfig;
     if(!this.peer){
       throw 'invalid index';
     }

@@ -1,6 +1,8 @@
 const MyIpfs = require('../../src/shared/MyIpfs');
 const IPFS = require('ipfs');
 const PeerId = require('peer-id');
+const EChart = require('./echart');
+const Data = require('./data');
 
 const log = (str)=>{
   const html = MyIpfs.log(str);
@@ -8,20 +10,39 @@ const log = (str)=>{
 }
 
 const C = {
-  room : 'blockRoom',
-
+  room : 'POC-Room'
 };
 
 let myIpfs = null;
-window.poc = {
-  async joinRoom(){
+let myChart = null;
+let myData = null;
+const F = {
+  loading(f=false){
+    if(f){
+      $.fakeLoader({
+        timeToHide : 999999,
+        bgColor : 'rgba(0,0,0,0.7)'
+      });
+    }
+    else{
+      $('.fakeLoader').hide();
+    }
+  },
+  async init(){
+    const index = this.getUrlParam();
+    const peerConfig = Data.getPeerJson(index);
+    log(JSON.stringify(peerConfig));
+    myIpfs = new MyIpfs(peerConfig);
+    myChart = new EChart($('#echart-div')[0], {
+      click(d){
+        console.log(d);
+      }
+    });
+    myData = new Data(myIpfs);
 
-    const index = parseInt(location.search.replace('?', ''), 10);
     
-    myIpfs = new MyIpfs(index);
+
     await myIpfs.start();
-    const id = await myIpfs.node.id();
-    log(JSON.stringify(id));
     window.myIpfs = myIpfs;
     const room = myIpfs.registerRoom(C.room, {
       join(peer){
@@ -39,7 +60,16 @@ window.poc = {
     });
 
     window._room = room;
+    myChart.render();
   },
+
+  getUrlParam(){
+    return parseInt(location.search.replace('?', ''), 10);;
+  }
+};
+
+
+window.poc = {
 
   broadcast(msg){
     myIpfs.broadcast(C.room, msg);
@@ -50,3 +80,9 @@ window.poc = {
     log(list);
   }
 };
+
+$(async ()=>{
+  F.loading(true);
+  await F.init();
+  F.loading(false);
+})
