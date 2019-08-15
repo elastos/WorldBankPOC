@@ -41,20 +41,17 @@ ipfsStart()
   app.set('pubsubRooms', pubsubRooms);
   app.set('globalState', globalState);
   const {blockRoom} = pubsubRooms;
-  const s = 1000*6;
+  const blockGenerationInterval = 1000*30;
+  const firstBlockDelay = 1000 * 3;
 
   const loop = async ({ipfs, globalState, blockRoom})=>{
     await generateBlock({ipfs, globalState, blockRoom});
-    _.delay(loop, s, {ipfs, globalState, blockRoom});
-    // setTimeout(async ({globalState, blockRoom})=>{
-    //   await loop({globalState, blockRoom});
-    // }, s);
+    _.delay(loop, blockGenerationInterval, {ipfs, globalState, blockRoom});
   };
 
-  _.delay(loop, s, {ipfs, globalState, blockRoom});
+  _.delay(loop, firstBlockDelay, {ipfs, globalState, blockRoom});
   //console.log("in index.js init, pubsubRooms in app:", pubsubRooms);
 })
-//blockService.init(app);
 
 // listen to requests
 app.listen(port, () => logger.info(`server started on port ${port} (${env})`));
