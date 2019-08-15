@@ -9,8 +9,10 @@ exports.generateBlock = async ({ipfs, globalState, blockRoom})=>{
   const previousBlockHeight = globalState.blockHeight || 0;
   const previousBlockCid = globalState.blockCid || "";
   globalState.txPool = [];
+  const peerProfile = globalState.peerProfile;
 
   const newBlock = {
+    peerProfile,
     gasMap,
     creditMap,
     processedTxs,

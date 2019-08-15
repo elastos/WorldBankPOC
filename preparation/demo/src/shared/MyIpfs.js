@@ -1,25 +1,21 @@
 const IPFS = require('ipfs');
 const Room = require('ipfs-pubsub-room');
-const PeerId = require('peer-id');
 const _ = require('lodash');
 
 const MyIpfs = class  {
 
-  constructor(peerConfig){
-    this.peer = peerConfig;
-    if(!this.peer){
-      throw 'invalid index';
-    }
+  constructor(){
+
     this.room_map = {};
 
     this.config = {
-      repo: 'ipfs-leo/poc/' + this.peer.id,
+      repo: 'ipfs-leo/poc/' + Math.random(),
       EXPERIMENTAL: {
         pubsub: true
       },
-      init: {
-        privateKey : this.peer.privKey
-      },
+      // init: {
+      //   privateKey : this.peer.privKey
+      // },
       config: {
         Addresses: {
           Swarm: [
@@ -73,7 +69,7 @@ const MyIpfs = class  {
 
 MyIpfs.log = (...str)=>{
   console.log(...str);
-  return '<div style="font-size:13px;">'+str.join(' - ')+'</div>';
+  return '<div style="font-size:12px;word-break:break-all;width:100%;margin-bottom:8px;">'+str.join(' - ')+'</div>';
 }
 
 module.exports = MyIpfs;

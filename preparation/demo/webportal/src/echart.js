@@ -3,6 +3,8 @@ const EChart = class {
     this.dom = dom;
     this.chart = echarts.init(this.dom);
 
+    this.user = opts.user;
+
 
     this.buildCallback(opts);
   }
@@ -94,6 +96,9 @@ const EChart = class {
             normal: {
               color: (e)=>{
                 const d = e.data;
+                if(this.user.name === d.peerId){
+                  return '#e9e9e9';
+                }
                 if(d.hacked){
                   return '#f00';
                 }

@@ -15,18 +15,61 @@
   <script type="text/javascript" src="lib/lodash.js"></script>
   <script type="text/javascript" src="lib/fakeLoader/fakeLoader.js"></script>
 </head>
-<body>
+<body style="background: #eee;">
+<div style="display: flex; width: 100vw;justify-content: space-between;">
+  <div id="echart-div" style="width: 1100px; height: 700px;"></div>
 
-  <div id="echart-div" style="margin: 5px auto; width: 1200px; min-height: 700px;"></div>
+  <div class="js_html" style="margin-left: 24px;width: auto;overflow-y: auto; height: 700px; padding: 5px 10px;color:#0f0;background: #000;"></div>
+</div>
+
+  
 
 
-<div class="js_html" style="padding: 12px 15px;color:#0f0;background: #000;">
+
 
 </div>
-<button class="btn btn-primary" onClick="poc.joinRoom()">Join Room</button>
+<!-- <button class="btn btn-primary" onClick="poc.joinRoom()">Join Room</button>
 <button class="btn btn-primary" onClick="poc.getPeers()">Get Peers</button>
-<button class="btn btn-primary" onClick="poc.broadcast('sdfsfsdfsf')">Broadcast</button>
+<button class="btn btn-primary" onClick="poc.broadcast('sdfsfsdfsf')">Broadcast</button> -->
 
+
+<!-- Modal -->
+<div class="modal fade" id="js_node_detail" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title js_title"></h5>
+      </div>
+      <div class="modal-body">
+        <ul class="list-group">
+          <li style="list-style: none;"><h4>Details</h4></li>
+          <li class="list-group-item">Score : <span class="js_score"></span></li>
+          <li class="list-group-item">Gas : <span class="js_gas"></span></li>
+          <li class="list-group-item">Location : <span class="js_geo"></span></li>
+          <li class="list-group-item">IPFS ID : <span class="js_ipfs"></span></li>
+          <li style="list-style: none;margin-top:24px;"><h4>Actions</h4></li>
+          
+          <li class="list-group-item js_me">
+            <button class="btn btn-primary" onClick="poc.createRaTask()">Apply For RA</button>
+            
+          </li>
+          <li class="list-group-item js_other">
+            <button class="btn btn-primary" onClick="poc.transferGas()">Transfer Gas</button>
+            <button class="btn btn-success" onClick="poc.sendTaskMessage()">Send Message</button>
+          </li>
+          
+        </ul>
+        
+
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <!-- <button type="button" onClick="poc.deleteNode()" class="btn btn-danger">Delete</button> -->
+      </div>
+    </div>
+  </div>
+</div>
 
 
 <div class="fakeLoader"></div>

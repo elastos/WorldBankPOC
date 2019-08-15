@@ -43,6 +43,33 @@ router
     res.status(200).send(template);
   });
 
+router.route('/update_ipfs_id').get((req, res)=>{
+  const user = decodeURIComponent(req.query.user);
+  const ipfs_id = req.query.ipfs_id;
+
+  const users = req.app.get('presetUsers');
+
+  const i = _.findIndex(users, (item)=>item.name === user);
+  if(i !== -1){
+    users[i].ipfs_id = ipfs_id;
+  }
+  req.app.set('presetUsers', users);
+
+  res.status(200).send('ok');
+});
+router.route('/get_user_by_ipfs').get((req, res)=>{
+  const ipfs_id = req.query.ipfs_id;
+
+  const users = req.app.get('presetUsers');
+
+  const tmp = _.find(users, (item)=>item.ipfs_id === ipfs_id);
+  if(tmp){
+    return result(res, 1, tmp);
+  }
+  return result(res, 1, '');
+  
+});
+
 router
   .route('/status')
   .get((req, res) => {
