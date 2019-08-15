@@ -24,7 +24,7 @@ module.exports = (ipfs, room, options) => {
         return console.log('In block room got an unhandled message from ' + message.from + ': ' + message.data.toString());
       }
       const block = await ipfs.dag.get(cid);
-      //console.log("received block:", block);
+      console.log("received block:", block);
       if(options.isProcessingBlock){
         throw new exceptions("Racing conditions found. Some async funciton is processing block while new block just came in, how to handle this issue?");
       }

@@ -27,6 +27,23 @@ router
   });
 
 router
+  .route('/demo')
+  .get((req, res) => {
+    
+    const users = req.app.get('presetUsers');
+    let loopUserLink = users.reduce((accumulator, u)=>{
+
+      return accumulator + "<a href='/webportal/ipfs_test.html?u=" + u.name + "&&r=" +  req.app.get('randRoomPostfix') + "&&pub=" + u.pub + "&&pri=" + u.pri + "'  target='_blank'>Simulator for " + u.name + "</a></br>";
+    }, "");
+    
+    const template = "<html><head></head><body>" 
+    + "<p> Random Room Name Protfix is" + req.app.get('randRoomPostfix') + "</p><p>"
+    + loopUserLink
+    + "</p></body></html>";
+    res.status(200).send(template);
+  });
+
+router
   .route('/status')
   .get((req, res) => {
     res.send('You will see updates here');
