@@ -3,6 +3,8 @@
   <head>
       <script src="js/ipfsPubSub.js"></script>
       <script src="js/simulator.js"></script>
+      <link href="css/jsoneditor.min.css" rel="stylesheet" type="text/css">
+      <script src="dist/jsoneditor.min.js"></script>
   </head>
   <body>
 
@@ -15,8 +17,23 @@
     <hr/>
     <p>Current block height <span id='blockheight'>...waiting for next block...</span></p>
     <p>My current gas balance <span id='gasbalance'>...waiting for next block..</span></p>
-    <p>My current credit balance <span id='creditbalance'>...waiting for next block..</span></p>
+    <p>My current credit balance <a id='creditbalance'>...waiting for next block..</a></p>
     
+    <hr/>
+    <h1>Actions</h1>
+    <p><button id='btn1'>Task: transfer 1 Gas to user #0</button></p>
+    <p><button id='btn2'>Task: new node join waiting for RA</button></p>
+    <p><button id='btn3'>Task: Daniel create a computation task</button></p>
+    <p><button id='btn4'>Townhall Message: Server to log current global state</button></p>
+    <h2>Please modify the JSON below</h2>
+    <p>
+      <div id="jsoneditor" style="width: 400px; height: 400px;"></div>
+    </p>
+    
+    <p>
+      <button id='send action'>Send Action to PubSub Room</button>
+
+    </p>
     <hr/>
     <p>Please check browser console for logs</p>
     
