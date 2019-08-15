@@ -50,6 +50,4 @@ jspm_packages
 ipfs-storage-no-git
 #compiled js file
 webportal/dist
-preparation/demo/src/api/routes/simulator/js/taskGen.js
-preparation/demo/src/api/routes/simulator/js/ipfsPubSub.js
-
+preparation/demo/src/api/routes/simulator/js/
