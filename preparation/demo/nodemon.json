@@ -17,6 +17,7 @@
     ".idea",
     "src/**/*.spec.js",
     "webportal",
+    "src/shared",
     "src/api/routes/simulator",
     "src/api/routes/docs"
   ],
