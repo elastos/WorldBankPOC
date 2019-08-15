@@ -3,6 +3,21 @@ import taskRoomMessageHandler from './taskRoomMessageHandler';
 import blockRoomMessageHandler from './blockRoomMessageHandler';
 import Room from 'ipfs-pubsub-room';
 
+const createRandomGeoLocation = (n)=>{
+  var data=[];   
+  for (var i=0; i < n; i++) {
+    var aaa = GetRandomNum(-179,179)+Math.random();
+    var bbb = GetRandomNum(-40,89)+Math.random();
+    data.push([aaa, bbb]);
+  }
+  function GetRandomNum(Min,Max){   
+    var Range = Max - Min;   
+    var Rand = Math.random();   
+    return(Min + Math.round(Rand * Range));   
+  } 
+  return data;
+};
+
 
 const createGenesysBlock = (ipfs, presetUsers)=>{
   console.log("**** Generating Genesis Block **** In our demo, we assume everytime we start the system we will start from the very beginning...")
@@ -10,14 +25,20 @@ const createGenesysBlock = (ipfs, presetUsers)=>{
   block.txPool = [];
   block.gasMap = {};
   block.creditMap = {};
+  block.peerProfile = {};
   let totalGas = 0;
   let totalCredit = 0;
+
+  const locs = createRandomGeoLocation(presetUsers.length);
   for(let i = 0; i < presetUsers.length; i ++){
     const u = presetUsers[i];
     block.gasMap[u.name] = i * 100 + 20; //we add 20 to make sure User#0 still have 20 gas in his account;
     totalGas += block.gasMap[u.name];
     block.creditMap[u.name] = i * 100; // we do not add 20, so that User#0 will have money to pay for RA, but he doesn't have credit, that means he is not trustable yet
     totalCredit += block.creditMap[u.name];
+    block.peerProfile[u.name] = {
+      loc : locs[i]
+    };
   }
   block.totalGas = totalGas;
   block.totalCredit = totalCredit;
