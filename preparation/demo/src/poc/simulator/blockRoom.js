@@ -1,8 +1,5 @@
 const roomMessageHandler = require('./roomMeesageHandler');
-module.exports = (ipfs, room) => {
-  throw new Exception("blockroom handler need to update");
-  const option = {};
-  const roomName = 'blockRoom';
+module.exports = (ipfs, room, options) => {
   const messageHandlers = [];
   
   const peerJoinedHandler = (peer)=>console.log('peer ' + peer + ' joined block room');
