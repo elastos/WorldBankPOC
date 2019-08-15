@@ -1,79 +1,77 @@
-
-const ids = require('../../src/shared/ids');
+const _ = require('lodash');
 
 const Data = class {
   constructor(myIpfs){
     this.myIpfs = myIpfs;
-    this.data = [];
+
+    this.peer_list = [];
+    this.peer_map = {};
+
+    this.block_list = [];
+    this.block = null;
   }
 
-  createPeerData(id){
-    const loc = util.createRandomGeoLocation();
+
+  addPeer(peer){
+    console.log('add peer => ', peer);
+    this.peer_list.push(peer);
+    this.peer_map[peer.name] = peer;
+  }
+
+  removePeerById(id){
+    _.remove(this.peer_list, (item)=>{
+      return item.name === id;
+    });
+    delete this.peer_map[id];
+  }
+  removePeerByIpfsId(ipfs_id){
+    const tmp = _.find(this.peer_list, (item)=>{
+      return item.ipfs_id === ipfs_id;
+    });
+    if(tmp){
+      this.removePeerById(tmp.name);
+    }
+  }
+
+  addBlock(block){
+    console.log('add block => ', block);
+    this.block_list.push(block);
+    this.block = block;
+
+    this.refreshPeerList();
+  }
+  getCurrentBlock(){
+    return this.block ? this.block.value : null;
+  }
+  refreshPeerList(){
+    this.peer_list = _.map(this.peer_list, (item)=>{
+      item.profile = this.getProfile(item.name);
+      item.profile.ipfs_id = item.ipfs_id;
+      this.peer_map[item.name] = item;
+      return item;
+    });
+  }
+
+  getProfile(name){
+    const block = this.getCurrentBlock();
     return {
-      peerId : id,
-      lat : loc[0],
-      lng : loc[1],
-      hacked : false
+      location : block.peerProfile[name].loc,
+      peerId : name,
+      gas : block.gasMap[name],
+      creditScore : block.creditMap[name]
     };
   }
-  async createPeerInServer(id){
-    return new Promise((resolve)=>{
-      const val = this.createPeerData(id);
-      const amt = 10;
-      $.ajax({
-        url : '/poc/faucetGasToPeer',
-        type : 'get',
-        data : {
-          json : 1,
-          peerId : val.peerId,
-          amt
-        }
-      }).then((rs)=>{
-        if(rs.code < 0){
-          alert(rs.error);
-          return false;
-        }
-        return $.ajax({
-          url : '/poc/newJoinNodeDeposit',
-          type : 'get',
-          data : {
-            json : 1,
-            peerId : val.peerId,
-            depositGasAmt : amt
-          }
-        })
-      }).then((rs)=>{
-        if(rs.code < 0){
-          alert(rs.error);
-          return false;
-        }
-        val.json = 1;
-        val.depositGasTxId = rs.data.gasTransactionId._id;
-  
-        return $.ajax({
-          url : '/poc/newNodeJoin',
-          type : 'get',
-          // dataType : 'json',
-          data : val
-        });
-      }).then((rs)=>{
-        if(rs.code < 0){
-          alert(rs.error);
-          return false;
-        }
-  
-        alert('create success');
 
-        resolve(rs.data);
-      });
+  getAllListForChart(){
+    return _.map(this.peer_list, (item)=>{
+      return item.profile
     });
-    
   }
 
+  
+
 };
 
-Data.getPeerJson = async (index)=>{
-  return ids[index];
-};
+
 
 module.exports = Data;
