@@ -49,8 +49,7 @@ exports.main = ()=>{
       randRoomPostfix
     })
   };
-
-  const sendActionToRoom = ()=>{
+  document.getElementById('sendAction').onclick = ()=>{
     console.log("ready to send action,",JSON.stringify(editor.get(), null, 2));
     const jsonObj = editor.get();
     const txType = jsonObj.txType;
@@ -101,7 +100,7 @@ exports.main = ()=>{
     catch(e){
       console.log("inside sendActionToRoom, excpetion:", e);
     }
-  }
+  };
 };
 
 
