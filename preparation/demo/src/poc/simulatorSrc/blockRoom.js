@@ -1,5 +1,6 @@
 import {tryParseJson} from '../constValue'
 import { ExceptionHandler, exceptions } from 'winston';
+import {getUrlVars} from './utils.js';
 
 module.exports = (ipfs, room, options) => {
   const messageHandlers = [];
@@ -89,5 +90,15 @@ const handleRemoteAttestationDone = async (remoteAttestationDoneTxsCid, options)
 
 
 const updateNodeStatusOnNewBlock = (block)=>{
-  console.log("receive new block, ", block);
+  const userName = getUrlVars().u;
+  const blockHeight = block.blockHeight;
+  const gasBalance = block.gasMap[userName] || "";
+  const creditBalance = block.creditMap[userName] || "";
+
+  document.getElementById('blockheight').innerHTML = blockHeight;
+  document.getElementById('gasbalance').innerHTML = gasBalance;
+  document.getElementById('creditbalance').innerHTML = creditBalance;
+  //document.getElementById('').innerHTML = ;
+  
+
 }

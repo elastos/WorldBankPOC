@@ -1,11 +1,13 @@
 const IPFS = require('ipfs')
 const roomMessageHandler = require('./roomMeesageHandler');
+
 const townHall = require('./townHall');
 const taskRoom = require('./taskRoom');
 const blockRoom = require('./blockRoom');
+import {getUrlVars} from './utils.js';
+import {main } from './simulator';
 
-
-function main(){
+function init(){
   //const peer = await PeerId.createFromJSON(demoPeerKeys[0]);
 
 
@@ -27,7 +29,6 @@ function main(){
     }
   }).then((ipfs)=>{
     console.log('IPFS node is ready');
-    //console.log("taskroom", taskRoom, townHall);
     window.ipfs = ipfs;
     ipfs.on('error', error=>{
       console.log('IPFS on error:', error);
@@ -37,14 +38,6 @@ function main(){
       console.log('IPFS on init:', error);
     });
 
-    const getUrlVars = ()=>{
-      const vars = {};
-      const decodedUri = decodeURI(window.location.href);
-      const parts = decodedUri.replace(/[?&]+([^=&]+)=([^&]*)/gi, (m,key,value) =>{
-          vars[key] = value;
-      });
-      return vars;
-    }
     const randRoomPostfix = getUrlVars().r || "";
     console.log("randRoomPostfix", randRoomPostfix);
     const rooms = {};
@@ -53,10 +46,11 @@ function main(){
     //rooms.towHall = roomMessageHandler(ipfs, 'townHall' + randRoomPostfix, options, townHall);
     rooms.blockRoom = roomMessageHandler(ipfs, 'blockRoom' + randRoomPostfix, options, blockRoom);
     window.rooms = rooms;
+    main();
   });
   
 
 };
 
 
-document.addEventListener('DOMContentLoaded', main);
+document.addEventListener('DOMContentLoaded', init);

@@ -1,13 +1,6 @@
-const getUrlVars = ()=>{
-  const vars = {};
-  const decodedUri = decodeURI(window.location.href);
-  const parts = decodedUri.replace(/[?&]+([^=&]+)=([^&]*)/gi, (m,key,value) =>{
-      vars[key] = value;
-  });
-  return vars;
-}
+import {getUrlVars} from './utils.js';
 
-const main = ()=>{
+exports.main = ()=>{
   const userName = getUrlVars().u;
   const randRoomPostfix = getUrlVars().r || "";
   const pubicKey = getUrlVars().pub || "";
@@ -19,6 +12,8 @@ const main = ()=>{
   document.getElementById('pubkey').innerText = pubicKey;
   document.getElementById('privkey').innerText = privateKey;
   
-}
+  
+  window.ipfs.id().then(({id})=>document.getElementById('ipfsPeerId').innerHTML = id);
+    
 
-document.addEventListener("DOMContentLoaded", main);
+}
