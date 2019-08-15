@@ -13,8 +13,8 @@ router.get('/status', (req, res) => res.send('OK'));
  * GET docs
  */
 router.use('/', express.static(__dirname + '/docs'));
-router.use('/simulator', express.static(__dirname + '/simulator'));
-
+router.use('/simulator', express.static(process.cwd() + '/src/poc/simulator'));
+router.use('/taskGen', express.static(process.cwd() + '/src/poc/simulator/taskGen.html'));
 router.use('/poc', pocRoutes);
 
 //console.log(1, process.cwd()+'/webprotal/');

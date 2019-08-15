@@ -18,9 +18,9 @@
     "src/**/*.spec.js",
     "webportal",
     "src/shared",
-    "src/api/routes/simulator/js",
-    "src/api/routes/simulator/*.html",
-    "src/api/routes/docs"
+    "src/api/routes/docs",
+    "src/poc/simulator",
+    "src/poc/simulatorSrc"
   ],
   "exec": "babel-node ./src/index.js --harmony"
 }

@@ -41,6 +41,7 @@ const processNewBlock = async (options)=>{
     options.block.processedTxs
   }
   options.isProcessingBlock = false;
+  updateNodeStatusOnNewBlock(options.block);
   const watchingTxTypes = ['newNodeJoinNeedRa','remoteAttestationDone'];
   const newNodeJoinNeedRaTxsCid = [];
   const remoteAttestationDoneTxsCid = [];
@@ -87,3 +88,6 @@ const handleRemoteAttestationDone = async (remoteAttestationDoneTxsCid, options)
 
 
 
+const updateNodeStatusOnNewBlock = (block)=>{
+  console.log("receive new block, ", block);
+}

@@ -1,5 +1,4 @@
 const IPFS = require('ipfs');
-import {townHall, taskRoom, blockRoom, roomMessageHandler} from './simulator'
 
 exports.ipfsStart = async ()=>{
   const ipfs = await IPFS.create({
