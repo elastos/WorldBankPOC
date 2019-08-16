@@ -1,11 +1,5 @@
-exports.creditScore = require('./creditSchema');
-exports.potSchema = require('./potSchema');
 exports.betterResponse = require('./betterResponse');
-exports.raLogSchema = require('./raLogSchema');
-exports.txLogSchema = require('./txLogSchema');
-exports.gasSim = require('./gasSim');
 exports.constValue = require('./constValue');
-
 exports.result = (res, code, dataOrError, message='')=>{
   const json = {
     code, message

@@ -6,7 +6,7 @@ require("babel-polyfill");
 const { port, env } = require('./config/vars');
 const logger = require('./config/logger');
 const app = require('./config/express');
-const {ipfsStart} = require('./poc/ipfsMod');
+const {ipfsStart} = require('./poc/layerOneBlock/ipfsMod');
 const {channelListener} = require('./poc/layerOneBlock/channelListener');
 const {generateBlock} = require('./poc/layerOneBlock/generateBlock');
 const {utils} = require('vrf.js');
