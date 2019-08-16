@@ -3,9 +3,6 @@ const express = require('express');
 
 const {creditScore, potSim, remoteAttestationSim, potSchema, betterResponse, gasSim, result, constValue, txLogSchema} = require('../../poc');
 const {generateBlock} = require('../../poc/layerOneBlock/generateBlock.js');
-
-const {betterResponse, result, constValue} = require('../../poc');
-
 const _ = require('lodash');
 
 const {tryVrf} = require('../../poc/tryVrf')
