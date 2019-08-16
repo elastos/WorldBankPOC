@@ -203,24 +203,38 @@ const F = {
 window.poc = {
   createRaTask(){
     const json = {
-      txType : 'newNodeJoinNeedRa',
+      
       newPeerId : C.user.name,
       depositAmt : 10,
       ipfsPeerId : C.user.ipfs_id
     };
-    const config = {
-      url : '/poc/publish2room',
-      type : 'post',
-      data : {
-        jsontext : JSON.stringify(json),
-        room : ''
-      }
-    };
 
-    $.ajax(config).then((rs)=>{
-      console.log(rs);
+    // const config = {
+    //   url : '/poc/publish2room',
+    //   type : 'post',
+    //   data : {
+    //     jsontext : JSON.stringify(json),
+    //     room : ''
+    //   }
+    // };
+
+    // $.ajax(config).then((rs)=>{
+    //   console.log(rs);
+    //   alert('success');
+    // })
+
+    const broadcastObj = {
+      txType : 'newNodeJoinNeedRa',
+    };
+    myIpfs.node.dag.put(json).then((cid)=>{
+      broadcastObj.cid = cid.toBaseEncodedString();
+      taskRoom.broadcast(JSON.stringify(broadcastObj));
+      log("Sent action => "+JSON.stringify(broadcastObj));
+
       alert('success');
     })
+
+
   },
   transferGas(){
     const val = parseInt(prompt('please input the number you what to transfer to him', '10'), 10);
@@ -232,24 +246,35 @@ window.poc = {
     
     const d = $('#js_node_detail').data('json');
     const json = {
-      txType: 'gasTransfer',
       fromPeerId: C.user.name,
       toPeerId: d.name,
       amt: val
     };
-    const config = {
-      url : '/poc/publish2room',
-      type : 'post',
-      data : {
-        jsontext : JSON.stringify(json),
-        room : ''
-      }
-    };
+    // const config = {
+    //   url : '/poc/publish2room',
+    //   type : 'post',
+    //   data : {
+    //     jsontext : JSON.stringify(json),
+    //     room : ''
+    //   }
+    // };
 
-    $.ajax(config).then((rs)=>{
-      console.log(rs);
+    // $.ajax(config).then((rs)=>{
+    //   console.log(rs);
+    //   alert('success');
+    // })
+
+    const broadcastObj = {
+      txType : 'gasTransfer',
+    };
+    myIpfs.node.dag.put(json).then((cid)=>{
+      broadcastObj.cid = cid.toBaseEncodedString();
+      taskRoom.broadcast(JSON.stringify(broadcastObj));
+      log("Sent action: => "+JSON.stringify(broadcastObj));
+
       alert('success');
     })
+
 
   },
   sendTaskMessage(){
