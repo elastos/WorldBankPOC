@@ -41,7 +41,7 @@ exports.main = ({ipfsId, userInfo})=>{
   };
   document.getElementById('btn4').onclick = ()=>{
     editor.set({
-      txType:"showGlobalState",
+      txType:"placeHolder",
       randRoomPostfix
     })
   };
@@ -64,7 +64,7 @@ exports.main = ({ipfsId, userInfo})=>{
           
           break;
         }
-        case "showGlobalState":
+        case "placeHolder":
           channelRoom = pubsubRooms.townHall;
           break;
         case "newNodeJoinNeedRa":{

@@ -40,7 +40,7 @@ document.addEventListener("DOMContentLoaded", ()=>{
   };;
   document.getElementById('btn4').onclick = ()=>{
     editor.set({
-      txType:"showGlobalState"
+      txType:"placeHolder"
     })
   };;
 });

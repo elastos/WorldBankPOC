@@ -109,9 +109,6 @@ router
           broadcastObj.cid = cid.toBaseEncodedString();
           break;
         }
-        case "showGlobalState":
-          channelRoom = pubsubRooms.townHall;
-          break;
         case "newNodeJoinNeedRa":{
           channelRoom = pubsubRooms.taskRoom;
           const {newPeerId, depositAmt, ipfsPeerId} = jsonObj;
