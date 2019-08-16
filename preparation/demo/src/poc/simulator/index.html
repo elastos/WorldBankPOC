@@ -1,25 +1,106 @@
 <!DOCTYPE html>
 <html>
   <head>
-      <script src="js/ipfsPubSub.js"></script>
-      <script src="js/simulator.js"></script>
+
+
       <link href="css/jsoneditor.min.css" rel="stylesheet" type="text/css">
-      <script src="dist/jsoneditor.min.js"></script>
+      <link href="css/default.css" rel="stylesheet" type="text/css">
+      
   </head>
   <body>
 
     <h1>This is the node simulator for this user:<span id='userName'></span></h1>
     <a href='/poc/forceManualGenerateNewBlock' target='_blank'>Force generate new block</a>
-    <p>Random Room Name Postfix:<span id='roomPostfix'></span></p>
-    <p>Public key: <span id='pubkey'></span></p>
-    <p>Private key:<span id='privkey'></span></p>
-    <p>My current IPFS PeerId<span id='ipfsPeerId'>...waiting for next block..</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Prop</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Random Room Name Postfix</td>
+          <td><span id='roomPostfix'></span></td>
+        </tr>
+        <tr>
+          <td>
+            Public key
+          </td>
+          <td>
+            <span id='pubkey'></span>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            Private key
+          </td>
+          <td>
+            <span id='privkey'></span>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            Total gas
+          </td>
+          <td>
+            <span id='totalgas'>...</span>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            total credit for all users
+          </td>
+          <td>
+            <span id='totalcredit'>...</span> points
+          </td>
+        </tr>
+        <tr>
+          <td>
+            total credit for active online users
+          </td>
+          <td>
+            <span id='totalcredit_onlineonly'>...</span> points
+          </td>
+        </tr>
+        <tr>
+          <td>
+            Current block height
+          </td>
+          <td>
+            <span id='blockheight'>...waiting for next block...</span>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            My current gas balance
+          </td>
+          <td>
+            <span id='gasbalance'>...waiting for next block..</span>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            My current credit balance
+          </td>
+          <td>
+            <a id='creditbalance'>...waiting for next block..</a>
+          </td>
+        </tr>
+        
+
+      </tbody>
+    </table>
+    <p>:</span></p>
+    <p>: </p>
+    <p>:</span></p>
+    <p></p>
     <hr/>
-    <p>Total gas:<span id='totalgas'>...</span> and total credit: <span id='totalcredit'>...</span> points</p>
+    <p>: , :  and : </p>
     <hr/>
-    <p>Current block height <span id='blockheight'>...waiting for next block...</span></p>
-    <p>My current gas balance <span id='gasbalance'>...waiting for next block..</span></p>
-    <p>My current credit balance <a id='creditbalance'>...waiting for next block..</a></p>
+    <p> </p>
+    <p> </p>
+    <p> </p>
     
     <hr/>
     <h1>Actions</h1>
@@ -40,7 +121,9 @@
     <p>Please check browser console for logs</p>
     
   </body>
-
+  <script src="js/ipfsPubSub.js"></script>
+  <script src="js/simulator.js"></script>
+  <script src="dist/jsoneditor.min.js"></script>
 </html>
 
 

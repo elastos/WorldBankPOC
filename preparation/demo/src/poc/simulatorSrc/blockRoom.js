@@ -24,7 +24,15 @@ const processNewBlock = async (options)=>{
   for(const c in block.creditMap){
     totalCredit += block.creditMap[c];
   }
-  updateNodeStatusOnNewBlock(options, totalGas, totalCredit);
+  
+  let totalCreditForOnlineNodes = 0;
+  for( const c in block.trustedPeerToUserInfo){
+    const currUserInfo = block.trustedPeerToUserInfo[c];
+    console.log('currUserInfo,', currUserInfo, block.creditMap[currUserInfo.userName]);
+    totalCreditForOnlineNodes += block.creditMap[currUserInfo.userName];
+  }
+
+  updateNodeStatusOnNewBlock(options, totalGas, totalCredit, totalCreditForOnlineNodes);
   const watchingTxTypes = ['newNodeJoinNeedRa','remoteAttestationDone'];
   const newNodeJoinNeedRaTxsCid = [];
   const remoteAttestationDoneTxsCid = [];
@@ -78,7 +86,7 @@ const verifyBlockIntegrity = (options)=>{
 
 
 
-const updateNodeStatusOnNewBlock = ({block, userInfo} , totalGas, totalCredit)=>{
+const updateNodeStatusOnNewBlock = ({block, userInfo} , totalGas, totalCredit, totalCreditForOnlineNodes)=>{
   const userName = userInfo.userName;
   const blockHeight = block.blockHeight;
   const gasBalance = block.gasMap[userName] || "";
@@ -90,11 +98,9 @@ const updateNodeStatusOnNewBlock = ({block, userInfo} , totalGas, totalCredit)=>
     document.getElementById('creditbalance').innerHTML = creditBalance;
     document.getElementById('totalgas').innerHTML = totalGas;
     document.getElementById('totalcredit').innerHTML = totalCredit;
-    //document.getElementById('').innerHTML = ;
+    document.getElementById('totalcredit_onlineonly').innerHTML = totalCreditForOnlineNodes;
     
-  }catch(e){}
-  
-
+  }catch(e){console.log('updateNodeStatusOnNewBlock, ', e)} 
 }
 
 

@@ -44,7 +44,7 @@ const createGenesysBlock = (ipfs, presetUsers)=>{
   block.totalGas = totalGas;
   block.totalCredit = totalCredit;
   block.latestBlockHeight = 0;
-  block.trustedPeerToUserInfo = [];//trustedPeers mean those node with more than 0 credit. We record a map between this node's IPFS id, and VRF public key(AKA userName mapped public key)
+  block.trustedPeerToUserInfo = {};//trustedPeers mean those node with more than 0 credit. We record a map between this node's IPFS id, and VRF public key(AKA userName mapped public key)
   return block;
 
 }
@@ -56,20 +56,20 @@ exports.channelListener = (ipfs, randRoomPostfix, presetUsers)=>{
   const globalState = createGenesysBlock(ipfs, presetUsers);
   const options = {globalState};//default placeholder
   const rooms = {};
-  const taskRoom = Room(ipfs, 'taskRoom' + randRoomPostfix);
+  const taskRoom = Room(ipfs, 'taskRoom' + randRoomPostfix, {pollInterval:333});
   taskRoom.on('peer joined', (peer)=>peer);//console.log(console.log('peer ' + peer + ' joined task room')));
   taskRoom.on('peer left', peer=>peer);//console.log('peer ' + peer + ' left task room'));
   taskRoom.on('subscribed', (m) => console.log("...... subscribe task room....", m));
   taskRoom.on('message', taskRoomMessageHandler(ipfs, rooms.taskRoom, options));
 
   
-  const townHall = Room(ipfs, 'townHall' + randRoomPostfix);
+  const townHall = Room(ipfs, 'townHall' + randRoomPostfix, {pollInterval:250});
   townHall.on('peer joined', townHallJoinLeftHandler.join(ipfs, townHall, options));
   townHall.on('peer left', townHallJoinLeftHandler.left(ipfs, townHall, options));
   townHall.on('subscribed', (m) => console.log("...... subscribe task room....", m));
   townHall.on('message', townHallMessageHandler(ipfs, rooms.townHall, options));
 
-  const blockRoom = Room(ipfs, 'blockRoom' + randRoomPostfix);
+  const blockRoom = Room(ipfs, 'blockRoom' + randRoomPostfix, {pollInterval:333});
   blockRoom.on('peer joined', (peer)=>peer);//console.log(console.log('peer ' + peer + ' joined task room')));
   blockRoom.on('peer left', peer=>peer);//console.log('peer ' + peer + ' left task room'));
   blockRoom.on('subscribed', (m) => console.log("...... subscribe task room....", m));
