@@ -1,16 +1,16 @@
 import {getUrlVars} from './utils.js';
 
-exports.main = ({ipfsId, userInfo})=>{
+exports.main = ({userInfo})=>{
   const {userName, randRoomPostfix, pubicKey, privateKey} = userInfo;
   document.getElementById('roomPostfix').innerText = randRoomPostfix;
   document.getElementById('userName').innerText = userName;
   document.getElementById('pubkey').innerText = pubicKey;
-  document.getElementById('privkey').innerText = privateKey;
+  document.getElementById('privkey').title = privateKey;
   
   const ipfs = window.ipfs;
   const pubsubRooms = window.rooms;
 
-  document.getElementById('ipfsPeerId').innerHTML = ipfsId;
+  document.getElementById('ipfsPeerId').innerHTML = pubsubRooms.townHall.getMyPeerId();
   
   var container = document.getElementById("jsoneditor");
   var editor = new JSONEditor(container, {});

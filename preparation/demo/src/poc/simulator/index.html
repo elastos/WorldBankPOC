@@ -5,133 +5,190 @@
 
       <link href="css/jsoneditor.min.css" rel="stylesheet" type="text/css">
       <link href="css/default.css" rel="stylesheet" type="text/css">
-      
+      <style>
+        body {font-family: Arial;}
+        
+        /* Style the tab */
+        .tab {
+          overflow: hidden;
+          border: 1px solid #ccc;
+          background-color: #f1f1f1;
+        }
+        
+        /* Style the buttons inside the tab */
+        .tab button {
+          background-color: inherit;
+          float: left;
+          border: none;
+          outline: none;
+          cursor: pointer;
+          padding: 14px 16px;
+          transition: 0.3s;
+          font-size: 17px;
+        }
+        
+        /* Change background color of buttons on hover */
+        .tab button:hover {
+          background-color: #ddd;
+        }
+        
+        /* Create an active/current tablink class */
+        .tab button.active {
+          background-color: #ccc;
+        }
+        
+        /* Style the tab content */
+        .tabcontent {
+          display: none;
+          padding: 6px 12px;
+          border: 1px solid #ccc;
+          border-top: none;
+        }
+      </style>
   </head>
   <body>
-    <script src="js/ipfsPubSub.js"></script>
-    <script src="js/simulator.js"></script>
-    <script src="dist/jsoneditor.min.js"></script>
-    <h1>This is the node simulator for this user:<span id='userName'></span></h1>
-    <a href='/poc/forceManualGenerateNewBlock' target='_blank'>Force generate new block</a>
-    <table>
-      <thead>
-        <tr>
-          <th>Prop</th>
-          <th>Value</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>Random Room Name Postfix</td>
-          <td><span id='roomPostfix'></span></td>
-        </tr>
-        <tr>
-          <td>
-            Public key
-          </td>
-          <td>
-            <span id='pubkey'></span>
-          </td>
-        </tr>
-        <tr>
-          <td>
-            Private key
-          </td>
-          <td>
-            <span id='privkey'></span>
-          </td>
-        </tr>
-        <tr>
-          <td>
-            My current IPFS PeerId
-          </td>
-          <td>
-            <span id='ipfsPeerId'>...waiting for next block..</span>
-          </td>
-        </tr>
-        <tr>
-          <td>
-            Total gas
-          </td>
-          <td>
-            <span id='totalgas'>...</span>
-          </td>
-        </tr>
-        <tr>
-          <td>
-            total credit for all users
-          </td>
-          <td>
-            <span id='totalcredit'>...</span> points
-          </td>
-        </tr>
-        <tr>
-          <td>
-            total credit for active online users
-          </td>
-          <td>
-            <span id='totalcredit_onlineonly'>...</span> points
-          </td>
-        </tr>
-        <tr>
-          <td>
-            Current block height
-          </td>
-          <td>
-            <span id='blockheight'>...waiting for next block...</span>
-          </td>
-        </tr>
-        <tr>
-          <td>
-            My current gas balance
-          </td>
-          <td>
-            <span id='gasbalance'>...waiting for next block..</span>
-          </td>
-        </tr>
-        <tr>
-          <td>
-            My current credit balance
-          </td>
-          <td>
-            <a id='creditbalance'>...waiting for next block..</a>
-          </td>
-        </tr>
+    <div class="tab">
+      <button id="defaultOpen" class="tablinks" onclick="clickTab(event, 'statustab')">Status</button>
+      <button class="tablinks" onclick="clickTab(event, 'actiontab')">Action</button>
+      <button class="tablinks" onclick="clickTab(event, 'logtab')">Logs</button>
+    </div>
+    <div id="statustab" class="tabcontent">
+        <h1>This is the node simulator for this user:<span id='userName'></span></h1>
+        <table>
+          <thead>
+            <tr>
+              <th>Prop</th>
+              <th>Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Random Room Name Postfix</td>
+              <td><span id='roomPostfix'></span></td>
+            </tr>
+            <tr>
+              <td>
+                Public key
+              </td>
+              <td>
+                <span id='pubkey'></span>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                Private key
+              </td>
+              <td>
+                <span id='privkey' title="private key">[hidden] move mouse over to see private key</span>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                My current IPFS PeerId
+              </td>
+              <td>
+                <span id='ipfsPeerId'>...waiting for next block..</span>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                Total gas
+              </td>
+              <td>
+                <span id='totalgas'>...</span>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                total credit for all users
+              </td>
+              <td>
+                <span id='totalcredit'>...</span> points
+              </td>
+            </tr>
+            <tr>
+              <td>
+                total credit for active online users
+              </td>
+              <td>
+                <span id='totalcredit_onlineonly'>...</span> points
+              </td>
+            </tr>
+            <tr>
+              <td>
+                Current block height
+              </td>
+              <td>
+                <span id='blockheight'>...waiting for next block...</span>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                My current gas balance
+              </td>
+              <td>
+                <span id='gasbalance'>...waiting for next block..</span>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                My current credit balance
+              </td>
+              <td>
+                <a id='creditbalance'>...waiting for next block..</a>
+              </td>
+            </tr>
+            
+
+          </tbody>
+        </table>
         
-
-      </tbody>
-    </table>
-    <p>:</span></p>
-    <p>: </p>
-    <p>:</span></p>
-    <p></p>
-    <hr/>
-    <p>: , :  and : </p>
-    <hr/>
-    <p> </p>
-    <p> </p>
-    <p> </p>
-    
-    <hr/>
-    <h1>Actions</h1>
-    <p><button id='btn1'>Task: transfer 1 Gas to user #0</button></p>
-    <p><button id='btn2'>Task: new node join waiting for RA</button></p>
-    <p><button id='btn3'>Task: Daniel create a computation task</button></p>
-    <p><button id='btn4'>Townhall Message: Server to log current global state</button></p>
-    <h2>Please modify the JSON below</h2>
-    <p>
-      <div id="jsoneditor" style="width: 400px; height: 400px;"></div>
-    </p>
-    
-    <p>
-      <button id='sendAction'>Send Action to PubSub Room</button>
-
-    </p>
-    <hr/>
-    <p>Please check browser console for logs</p>
+      </div>
+      
+      <div id="actiontab" class="tabcontent">
+        <h1>Actions</h1>
+        <h3><a href='/poc/forceManualGenerateNewBlock' target='_blank'>Force generate new block</a>
+        </h3>
+        <p><button id='btn1'>Task: transfer 1 Gas to user #0</button></p>
+        <p><button id='btn2'>Task: new node join waiting for RA</button></p>
+        <p><button id='btn3'>Task: Daniel create a computation task</button></p>
+        <p><button id='btn4'>Townhall Message: Server to log current global state</button></p>
+        <h2>Please modify the JSON below</h2>
+        <p>
+          <div id="jsoneditor" style="width: 400px; height: 400px;"></div>
+        </p>
+        
+        <p>
+          <button id='sendAction'>Send Action to PubSub Room</button>
+        </p>
+      </div>
+      
+      <div id="logtab" class="tabcontent">
+        <h1>Logs</h1>
+        <ul id='log' width='400px' height='400px'></ul>
+      </div>
     
   </body>
+  <script src="js/ipfsPubSub.js"></script>
+  <script src="js/simulator.js"></script>
+  <script src="dist/jsoneditor.min.js"></script>
 
+  <script>
+      function clickTab(evt, cityName) {
+        var i, tabcontent, tablinks;
+        tabcontent = document.getElementsByClassName("tabcontent");
+        for (i = 0; i < tabcontent.length; i++) {
+          tabcontent[i].style.display = "none";
+        }
+        tablinks = document.getElementsByClassName("tablinks");
+        for (i = 0; i < tablinks.length; i++) {
+          tablinks[i].className = tablinks[i].className.replace(" active", "");
+        }
+        document.getElementById(cityName).style.display = "block";
+        evt.currentTarget.className += " active";
+      }
+      document.getElementById("defaultOpen").click();
+      </script>
 </html>
 
 

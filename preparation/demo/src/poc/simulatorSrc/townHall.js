@@ -1,5 +1,5 @@
 const roomMessageHandler = require('./roomMeesageHandler');
-import {tryParseJson} from '../constValue';
+import {tryParseJson, logToWebPage} from './utils';
 
 
 module.exports = (ipfs, room, options) => {
@@ -28,6 +28,7 @@ module.exports = (ipfs, room, options) => {
           userInfo:{userName, publicKey}
         }
         room.sendTo(message.from, JSON.stringify(resMessage));
+        logToWebPage(`send back reqUserInfo to townhall manager, ${JSON.stringify(resMessage)}`);
         break;
       default:
         return console.log("townHallMessageHandler received unknown type message object,", messageObj );

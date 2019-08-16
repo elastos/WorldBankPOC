@@ -4,7 +4,7 @@ const roomMessageHandler = require('./roomMeesageHandler');
 const townHall = require('./townHall');
 const taskRoom = require('./taskRoom');
 const blockRoom = require('./blockRoom');
-import {getUrlVars} from './utils.js';
+import {getUrlVars, logToWebPage} from './utils.js';
 import {main } from './simulator';
 
 function init(){
@@ -43,16 +43,17 @@ function init(){
     const pubicKey = getUrlVars().pub || "";
     const privateKey = getUrlVars().pri || "";
     const userInfo = {userName, randRoomPostfix, pubicKey, privateKey}
-    ipfs.id((id)=>{
-      console.log("randRoomPostfix", randRoomPostfix);
-      const rooms = {};
-      const options = {ipfs, rooms, userInfo, ipfsId:id};
-      rooms.taskRoom = roomMessageHandler(ipfs, 'taskRoom' + randRoomPostfix, options, taskRoom);
-      rooms.towHall = roomMessageHandler(ipfs, 'townHall' + randRoomPostfix, options, townHall);
-      rooms.blockRoom = roomMessageHandler(ipfs, 'blockRoom' + randRoomPostfix, options, blockRoom);
-      window.rooms = rooms;
-      main({ipfsId: id, userInfo});
-    })
+    
+    console.log("randRoomPostfix", randRoomPostfix);
+    const rooms = {};
+    const options = {ipfs, rooms, userInfo};
+    rooms.taskRoom = roomMessageHandler(ipfs, 'taskRoom' + randRoomPostfix, options, taskRoom);
+    rooms.townHall = roomMessageHandler(ipfs, 'townHall' + randRoomPostfix, options, townHall);
+    rooms.blockRoom = roomMessageHandler(ipfs, 'blockRoom' + randRoomPostfix, options, blockRoom);
+    window.rooms = rooms;
+    
+    main({userInfo});
+  
     
   });
   

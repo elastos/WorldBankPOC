@@ -1,4 +1,4 @@
-import {tryParseJson} from '../constValue'
+import {tryParseJson, logToWebPage} from './utils'
 import { ExceptionHandler, exceptions } from 'winston';
 const {utils, ecvrf, sortition} = require('vrf.js');
 import {sha256} from 'js-sha256';
@@ -28,7 +28,6 @@ const processNewBlock = async (options)=>{
   let totalCreditForOnlineNodes = 0;
   for( const c in block.trustedPeerToUserInfo){
     const currUserInfo = block.trustedPeerToUserInfo[c];
-    console.log('currUserInfo,', currUserInfo, block.creditMap[currUserInfo.userName]);
     totalCreditForOnlineNodes += block.creditMap[currUserInfo.userName];
   }
 
@@ -58,6 +57,7 @@ const processNewBlock = async (options)=>{
       const j = sortition.getVotes(value, new Big(userCreditBalance), new Big(p));
       if(j.gt(0)){
         console.log("I am lucky!!!", j.toFixed());
+        logToWebPage(`I am lucky!! J is ${j.toFixed()}`);
       }else{
         console.log("bad luck, try next", j.toFixed());
       }
@@ -128,6 +128,7 @@ const blockRoom = (ipfs, room, options) => {
       }
       const block = await ipfs.dag.get(cid);
       console.log("received block height=", block.value.blockHeight);
+      logToWebPage(`Received new block Height: ${block.value.blockHeight}`);
       if(options.isProcessingBlock){
         throw new exceptions("Racing conditions found. Some async funciton is processing block while new block just came in, how to handle this issue?");
       }

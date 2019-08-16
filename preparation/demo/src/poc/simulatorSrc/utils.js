@@ -6,3 +6,17 @@ exports.getUrlVars = ()=>{
   });
   return vars;
 }
+
+exports.tryParseJson = (s)=>{
+  try{
+    return JSON.parse(s);
+  }
+  catch(e){
+    return undefined;
+  }
+}
+
+exports.logToWebPage = (log)=>{
+  const logEle = document.getElementById('log');
+  logEle.innerHTML = '<ul>' + log + '</ul>' + logEle.innerHTML;
+}
