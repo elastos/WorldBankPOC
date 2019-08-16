@@ -44,6 +44,7 @@ const createGenesysBlock = (ipfs, presetUsers)=>{
   block.totalGas = totalGas;
   block.totalCredit = totalCredit;
   block.latestBlockHeight = 0;
+  block.trustedPeerToUserInfo = [];//trustedPeers mean those node with more than 0 credit. We record a map between this node's IPFS id, and VRF public key(AKA userName mapped public key)
   return block;
 
 }

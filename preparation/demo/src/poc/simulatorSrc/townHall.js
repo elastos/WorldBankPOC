@@ -1,5 +1,5 @@
 const roomMessageHandler = require('./roomMeesageHandler');
-
+import {tryParseJson} from '../constValue';
 
 
 module.exports = (ipfs, room, options) => {
@@ -11,57 +11,34 @@ module.exports = (ipfs, room, options) => {
   messageHandlers.push({message: 'peer joined', handler: peerJoinedHandler});
   const peerLeftHandler = (peer) => console.log('peer ' + peer + ' left');
   messageHandlers.push({message: 'peer left', handler: peerLeftHandler});
-  messageHandlers.push({message: 'peer joined', handler: (peer) => console.log(peer + ' joined the Townhall!')});
   messageHandlers.push({message:'subscribed', handler: (m) => {console.log("...... subscribe....", m)}});
-  
-  const handler = async (message) => {
+
+  const directMessageHandler = (message) => {
     //(message) => console.log('In townhall got message from ' + message.from + ': ' + message.data.toString())
-    const cid = message.data.toString();
-    
-    try{
-      const newBlockObj = await ipfs.dag.get(cid);
-    }
-    catch(e){
-      return console.log("cid is not a CID, return without doing anything,", cid);
-    }
-    try{
-      const newBlockObj = await ipfs.dag.get(cid);
-      console.log("using dag, we got towhall object,", newBlockObj.value);
-      console.log("Now let's treverse the new block to genesis so that we can get a latest state");
-      const state = {
-        height: newBlockObj.value.height
-      };
-      state.txs = await getLatestState(cid);
-      console.log("last State is:", state);
-    }
-    catch(e){
-      console.log("exception in townhall", e);
+    const messageObj = tryParseJson(message.data.toString());
+    if(! messageObj)
+      return console.log("townHallMessageHandler received non-parsable message, ", messageString);
+    switch(messageObj.type){
+      case "reqUserInfo":
+        const {userInfo} = options;
+        delete userInfo.randRoomPostfix;
+        delete userInfo.privateKey;
+
+        const resMessage = {
+          type:'resUserInfo',
+          userInfo
+        }
+        room.sendTo(message.from, JSON.stringify(resMessage));
+        break;
+      default:
+        return console.log("townHallMessageHandler received unknown type message object,", messageObj );
     }
     
   };
-  
+    
   messageHandlers.push({
     message: 'message',
-    handler
+    handler: directMessageHandler
   });
-
-  const getLatestState = async (cid) => {
-    let fullTxs = [];
-    let currentBlockObj;
-    let prevBlockCid =  cid;
-    while (prevBlockCid){
-      currentBlockObj = await ipfs.dag.get(prevBlockCid);
-      for(var i = 0; i < currentBlockObj.value.txs.length; i ++){
-        const txCid = currentBlockObj.value.txs[i];
-        const tx = await ipfs.dag.get(txCid);
-        fullTxs.unshift(tx.value.content);
-      };
-      prevBlockCid = currentBlockObj.value.previousBlockCid;
-      
-    }
-    return fullTxs;
-  }
-
   return messageHandlers;
-}
-
+};
