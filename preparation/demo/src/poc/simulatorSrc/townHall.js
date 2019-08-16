@@ -21,12 +21,11 @@ module.exports = (ipfs, room, options) => {
     switch(messageObj.type){
       case "reqUserInfo":
         const {userInfo} = options;
-        delete userInfo.randRoomPostfix;
-        delete userInfo.privateKey;
+        const {userName, publicKey} = userInfo;
 
         const resMessage = {
           type:'resUserInfo',
-          userInfo
+          userInfo:{userName, publicKey}
         }
         room.sendTo(message.from, JSON.stringify(resMessage));
         break;

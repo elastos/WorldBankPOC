@@ -8,7 +8,9 @@
       
   </head>
   <body>
-
+    <script src="js/ipfsPubSub.js"></script>
+    <script src="js/simulator.js"></script>
+    <script src="dist/jsoneditor.min.js"></script>
     <h1>This is the node simulator for this user:<span id='userName'></span></h1>
     <a href='/poc/forceManualGenerateNewBlock' target='_blank'>Force generate new block</a>
     <table>
@@ -37,6 +39,14 @@
           </td>
           <td>
             <span id='privkey'></span>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            My current IPFS PeerId
+          </td>
+          <td>
+            <span id='ipfsPeerId'>...waiting for next block..</span>
           </td>
         </tr>
         <tr>
@@ -121,9 +131,7 @@
     <p>Please check browser console for logs</p>
     
   </body>
-  <script src="js/ipfsPubSub.js"></script>
-  <script src="js/simulator.js"></script>
-  <script src="dist/jsoneditor.min.js"></script>
+
 </html>
 
 

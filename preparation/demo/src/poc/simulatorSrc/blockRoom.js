@@ -50,7 +50,7 @@ const processNewBlock = async (options)=>{
     ipfs.dag.get(cid).then(tx=>{
       console.log("received a RA task",tx.value, options.blockCid, cid);
       const vrfMsg = sha256.update(options.blockCid).update(cid).hex();
-      const p = 50 / totalCredit;
+      const p = 5 / totalCreditForOnlineNodes;
       console.log("VRFing.... this takes some time, please be patient..., ", userInfo, vrfMsg);
       const { proof, value } = ecvrf.vrf(Buffer.from(userInfo.pubicKey, 'hex'), Buffer.from(userInfo.privateKey, 'hex'), Buffer.from(vrfMsg, 'hex'));
       console.log("VRF{ proof, value }", { proof:proof.toString('hex'), value: value.toString('hex') });
