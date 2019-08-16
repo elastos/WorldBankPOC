@@ -68,19 +68,19 @@ const newNodeJoinNeedRaProcess = async (ipfs, room, options, cid)=>{
     return false;
   }
 
-  const {newPeerId, depositAmt} = tx.value;
-  if (!newPeerId)  return false;
+  const {userName, depositAmt} = tx.value;
+  if (!userName)  return false;
   if (depositAmt < minimalNewNodeJoinRaDeposit){
     console.log("Please pay more deposit to get your new node verified. Minimal is,", minimalNewNodeJoinRaDeposit);
     return false;
   }
   
-  if( globalState && globalState.gasMap && globalState.gasMap[newPeerId] && globalState.gasMap[newPeerId] > depositAmt)
+  if( globalState && globalState.gasMap && globalState.gasMap[userName] && globalState.gasMap[userName] > depositAmt)
   {
-    globalState.gasMap[newPeerId] -= depositAmt;
+    globalState.gasMap[userName] -= depositAmt;
     if (! globalState.lockGasMap) globalState.lockGasMap = {};
-    if (! globalState.lockGasMap[newPeerId])  globalState.lockGasMap[newPeerId] = depositAmt;
-    else globalState.lockGasMap[newPeerId] += depositAmt;
+    if (! globalState.lockGasMap[userName])  globalState.lockGasMap[userName] = depositAmt;
+    else globalState.lockGasMap[userName] += depositAmt;
     
     return true;
   }else{

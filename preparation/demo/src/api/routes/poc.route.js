@@ -109,15 +109,6 @@ router
           broadcastObj.cid = cid.toBaseEncodedString();
           break;
         }
-        case "newNodeJoinNeedRa":{
-          channelRoom = pubsubRooms.taskRoom;
-          const {newPeerId, depositAmt, ipfsPeerId} = jsonObj;
-          const cid = await ipfs.dag.put({
-            newPeerId, depositAmt, ipfsPeerId
-          });
-          broadcastObj.cid = cid.toBaseEncodedString();
-          break;
-        }
   
         case "blockroom":
           channelRoom = pubsubRooms.blockRoom;

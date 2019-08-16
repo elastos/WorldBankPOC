@@ -2,6 +2,8 @@ import {tryParseJson, logToWebPage} from './utils'
 import { ExceptionHandler, exceptions } from 'winston';
 const {utils, ecvrf, sortition} = require('vrf.js');
 import {sha256} from 'js-sha256';
+import {remoteAttestation} from './remoteAttestation';
+
 const Big = require('big.js');
 
 
@@ -47,8 +49,13 @@ const processNewBlock = async (options)=>{
   
   newNodeJoinNeedRaTxsCid.map((cid)=>{
     ipfs.dag.get(cid).then(tx=>{
-      console.log("received a RA task",tx.value, options.blockCid, cid);
-      const vrfMsg = sha256.update(options.blockCid).update(cid).hex();
+      if(tx.value.ipfsPeerId == userInfo.ipfsPeerId){
+        console.log("I am the node myself, I cannot do remote attestation on myself, skip");
+        return;
+      }
+      const {blockCid} = options;
+      console.log("received a RA task",tx.value, blockCid, cid);
+      const vrfMsg = sha256.update(blockCid).update(cid).hex();
       const p = 5 / totalCreditForOnlineNodes;
       console.log("VRFing.... this takes some time, please be patient..., ", userInfo, vrfMsg);
       const { proof, value } = ecvrf.vrf(Buffer.from(userInfo.pubicKey, 'hex'), Buffer.from(userInfo.privateKey, 'hex'), Buffer.from(vrfMsg, 'hex'));
@@ -58,8 +65,11 @@ const processNewBlock = async (options)=>{
       if(j.gt(0)){
         console.log("I am lucky!!!", j.toFixed());
         logToWebPage(`I am lucky!! J is ${j.toFixed()}`);
+        remoteAttestation({tx, options, j, proof, value, blockCid, taskCid:cid});
       }else{
         console.log("bad luck, try next", j.toFixed());
+        logToWebPage(`bad luck, try next time`);
+        
       }
       
 

@@ -1,7 +1,7 @@
 import {getUrlVars} from './utils.js';
 
 exports.main = ({userInfo})=>{
-  const {userName, randRoomPostfix, pubicKey, privateKey} = userInfo;
+  const {userName, pubicKey, privateKey, randRoomPostfix} = userInfo;
   document.getElementById('roomPostfix').innerText = randRoomPostfix;
   document.getElementById('userName').innerText = userName;
   document.getElementById('pubkey').innerText = pubicKey;
@@ -20,29 +20,26 @@ exports.main = ({userInfo})=>{
       txType:"gasTransfer",
       fromPeerId: userName,
       toPeerId:"user #0",
-      amt:1,
-      randRoomPostfix
+      amt:1
     })
   }
   document.getElementById('btn2').onclick = ()=>{
     editor.set({
       txType:"newNodeJoinNeedRa",
-      newPeerId: userName,
+      userName,
       depositAmt:10,
-      randRoomPostfix
+      ipfsPeerId:pubsubRooms.taskRoom.getMyPeerId()
     })
   };
   document.getElementById('btn3').onclick = ()=>{
     editor.set({
       txType:"computationTask",
-      cid:"",
-      randRoomPostfix
+      cid:""
     })
   };
   document.getElementById('btn4').onclick = ()=>{
     editor.set({
-      txType:"placeHolder",
-      randRoomPostfix
+      txType:"placeHolder"
     })
   };
   document.getElementById('sendAction').onclick = ()=>{
@@ -69,10 +66,8 @@ exports.main = ({userInfo})=>{
           break;
         case "newNodeJoinNeedRa":{
           channelRoom = pubsubRooms.taskRoom;
-          const {newPeerId, depositAmt} = jsonObj;
-          promiseCid = ipfs.dag.put({
-            newPeerId, depositAmt
-          });
+
+          promiseCid = ipfs.dag.put(jsonObj);
           
           break;
         }

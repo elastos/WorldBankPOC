@@ -42,10 +42,12 @@ function init(){
     const randRoomPostfix = getUrlVars().r || "";
     const pubicKey = getUrlVars().pub || "";
     const privateKey = getUrlVars().pri || "";
-    const userInfo = {userName, randRoomPostfix, pubicKey, privateKey}
+    const ipfsPeerId = ipfs._peerInfo.id.toB58String();
+    const userInfo = {userName, randRoomPostfix, pubicKey, privateKey, ipfsPeerId}
     
     console.log("randRoomPostfix", randRoomPostfix);
     const rooms = {};
+    
     const options = {ipfs, rooms, userInfo};
     rooms.taskRoom = roomMessageHandler(ipfs, 'taskRoom' + randRoomPostfix, options, taskRoom);
     rooms.townHall = roomMessageHandler(ipfs, 'townHall' + randRoomPostfix, options, townHall);
