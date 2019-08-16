@@ -4,6 +4,7 @@ const PeerId = require('peer-id');
 const EChart = require('./echart');
 const Data = require('./data');
 import {tryParseJson} from '../../src/poc/constValue';
+import {processNewBlock} from '../../src/poc/simulatorSrc/blockRoom';
 
 let _n = 1;
 const log = (str)=>{
@@ -17,7 +18,8 @@ const C = {
   blockRoom : 'blockRoom',
   taskRoom : 'taskRoom',
   townHall : 'townHall',
-  user : null
+  user : null,
+  r : null
 };
 
 let myIpfs = null;
@@ -43,6 +45,7 @@ const F = {
       pub : params.pub,
       pri : params.pri
     };
+    C.r = params.r;
     C.blockRoom = 'blockRoom'+params.r;
     C.taskRoom = 'taskRoom'+params.r;
     C.townHall = 'townHall'+params.r;
@@ -172,6 +175,22 @@ const F = {
     })
   },
 
+  buildHandlerOption(){
+    return {
+      ipfs : myIpfs.node,
+      rooms : {
+        taskRoom, townHall, blockRoom
+      },
+      userInfo : {
+        userName : C.user.name,
+        randRoomPostfix : C.r,
+        pubicKey : C.user.pub,
+        privateKey : C.user.pri
+      },
+      ipfsId : C.user.ipfs_id
+    };
+  },
+
   async processMessage(message){
     const blockObj = tryParseJson(message.data);
 
@@ -179,14 +198,21 @@ const F = {
       return log('In block room got an non-parsable message from ' + message.from + ': ' + message.data.toString());
     }
     const {txType, cid} = blockObj;
+    let options = F.buildHandlerOption();
     if(txType === 'newBlock'){
       const block = await myIpfs.node.dag.get(cid);
-      console.log("received block:", block);
-      // if(options.isProcessingBlock){
-      //   throw new exceptions("Racing conditions found. Some async funciton is processing block while new block just came in, how to handle this issue?");
-      // }
-      
-      myData.addBlock(block);
+
+      log("received block height = "+block.value.blockHeight);
+      if(options.isProcessingBlock){
+        throw ("Racing conditions found. Some async funciton is processing block while new block just came in, how to handle this issue?");
+      }
+
+      options.block = block.value;
+      options.blockCid = cid;
+      options = await processNewBlock(options);
+      console.log('options', options); 
+      console.log("new block:", options.block);
+      myData.addBlock({value : options.block});
 
       log('receive new block, refresh data.');
       const list = myData.getAllListForChart();

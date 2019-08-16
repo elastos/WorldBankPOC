@@ -5,42 +5,11 @@ import {sha256} from 'js-sha256';
 const Big = require('big.js');
 
 
-module.exports = (ipfs, room, options) => {
-  const messageHandlers = [];
-  
-  const peerJoinedHandler = (peer)=>console.log('peer ' + peer + ' joined block room');
-  messageHandlers.push({message: 'peer joined', handler: peerJoinedHandler});
-  const peerLeftHandler = (peer) => console.log('peer ' + peer + ' left block room');
-  messageHandlers.push({message: 'peer left', handler: peerLeftHandler});
-  messageHandlers.push({message: 'peer joined', handler: (peer) => room.sendTo(peer, 'Hello ' + peer + ' welcome join the block Room!')});
-  messageHandlers.push({message:'subscribed', handler: (m) => {console.log("...... subscribe....", m)}});
-  messageHandlers.push({
-    message: 'message',
-    handler: async (message) => {
-      
-      const blockObj = tryParseJson(message.data);
-      if(typeof blockObj == 'undefined'){
-        
-        return console.log('In block room got an non-parsable message from ' + message.from + ': ' + message.data.toString());
-      }
-      const {txType, cid} = blockObj;
-      if(txType != 'newBlock'){
-        return console.log('In block room got an unhandled message from ' + message.from + ': ' + message.data.toString());
-      }
-      const block = await ipfs.dag.get(cid);
-      console.log("received block height=", block.value.blockHeight);
-      if(options.isProcessingBlock){
-        throw new exceptions("Racing conditions found. Some async funciton is processing block while new block just came in, how to handle this issue?");
-      }
-      options.block = block.value;
-      options.blockCid = cid;
-      processNewBlock(options);
-    }
-  });
-  return messageHandlers;
-};
+
 
 const processNewBlock = async (options)=>{
+  const ipfs = options.ipfs;
+
   options.isProcessingBlock = true;
   const {userInfo, block} = options;
   if (verifyBlockIntegrity()){
@@ -97,6 +66,7 @@ const processNewBlock = async (options)=>{
   });
 
   options.isProcessingBlock = false;
+  return options;
   
 }
 
@@ -114,13 +84,54 @@ const updateNodeStatusOnNewBlock = ({block, userInfo} , totalGas, totalCredit)=>
   const gasBalance = block.gasMap[userName] || "";
   const creditBalance = block.creditMap[userName] || "";
 
-  
-  document.getElementById('blockheight').innerHTML = blockHeight;
-  document.getElementById('gasbalance').innerHTML = gasBalance;
-  document.getElementById('creditbalance').innerHTML = creditBalance;
-  document.getElementById('totalgas').innerHTML = totalGas;
-  document.getElementById('totalcredit').innerHTML = totalCredit;
-  //document.getElementById('').innerHTML = ;
+  try{
+    document.getElementById('blockheight').innerHTML = blockHeight;
+    document.getElementById('gasbalance').innerHTML = gasBalance;
+    document.getElementById('creditbalance').innerHTML = creditBalance;
+    document.getElementById('totalgas').innerHTML = totalGas;
+    document.getElementById('totalcredit').innerHTML = totalCredit;
+    //document.getElementById('').innerHTML = ;
+    
+  }catch(e){}
   
 
 }
+
+
+const blockRoom = (ipfs, room, options) => {
+  const messageHandlers = [];
+  
+  const peerJoinedHandler = (peer)=>console.log('peer ' + peer + ' joined block room');
+  messageHandlers.push({message: 'peer joined', handler: peerJoinedHandler});
+  const peerLeftHandler = (peer) => console.log('peer ' + peer + ' left block room');
+  messageHandlers.push({message: 'peer left', handler: peerLeftHandler});
+  messageHandlers.push({message: 'peer joined', handler: (peer) => room.sendTo(peer, 'Hello ' + peer + ' welcome join the block Room!')});
+  messageHandlers.push({message:'subscribed', handler: (m) => {console.log("...... subscribe....", m)}});
+  messageHandlers.push({
+    message: 'message',
+    handler: async (message) => {
+      
+      const blockObj = tryParseJson(message.data);
+      if(typeof blockObj == 'undefined'){
+        
+        return console.log('In block room got an non-parsable message from ' + message.from + ': ' + message.data.toString());
+      }
+      const {txType, cid} = blockObj;
+      if(txType != 'newBlock'){
+        return console.log('In block room got an unhandled message from ' + message.from + ': ' + message.data.toString());
+      }
+      const block = await ipfs.dag.get(cid);
+      console.log("received block height=", block.value.blockHeight);
+      if(options.isProcessingBlock){
+        throw new exceptions("Racing conditions found. Some async funciton is processing block while new block just came in, how to handle this issue?");
+      }
+      options.block = block.value;
+      options.blockCid = cid;
+      processNewBlock(options);
+    }
+  });
+  return messageHandlers;
+};
+
+blockRoom.processNewBlock = processNewBlock;
+module.exports = blockRoom;
