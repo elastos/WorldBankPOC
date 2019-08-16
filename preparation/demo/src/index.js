@@ -44,12 +44,12 @@ ipfsStart()
   const blockGenerationInterval = 1000*30;
   const firstBlockDelay = 1000 * 3;
 
-  const loop = async ({ipfs, globalState, blockRoom})=>{
-    await generateBlock({ipfs, globalState, blockRoom});
-    _.delay(loop, blockGenerationInterval, {ipfs, globalState, blockRoom});
-  };
-
-  _.delay(loop, firstBlockDelay, {ipfs, globalState, blockRoom});
+  // const loop = async ({ipfs, globalState, blockRoom})=>{
+  //   await generateBlock({ipfs, globalState, blockRoom});
+  //   _.delay(loop, blockGenerationInterval, {ipfs, globalState, blockRoom});
+  // };
+  //_.delay(loop, firstBlockDelay, {ipfs, globalState, blockRoom});
+  _.delay(generateBlock, firstBlockDelay, {ipfs, globalState, blockRoom});
   //console.log("in index.js init, pubsubRooms in app:", pubsubRooms);
 })
 
