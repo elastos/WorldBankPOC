@@ -2,6 +2,7 @@
 const express = require('express');
 
 const {creditScore, potSim, remoteAttestationSim, potSchema, betterResponse, gasSim, result, constValue, txLogSchema} = require('../../poc');
+const {generateBlock} = require('../../poc/layerOneBlock/generateBlock.js');
 
 const _ = require('lodash');
 
@@ -36,7 +37,7 @@ router
       return accumulator + "<a href='/webportal/ipfs_test.html?u=" + u.name + "&&r=" +  req.app.get('randRoomPostfix') + "&&pub=" + u.pub + "&&pri=" + u.pri + "'  target='_blank'>Simulator for " + u.name + "</a></br>";
     }, "");
     
-    const template = "<html><head></head><body>" 
+    const template = "<html><head></head><body><h1><a href='/poc/forceManualGenerateNewBlock' target='_blank'>Force generate new block</a></h1>"
     + "<p> Random Room Name Protfix is" + req.app.get('randRoomPostfix') + "</p><p>"
     + loopUserLink
     + "</p></body></html>";
@@ -71,9 +72,14 @@ router.route('/get_user_by_ipfs').get((req, res)=>{
 });
 
 router
-  .route('/status')
+  .route('/forceManualGenerateNewBlock')
   .get((req, res) => {
-    res.send('You will see updates here');
+    const ipfs = req.app.get('ipfs');
+    const globalState = req.app.get('globalState');
+    const rooms = req.app.get('rooms');
+    const {blockRoom} = rooms;
+    generateBlock({ipfs, globalState, blockRoom}).then(newBlock=>res.status(200).send(JSON.stringify(newBlock)));
+    
   });
 
 router
