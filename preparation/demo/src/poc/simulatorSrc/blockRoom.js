@@ -1,6 +1,9 @@
 import {tryParseJson} from '../constValue'
 import { ExceptionHandler, exceptions } from 'winston';
-import {getUrlVars} from './utils.js';
+const {utils, ecvrf, sortition} = require('vrf.js');
+import {sha256} from 'js-sha256';
+const Big = require('big.js');
+
 
 module.exports = (ipfs, room, options) => {
   const messageHandlers = [];
@@ -30,6 +33,7 @@ module.exports = (ipfs, room, options) => {
         throw new exceptions("Racing conditions found. Some async funciton is processing block while new block just came in, how to handle this issue?");
       }
       options.block = block.value;
+      options.blockCid = cid;
       processNewBlock(options);
     }
   });
@@ -38,22 +42,62 @@ module.exports = (ipfs, room, options) => {
 
 const processNewBlock = async (options)=>{
   options.isProcessingBlock = true;
+  const {userInfo, block} = options;
   if (verifyBlockIntegrity()){
     options.block.processedTxs
   }
-  options.isProcessingBlock = false;
-  updateNodeStatusOnNewBlock(options.block);
+  let totalGas = 0;
+  for(const g in block.gasMap){
+    totalGas += block.gasMap[g];
+  }
+  
+  let totalCredit = 0;
+  for(const c in block.creditMap){
+    totalCredit += block.creditMap[c];
+  }
+  updateNodeStatusOnNewBlock(options, totalGas, totalCredit);
   const watchingTxTypes = ['newNodeJoinNeedRa','remoteAttestationDone'];
   const newNodeJoinNeedRaTxsCid = [];
   const remoteAttestationDoneTxsCid = [];
-  options.block.processedTxs.forEach((tx)=>{
+  
+ 
+  block.processedTxs.forEach((tx)=>{
     if(tx.txType == 'newNodeJoinNeedRa')  newNodeJoinNeedRaTxsCid.push(tx.cid);
     if(tx.txType == 'remoteAttestationDone')  remoteAttestationDoneTxsCid.push(tx.cid);
     
   });
+  
+  const userGasBalance = block.gasMap[userInfo.userName];
+  
+  newNodeJoinNeedRaTxsCid.map((cid)=>{
+    ipfs.dag.get(cid).then(tx=>{
+      console.log("received a RA task",tx.value, options.blockCid, cid);
+      const vrfMsg = sha256.update(options.blockCid).update(cid).hex();
+      const p = 5 / totalGas;
+      console.log("VRFing.... this takes some time, please be patient..., ", userInfo, vrfMsg);
+      const { proof, value } = ecvrf.vrf(Buffer.from(userInfo.pubicKey, 'hex'), Buffer.from(userInfo.privateKey, 'hex'), Buffer.from(vrfMsg, 'hex'));
+      console.log("VRF{ proof, value }", { proof:proof.toString('hex'), value: value.toString('hex') });
+      console.log("Now running VRF sortition...it also needs some time... please be patient...", userGasBalance, p);
+      const j = sortition.getVotes(value, new Big(userGasBalance), new Big(p));
+      if(j.gt(0)){
+        console.log("I am lucky!!!", j.toFixed());
+      }else{
+        console.log("bad luck, try next", j.toFixed());
+      }
+      
 
-  await handleNewNodeJoinNeedRa(newNodeJoinNeedRaTxsCid, options);
-  await handleRemoteAttestationDone(remoteAttestationDoneTxsCid, options);
+    })
+  });
+  
+  remoteAttestationDoneTxsCid.map((cid)=>{
+    ipfs.dag.get(cid).then(tx=>{
+      console.log("received a RADone task, not implemented yet",tx.value);
+      
+    })
+  });
+
+  options.isProcessingBlock = false;
+  
 }
 
 const verifyBlockIntegrity = (options)=>{
@@ -61,43 +105,21 @@ const verifyBlockIntegrity = (options)=>{
   return true;
 }
 
-const handleNewNodeJoinNeedRa = async (newNodeJoinNeedRaTxsCid, options)=>{
-  const {ipfs} = options;
-  const promises = newNodeJoinNeedRaTxsCid.map((cid)=>{
-
-    return ipfs.dag.get(cid)
-  })
-  const txs = await Promise.all(promises);
-  txs.forEach(tx=>{
-    console.log("received a RA task",tx.value);
-  })
-  
-}
-const handleRemoteAttestationDone = async (remoteAttestationDoneTxsCid, options)=>{
-  const {ipfs} = options;
-  const promises = remoteAttestationDoneTxsCid.map((cid)=>{
-
-    return ipfs.dag.get(cid)
-  })
-  const txs = await Promise.all(promises);
-  txs.forEach(tx=>{
-    console.log("received a raDone task",tx.value);
-  })
-  
-}
 
 
 
-
-const updateNodeStatusOnNewBlock = (block)=>{
-  const userName = getUrlVars().u;
+const updateNodeStatusOnNewBlock = ({block, userInfo} , totalGas, totalCredit)=>{
+  const userName = userInfo.userName;
   const blockHeight = block.blockHeight;
   const gasBalance = block.gasMap[userName] || "";
   const creditBalance = block.creditMap[userName] || "";
 
+  
   document.getElementById('blockheight').innerHTML = blockHeight;
   document.getElementById('gasbalance').innerHTML = gasBalance;
   document.getElementById('creditbalance').innerHTML = creditBalance;
+  document.getElementById('totalgas').innerHTML = totalGas;
+  document.getElementById('totalcredit').innerHTML = totalCredit;
   //document.getElementById('').innerHTML = ;
   
 

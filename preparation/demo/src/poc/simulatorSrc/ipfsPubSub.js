@@ -38,15 +38,22 @@ function init(){
       console.log('IPFS on init:', error);
     });
 
+    const userName = getUrlVars().u;
     const randRoomPostfix = getUrlVars().r || "";
-    console.log("randRoomPostfix", randRoomPostfix);
-    const rooms = {};
-    const options = {ipfs, rooms};
-    rooms.taskRoom = roomMessageHandler(ipfs, 'taskRoom' + randRoomPostfix, options, taskRoom);
-    rooms.towHall = roomMessageHandler(ipfs, 'townHall' + randRoomPostfix, options, townHall);
-    rooms.blockRoom = roomMessageHandler(ipfs, 'blockRoom' + randRoomPostfix, options, blockRoom);
-    window.rooms = rooms;
-    main();
+    const pubicKey = getUrlVars().pub || "";
+    const privateKey = getUrlVars().pri || "";
+    const userInfo = {userName, randRoomPostfix, pubicKey, privateKey}
+    ipfs.id((id)=>{
+      console.log("randRoomPostfix", randRoomPostfix);
+      const rooms = {};
+      const options = {ipfs, rooms, userInfo, ipfsId:id};
+      rooms.taskRoom = roomMessageHandler(ipfs, 'taskRoom' + randRoomPostfix, options, taskRoom);
+      rooms.towHall = roomMessageHandler(ipfs, 'townHall' + randRoomPostfix, options, townHall);
+      rooms.blockRoom = roomMessageHandler(ipfs, 'blockRoom' + randRoomPostfix, options, blockRoom);
+      window.rooms = rooms;
+      main({ipfsId: id, userInfo});
+    })
+    
   });
   
 
