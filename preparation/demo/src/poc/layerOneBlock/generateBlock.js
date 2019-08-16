@@ -29,6 +29,6 @@ exports.generateBlock = async ({ipfs, globalState, blockRoom})=>{
   }
   // console.log("before blockRoom broadcast, the obj,", broadcastObj)
   blockRoom.broadcast(JSON.stringify(broadcastObj))
-  return broadcastObj;
+  return newBlock;
 }
 

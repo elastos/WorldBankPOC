@@ -21,7 +21,7 @@ router
     }, "");
     
     const template = "<html><head></head><body>" 
-    + "<p> Random Room Name Protfix is" + req.app.get('randRoomPostfix') + "</p><p>"
+    + "<p> Random Room Name Protfix is " + req.app.get('randRoomPostfix') + "</p><p><a href='/poc/forceManualGenerateNewBlock' target='_blank'>Force manually generate new block now.</a></p><p>"
     + loopUserLink
     + "</p></body></html>";
     res.status(200).send(template);
@@ -76,8 +76,9 @@ router
   .get((req, res) => {
     const ipfs = req.app.get('ipfs');
     const globalState = req.app.get('globalState');
-    const rooms = req.app.get('rooms');
+    const rooms = req.app.get('pubsubRooms');
     const {blockRoom} = rooms;
+    console.log("before generate new block, globalState is:", globalState);
     generateBlock({ipfs, globalState, blockRoom}).then(newBlock=>res.status(200).send(JSON.stringify(newBlock)));
     
   });
