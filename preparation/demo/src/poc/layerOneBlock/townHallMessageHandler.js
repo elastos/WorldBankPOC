@@ -4,9 +4,7 @@ export default (ipfs, room, options)=>{
     const {globalState} = options;
     const messageString = m.data.toString();
     const messageObj = JSON.parse(messageString);
-    if(messageObj.txType == ""){
-      
-      console.log("townHallMessageHandler, ", messageObj);
-    }
+    console.log("townHallMessageHandler, ", messageObj);
   }
 };
+

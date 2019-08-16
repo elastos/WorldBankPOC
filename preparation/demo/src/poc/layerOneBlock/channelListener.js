@@ -2,6 +2,7 @@ import townHallMessageHandler from './townHallMessageHandler';
 import taskRoomMessageHandler from './taskRoomMessageHandler';
 import blockRoomMessageHandler from './blockRoomMessageHandler';
 import Room from 'ipfs-pubsub-room';
+import townHallJoinLeftHandler from './townHallJoinLeftHandler';
 
 const createRandomGeoLocation = (n)=>{
   var data=[];   
@@ -62,8 +63,8 @@ exports.channelListener = (ipfs, randRoomPostfix, presetUsers)=>{
 
   
   const townHall = Room(ipfs, 'townHall' + randRoomPostfix);
-  townHall.on('peer joined', (peer)=>peer);//console.log(console.log('peer ' + peer + ' joined task room')));
-  townHall.on('peer left', peer=>peer);//console.log('peer ' + peer + ' left task room'));
+  townHall.on('peer joined', townHallJoinLeftHandler.join(ipfs, townHall, options));
+  townHall.on('peer left', townHallJoinLeftHandler.left(ipfs, townHall, options));
   townHall.on('subscribed', (m) => console.log("...... subscribe task room....", m));
   townHall.on('message', townHallMessageHandler(ipfs, rooms.townHall, options));
 
