@@ -67,18 +67,18 @@ const processNewBlock = async (options)=>{
     
   });
   
-  const userGasBalance = block.gasMap[userInfo.userName];
+  const userCreditBalance = block.creditMap[userInfo.userName];
   
   newNodeJoinNeedRaTxsCid.map((cid)=>{
     ipfs.dag.get(cid).then(tx=>{
       console.log("received a RA task",tx.value, options.blockCid, cid);
       const vrfMsg = sha256.update(options.blockCid).update(cid).hex();
-      const p = 5 / totalGas;
+      const p = 50 / totalCredit;
       console.log("VRFing.... this takes some time, please be patient..., ", userInfo, vrfMsg);
       const { proof, value } = ecvrf.vrf(Buffer.from(userInfo.pubicKey, 'hex'), Buffer.from(userInfo.privateKey, 'hex'), Buffer.from(vrfMsg, 'hex'));
       console.log("VRF{ proof, value }", { proof:proof.toString('hex'), value: value.toString('hex') });
-      console.log("Now running VRF sortition...it also needs some time... please be patient...", userGasBalance, p);
-      const j = sortition.getVotes(value, new Big(userGasBalance), new Big(p));
+      console.log("Now running VRF sortition...it also needs some time... please be patient...");
+      const j = sortition.getVotes(value, new Big(userCreditBalance), new Big(p));
       if(j.gt(0)){
         console.log("I am lucky!!!", j.toFixed());
       }else{
