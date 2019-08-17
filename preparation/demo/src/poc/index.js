@@ -1,4 +1,3 @@
-exports.betterResponse = require('./betterResponse');
 exports.constValue = require('./constValue');
 exports.result = (res, code, dataOrError, message='')=>{
   const json = {
