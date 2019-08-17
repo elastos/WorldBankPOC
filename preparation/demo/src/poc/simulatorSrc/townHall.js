@@ -32,7 +32,7 @@ module.exports = (ipfs, room, options) => {
           userInfo:{userName, publicKey}
         }
         room.sendTo(message.from, JSON.stringify(resMessage));
-        logToWebPage(`send back reqUserInfo to townhall manager, ${JSON.stringify(resMessage)}`);
+        logToWebPage(`send back reqUserInfo to townhall manager`, resMessage);
         break;
       }
 
@@ -42,7 +42,7 @@ module.exports = (ipfs, room, options) => {
         const remoteAttestatorPeerId = message.from;
         const validateReturn = await validateVrf({ipfs, remoteAttestatorPeerId, messageObj});
         if(! validateReturn.result){
-          logToWebPage(`VRF Validation failed, reason is ${validateReturn.reason}`);
+          logToWebPage(`VRF Validation failed, reason is `, validateReturn.reason);
           break;
         }
         logToWebPage(`VRF Validation passed`);
@@ -59,12 +59,12 @@ module.exports = (ipfs, room, options) => {
 
         room.sendTo(message.from, JSON.stringify(resRemoteAttestationObj));
         
-        logToWebPage(`send back resRemoteAttestation to the remote attestator ${message.from}, payload is ${JSON.stringify(resRemoteAttestationObj)}`);
+        logToWebPage(`send back resRemoteAttestation to the remote attestator ${message.from}, payload is `, resRemoteAttestationObj);
         break;
       }
 
       case "resRemoteAttestation":{//now, I am the remote attestator, validate new node
-        logToWebPage(`I am a Remote Attestator, I received new node${message.from} 's reply :, payload is ${message.data.toString()}`);
+        logToWebPage(`I am a Remote Attestator, I received new node${message.from} 's reply :, payload is `, message.data);
         const newNodePeerId = message.from;
         const {proofOfVrf, proofOfTrust} = messageObj;
         const potResult = validatePot(proofOfTrust);

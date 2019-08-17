@@ -22,7 +22,7 @@ exports.sendRemoteAttestationRequest = async ({tx, options, j, proof, value, blo
     publicKey
   }
   window.rooms.townHall.sendTo(newNodeIpfsPeerId, JSON.stringify(raReqObj));
-  logToWebPage(`Sending townhall request to the new node: ${newNodeIpfsPeerId}  for RA: ${JSON.stringify(raReqObj)}`);
+  logToWebPage(`Sending townhall request to the new node: ${newNodeIpfsPeerId}  for RA:`, raReqObj);
 }
 
 
@@ -30,7 +30,7 @@ exports.sendRemoteAttestationRequest = async ({tx, options, j, proof, value, blo
 exports.validateVrf = async ({ipfs, remoteAttestatorPeerId, messageObj})=>{
   const {j, proof, value, blockCid, taskCid, publicKey} = messageObj;
   if(!j || !proof || !value || !blockCid || !taskCid || !publicKey){
-    return {result:false, reason:`The incoming message missing some properties, ${JSON.stringify(messageObj)}.`};
+    return {result:false, reason:`The incoming message missing some properties,`, messageObj};
   }
   const block = (await ipfs.dag.get(blockCid)).value;
 

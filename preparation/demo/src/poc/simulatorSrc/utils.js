@@ -16,10 +16,9 @@ exports.tryParseJson = (s)=>{
   }
 }
 
-exports.logToWebPage = (log)=>{
-  try{
-    console.log(log);
-    const logEle = document.getElementById('log');
-    logEle.innerHTML = '<ul>' + log + '</ul>' + logEle.innerHTML;
-  }catch(e){}
+exports.logToWebPage = (log, json)=>{
+  const logEle = document.getElementById('log');
+  const jsonBetterLooking = json? '<pre><code>' + JSON.stringify(json, undefined, 2) + '</code></pre>' : '';
+  const innerHtml = '<li>' + log + jsonBetterLooking + '</li>';
+  logEle.innerHTML = innerHtml + logEle.innerHTML;
 }
