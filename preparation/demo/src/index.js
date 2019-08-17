@@ -1,12 +1,12 @@
 // make bluebird default Promise
 Promise = require('bluebird'); // eslint-disable-line no-global-assign
+const IPFS = require('ipfs');
 const _ = require( 'lodash');
 require("babel-core/register");
 require("babel-polyfill");
 const { port, env } = require('./config/vars');
 const logger = require('./config/logger');
 const app = require('./config/express');
-const {ipfsStart} = require('./poc/layerOneBlock/ipfsMod');
 const {channelListener} = require('./poc/layerOneBlock/channelListener');
 const {generateBlock} = require('./poc/layerOneBlock/generateBlock');
 const {utils} = require('vrf.js');
@@ -18,6 +18,7 @@ var standard_input = process.stdin;
 standard_input.setEncoding('utf-8');
 
 // Prompt user to input data in console.
+console.clear();
 console.log("Please input a random pubsub room postfix. Press enter to get a random number as default:");
 
 // When user input data and click enter key.
@@ -63,6 +64,30 @@ standard_input.on('data', function (data) {
 
 });
 
+const ipfsStart = async ()=>{
+  const ipfs = await IPFS.create({
+    repo: 'ipfs-storage-no-git/poc/' + Math.random(),
+    EXPERIMENTAL: {
+      pubsub: true
+    },
+     config: {
+      Addresses: {
+        Swarm: [
+          '/dns4/ws-star.discovery.libp2p.io/tcp/443/wss/p2p-websocket-star'
+        ]
+      }
+    }
+  });
+  console.log('IPFS node is ready');
+  ipfs.on('error', error=>{
+    console.log('IPFS on error:', error);
+  });
+
+  ipfs.on('init', error=>{
+    console.log('IPFS on init:', error);
+  });
+  return ipfs;
+};
 
 /**
 * Exports express
