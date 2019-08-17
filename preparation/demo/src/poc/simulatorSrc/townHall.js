@@ -1,4 +1,3 @@
-const roomMessageHandler = require('./roomMeesageHandler');
 import {tryParseJson, logToWebPage} from './utils';
 
 

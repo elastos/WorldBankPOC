@@ -17,6 +17,9 @@ exports.tryParseJson = (s)=>{
 }
 
 exports.logToWebPage = (log)=>{
-  const logEle = document.getElementById('log');
-  logEle.innerHTML = '<ul>' + log + '</ul>' + logEle.innerHTML;
+  try{
+    console.log(log);
+    const logEle = document.getElementById('log');
+    logEle.innerHTML = '<ul>' + log + '</ul>' + logEle.innerHTML;
+  }catch(e){}
 }

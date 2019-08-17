@@ -5,6 +5,7 @@ const EChart = require('./echart');
 const Data = require('./data');
 import {tryParseJson} from '../../src/poc/constValue';
 import {processNewBlock} from '../../src/poc/simulatorSrc/blockRoom';
+import townHallHandler from '../../src/poc/simulatorSrc/townHall';
 
 let _n = 1;
 const log = (str)=>{
@@ -134,7 +135,30 @@ const F = {
 
     window.blockRoom = blockRoom;
   },
-  initTownHall(){},
+  initTownHall(){
+    let message_hander = ()=>{};
+    townHall = myIpfs.registerRoom(C.townHall, {
+      join(peer){
+        log('peer ' + peer + ' joined town hall');
+      },
+      left(peer){
+        log('peer ' + peer + ' left town hall');
+      },
+      subscribe(m){
+        log("...... subscribe .... town hall => "+m);
+        
+      },
+      message(msg){
+        log('town hall got message from ' + msg.from + ': ' + msg.data.toString())
+        message_hander(msg);
+      }
+    });
+
+    const tmp_cb = townHallHandler(myIpfs.node, townHall, this.buildHandlerOption());
+    message_hander = (_.find(tmp_cb, (item)=>{
+      return item.message === 'message';
+    })).handler;
+  },
 
   async publishSelfId(){
     const obj = await myIpfs.node.id();
