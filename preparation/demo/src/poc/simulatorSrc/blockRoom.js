@@ -2,7 +2,7 @@ import {tryParseJson, logToWebPage} from './utils'
 import { ExceptionHandler, exceptions } from 'winston';
 const {utils, ecvrf, sortition} = require('vrf.js');
 import {sha256} from 'js-sha256';
-
+import {expectNumberOfRemoteAttestatorsToBeVoted} from '../constValue';
 const Big = require('big.js');
 
 
@@ -55,7 +55,7 @@ const processNewBlock = async (options)=>{
       const {blockCid} = options;
       console.log("received a RA task",tx.value, blockCid, cid);
       const vrfMsg = sha256.update(blockCid).update(cid).hex();
-      const p = 5 / totalCreditForOnlineNodes;
+      const p = expectNumberOfRemoteAttestatorsToBeVoted / totalCreditForOnlineNodes;
       console.log("VRFing.... this takes some time, please be patient..., ", userInfo, vrfMsg);
       const { proof, value } = ecvrf.vrf(Buffer.from(userInfo.pubicKey, 'hex'), Buffer.from(userInfo.privateKey, 'hex'), Buffer.from(vrfMsg, 'hex'));
       console.log("VRF{ proof, value }", { proof:proof.toString('hex'), value: value.toString('hex') });

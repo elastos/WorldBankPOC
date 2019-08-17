@@ -1,7 +1,8 @@
-import {tryParseJson, minimalNewNodeJoinRaDeposit} from '../constValue'
+import {tryParseJson, minimalNewNodeJoinRaDeposit, expectNumberOfRemoteAttestatorsToBeVoted} from '../constValue'
 import {sha256} from 'js-sha256';
 import { ecvrf, sortition} from 'vrf.js';
 import Big from 'big.js';
+import {validatePot} from '../remoteAttestation';
 
 export default (ipfs, room, options)=>{
   return async (m)=>{
@@ -80,9 +81,9 @@ const newNodeJoinNeedRaProcess = async (ipfs, room, options, cid)=>{
   if( globalState && globalState.gasMap && globalState.gasMap[userName] && globalState.gasMap[userName] > depositAmt)
   {
     globalState.gasMap[userName] -= depositAmt;
-    if (! globalState.lockGasMap) globalState.lockGasMap = {};
-    if (! globalState.lockGasMap[userName])  globalState.lockGasMap[userName] = depositAmt;
-    else globalState.lockGasMap[userName] += depositAmt;
+    if (! globalState.escrowGasMap) globalState.escrowGasMap = {};
+    if (! globalState.escrowGasMap[cid])  globalState.escrowGasMap[cid] = depositAmt;
+    else globalState.escrowGasMap[cid] += depositAmt;
     
     return true;
   }else{
@@ -100,11 +101,11 @@ const remoteAttestationDoneProcess = async (ipfs, room, options, cid)=>{
     console.log("in remoteAttestationDoneProcess, tx is not existing", tx);
     return false;
   }
-  console.log("tx.value,", tx.value);
-
+  //console.log("tx.value,", tx.value);
+  takeEscrowFromRemoteAttestator();
   const {potResult,proofOfTrust,proofOfVrf} = tx.value;
-  const {globalState} = options;
   const {j, proof, value, taskCid, blockCid, userName, publicKey} = proofOfVrf;
+  
   const vrfMsg = sha256.update(blockCid).update(taskCid).hex();
   
   const vrfVerifyResult = ecvrf.verify(Buffer.from(publicKey, 'hex'), Buffer.from(vrfMsg, 'hex'), Buffer.from(proof, 'hex'), Buffer.from(value, 'hex'));
@@ -113,11 +114,24 @@ const remoteAttestationDoneProcess = async (ipfs, room, options, cid)=>{
     console.log('remoteAttestationDoneProcess fail, ', reason);
     return false;
   }
-  // const p = 5 / totalCreditForOnlineNodes;
-  // const remoteAttestatorCredit = globalState.creditMap[userName];
+  const block = (await ipfs.dag.get(blockCid)).value;
+  const totalCreditForOnlineNodes = block.totalCreditForOnlineNodes;
+  const p = expectNumberOfRemoteAttestatorsToBeVoted / totalCreditForOnlineNodes;
+  const remoteAttestatorCreditBalance = block.creditMap[userName];
+  const jVerify = sortition.getVotes(Buffer.from(value, 'hex'), new Big(remoteAttestatorCreditBalance), new Big(p));
+  if(jVerify.toFixed() != j){
+    console.log("vrf soritition failed,", jVerify.toFixed());
+    return false;
+  }
   
+  console.log("this RA passed VRF verify. now we need to see how many of RA passes, and if reaches the limit, we can close this task");
+
   
 
   console.log("remoteAttestationDone - Not impplemented yet");
   return false;
+};
+
+const takeEscrowFromRemoteAttestator = ()=>{
+
 };

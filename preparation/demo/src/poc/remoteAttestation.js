@@ -1,9 +1,10 @@
 
-import {minimalNewNodeJoinRaDeposit} from './constValue';
+import {minimalNewNodeJoinRaDeposit, expectNumberOfRemoteAttestatorsToBeVoted} from './constValue';
 import {tryParseJson, logToWebPage} from './simulatorSrc/utils'
 import {sha256} from 'js-sha256';
 import { ecvrf, sortition} from 'vrf.js';
 import Big from 'big.js';
+
 
 exports.validateVrf = async ({ipfs, messageObj})=>{
   const {j, proof, value, blockCid, taskCid, publicKey, userName} = messageObj;
@@ -16,7 +17,7 @@ exports.validateVrf = async ({ipfs, messageObj})=>{
 
   const vrfMsg = sha256.update(blockCid).update(taskCid).hex();
   
-  const p = 5 / totalCreditForOnlineNodes;
+  const p = expectNumberOfRemoteAttestatorsToBeVoted / totalCreditForOnlineNodes;
   
   const vrfVerifyResult = ecvrf.verify(Buffer.from(publicKey, 'hex'), Buffer.from(vrfMsg, 'hex'), Buffer.from(proof, 'hex'), Buffer.from(value, 'hex'));
   if(! vrfVerifyResult){

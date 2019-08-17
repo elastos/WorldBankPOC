@@ -9,7 +9,7 @@ exports.generateBlock = async ({ipfs, globalState, blockRoom})=>{
   const previousBlockHeight = globalState.blockHeight || 0;
   const previousBlockCid = globalState.blockCid || "";
   const trustedPeerToUserInfo = globalState.trustedPeerToUserInfo || {};
-
+  const escrowGasMap = globalState.escrowGasMap || {};
 
 //calculate totalCredit for online users
   let totalCreditForOnlineNodes = 0;
@@ -30,7 +30,8 @@ exports.generateBlock = async ({ipfs, globalState, blockRoom})=>{
     blockHeight: previousBlockHeight + 1,
     previousBlockCid,
     trustedPeerToUserInfo,
-    totalCreditForOnlineNodes
+    totalCreditForOnlineNodes,
+    escrowGasMap
   };
   globalState.blockHeight = newBlock.blockHeight; 
   globalState.blockCid = "generating new block CID, please wait";//while generating block, set the blockCid to 0 for temperary because of async await, other code may run into globalState.blockCid while await is waiting for new blockCid.
