@@ -2,7 +2,7 @@ import {tryParseJson, logToWebPage} from './utils'
 import { ExceptionHandler, exceptions } from 'winston';
 const {utils, ecvrf, sortition} = require('vrf.js');
 import {sha256} from 'js-sha256';
-import {remoteAttestation} from './remoteAttestation';
+import {sendRemoteAttestationRequest} from './remoteAttestation';
 
 const Big = require('big.js');
 
@@ -65,7 +65,7 @@ const processNewBlock = async (options)=>{
       if(j.gt(0)){
         console.log("I am lucky!!!", j.toFixed());
         logToWebPage(`I am lucky!! J is ${j.toFixed()}`);
-        remoteAttestation({tx, options, j, proof, value, blockCid, taskCid:cid, publicKey:userInfo.pubicKey});
+        sendRemoteAttestationRequest({tx, options, j, proof, value, blockCid, taskCid:cid, publicKey:userInfo.pubicKey});
       }else{
         console.log("bad luck, try next", j.toFixed());
         logToWebPage(`bad luck, try next time`);
@@ -79,7 +79,7 @@ const processNewBlock = async (options)=>{
   remoteAttestationDoneTxsCid.map((cid)=>{
     ipfs.dag.get(cid).then(tx=>{
       console.log("received a RADone task, not implemented yet",tx.value);
-      
+      logToWebPage(`Blockroom Received a RA Done Message ${JSON.stringify(tx)}`);
     })
   });
 
@@ -121,7 +121,6 @@ const blockRoom = (ipfs, room, options) => {
   messageHandlers.push({message: 'peer joined', handler: peerJoinedHandler});
   const peerLeftHandler = (peer) => console.log('peer ' + peer + ' left block room');
   messageHandlers.push({message: 'peer left', handler: peerLeftHandler});
-  messageHandlers.push({message: 'peer joined', handler: (peer) => room.sendTo(peer, 'Hello ' + peer + ' welcome join the block Room!')});
   messageHandlers.push({message:'subscribed', handler: (m) => {console.log("...... subscribe....", m)}});
   messageHandlers.push({
     message: 'message',

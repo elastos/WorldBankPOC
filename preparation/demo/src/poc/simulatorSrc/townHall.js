@@ -1,4 +1,8 @@
 import {tryParseJson, logToWebPage} from './utils';
+const {utils, ecvrf, sortition} = require('vrf.js');
+import {sha256} from 'js-sha256';
+import Big from 'big.js';
+import {validateVrf, validatePot, verifyOthersRemoteAttestationVrfAndProof}  from './remoteAttestation';
 
 
 module.exports = (ipfs, room, options) => {
@@ -12,13 +16,14 @@ module.exports = (ipfs, room, options) => {
   messageHandlers.push({message: 'peer left', handler: peerLeftHandler});
   messageHandlers.push({message:'subscribed', handler: (m) => {console.log("...... subscribe....", m)}});
 
-  const directMessageHandler = (message) => {
-    //(message) => console.log('In townhall got message from ' + message.from + ': ' + message.data.toString())
+
+  const directMessageHandler = async (message) => {
+    console.log('In townhall got message from ' + message.from + ': ' + message.data.toString());
     const messageObj = tryParseJson(message.data.toString());
     if(! messageObj)
       return console.log("townHallMessageHandler received non-parsable message, ", messageString);
     switch(messageObj.type){
-      case "reqUserInfo":
+      case "reqUserInfo":{
         const {userInfo} = options;
         const {userName, publicKey} = userInfo;
 
@@ -29,15 +34,73 @@ module.exports = (ipfs, room, options) => {
         room.sendTo(message.from, JSON.stringify(resMessage));
         logToWebPage(`send back reqUserInfo to townhall manager, ${JSON.stringify(resMessage)}`);
         break;
-      default:
+      }
+
+      case "reqRemoteAttestation":{//Now I am new node, sending back poT after validate the remote attestation is real
+        const {userInfo} = options;
+        const {userName, publicKey} = userInfo;
+        const remoteAttestatorPeerId = message.from;
+        const validateReturn = await validateVrf({ipfs, remoteAttestatorPeerId, messageObj});
+        if(! validateReturn.result){
+          logToWebPage(`VRF Validation failed, reason is ${validateReturn.reason}`);
+          break;
+        }
+        logToWebPage(`VRF Validation passed`);
+        const proofOfTrust ={
+          psrData:'placeholder',
+          isHacked:true,
+          tpmPublicKey:'placeholder'
+        }
+        const resRemoteAttestationObj = {
+          type:'resRemoteAttestation',
+          proofOfVrf:messageObj,
+          proofOfTrust
+        }
+
+        room.sendTo(message.from, JSON.stringify(resRemoteAttestationObj));
+        
+        logToWebPage(`send back resRemoteAttestation to the remote attestator ${message.from}, payload is ${JSON.stringify(resRemoteAttestationObj)}`);
+        break;
+      }
+
+      case "resRemoteAttestation":{//now, I am the remote attestator, validate new node
+        logToWebPage(`I am a Remote Attestator, I received new node${message.from} 's reply :, payload is ${message.data.toString()}`);
+        const newNodePeerId = message.from;
+        const {proofOfVrf, proofOfTrust} = messageObj;
+        const potResult = validatePot(proofOfTrust);
+        logToWebPage(`Proof of trust verify result: ${potResult}`);
+        const cid = await ipfs.dag.put({potResult,proofOfTrust,proofOfVrf});
+        const remoteAttestationDoneMsg = {
+          txType:'remoteAttestationDone',
+          cid
+        }
+        options.rooms.taskRoom.broadcast(JSON.stringify(remoteAttestationDoneMsg))
+        logToWebPage(`Broadcast in taskRoom about the Proof of trust verify result: ${potResult}`);
+        
+        break;
+      }
+      // case "remoteAttestationDone":{
+      //   if(message.from != options.userInfo.ipfsPeerId){//I do not want to verify myself vrf and remote attestation
+      //     if(! verifyOthersRemoteAttestationVrfAndProof(messageObj)){
+      //       logToWebPage(`Found other node did wrong remote attestation VRF or PoT. Further action is not implemented yet. Just alert here for now. ${JSON.stringify}`)
+      //     }
+          
+      //   }
+      //   break;
+      // }
+      default:{
         return console.log("townHallMessageHandler received unknown type message object,", messageObj );
-    }
+      } 
+    }//switch
     
   };
     
+
   messageHandlers.push({
     message: 'message',
-    handler: directMessageHandler
+    handler: (m)=>directMessageHandler(m)
   });
+  
   return messageHandlers;
+
 };
