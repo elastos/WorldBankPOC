@@ -1,7 +1,7 @@
 
 const express = require('express');
 
-const {creditScore, potSim, remoteAttestationSim, potSchema, betterResponse, gasSim, result, constValue, txLogSchema} = require('../../poc');
+const {result, constValue} = require('../../poc');
 const {generateBlock} = require('../../poc/layerOneBlock/generateBlock.js');
 const _ = require('lodash');
 
