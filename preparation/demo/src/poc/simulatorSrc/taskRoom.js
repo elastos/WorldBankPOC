@@ -1,4 +1,7 @@
 import {tryParseJson, logToWebPage} from './utils';
+const {utils, ecvrf, sortition} = require('vrf.js');
+import {sha256} from 'js-sha256';
+const Big = require('big.js');
 
 module.exports = (ipfs, room, options) => {
   const option = {};
@@ -23,29 +26,35 @@ module.exports = (ipfs, room, options) => {
         const {userInfo} = options;
         const {userName, publicKey} = userInfo;
         const remoteAttestatorPeerId = message.from;
-        const result = await validateVrf({ipfs, remoteAttestatorPeerId, messageObj});
-
-        // validateVrf({ipfs, remoteAttestatorPeerId, messageObj}).then((res)=>{
-
-        //   logToWebPage( `validateVrf is not implemented yet, just return ${res} for nwo`);
-
-        // },
-        // (rej)=>{
-        //   logToWebPage( `validateVrf is not implemented yet, assume it failed, just return ${rej} for nwo`);
-
-        // });
-        const resMessage = {
-          type:'resRemoteAttestation',
-          userInfo:{userName, publicKey}
+        const validateReturn = await validateVrf({ipfs, remoteAttestatorPeerId, messageObj});
+        if(! validateReturn.result){
+          logToWebPage(`VRF Validation failed, reason is ${validateReturn.reason}`);
+          break;
         }
-        room.sendTo(message.from, JSON.stringify(resMessage));
-        logToWebPage(`send back resRemoteAttestation to the remote attestator ${message.from}, payload is ${JSON.stringify(resMessage)}`);
+        logToWebPage(`VRF Validation passed`);
+        const proofOfTrust ={
+          psrData:'placeholder',
+          isHacked:true,
+          tpmPublicKey:'placeholder'
+        }
+        const resRemoteAttestationObj = {
+          type:'resRemoteAttestation',
+          proofOfTrust
+        }
+
+        room.sendTo(message.from, JSON.stringify(resRemoteAttestationObj));
+        
+        logToWebPage(`send back resRemoteAttestation to the remote attestator ${message.from}, payload is ${JSON.stringify(resRemoteAttestationObj)}`);
         break;
 
 
       case "resRemoteAttestation":
         logToWebPage(`I am a Remote Attestator, I received new node${message.from} 's reply :, payload is ${message.data.toString()}`);
-        validatePot();
+        const newNodePeerId = message.from;
+        
+        const potResult = validatePot(messageObj.proofOfTrust);
+        logToWebPage(`Proof of trust verify result: ${potResult}`);
+        
         break;
       
       default:
@@ -61,28 +70,39 @@ module.exports = (ipfs, room, options) => {
 };
 
 const validateVrf = async ({ipfs, remoteAttestatorPeerId, messageObj})=>{
-  return ipfs.dag.get(blockCid);
+  const {j, proof, value, blockCid, taskCid, publicKey} = messageObj;
+  if(!j || !proof || !value || !blockCid || !taskCid || !publicKey){
+    return {result:false, reason:`The incoming message missing some properties, ${JSON.stringify(messageObj)}.`};
+  }
+  const block = (await ipfs.dag.get(blockCid)).value;
+
+  let totalCreditForOnlineNodes = 0;
+  for( const c in block.trustedPeerToUserInfo){
+    const currUserInfo = block.trustedPeerToUserInfo[c];
+    totalCreditForOnlineNodes += block.creditMap[currUserInfo.userName];
+  }
+  const vrfMsg = sha256.update(blockCid).update(taskCid).hex();
+  
+  const p = 5 / totalCreditForOnlineNodes;
+
+  const remoteAttestatorUserInfo = block.trustedPeerToUserInfo[remoteAttestatorPeerId];
+  
+  const vrfVerifyResult = ecvrf.verify(Buffer.from(publicKey, 'hex'), Buffer.from(vrfMsg, 'hex'), Buffer.from(proof, 'hex'), Buffer.from(value, 'hex'));
+  if(! vrfVerifyResult){
+    return {result: false, reason:'VRF verify failed'};
+  }
+  const remoteAttestatorCreditBalance = block.creditMap[remoteAttestatorUserInfo.userName];
+  console.log('remoteAttestatorCreditBalance', remoteAttestatorCreditBalance);
+  const jVerify = sortition.getVotes(Buffer.from(value, 'hex'), new Big(remoteAttestatorCreditBalance), new Big(p));
+  if(jVerify.toFixed() != j){
+    console.log("vrf soritition failed,", jVerify.toFixed());
+    return {result: false, reason:'VRF Sortition failed'  + jVerify.toFixed()};
+  }
+  return {result:true};
 };
 
-// const validateVrf = ({ipfs, remoteAttestatorPeerId, messageObj})=>{
-//   return new Promise( (resolve, reject)=>{
-//     const {j, proof, value, blockCid, taskCid} = messageObj;
-//     if(!j || !proof || !value || !blockCid || !taskCid){
-//       return reject(`The incoming message missing some properties, ${JSON.stringify(messageObj)}.`);
-//     }
-//     ipfs.dag.get(blockCid).then((block)=>{
-//       console.log("retreieve block,", block);
-//     })
-//     .then(()=>{
-//       return ipfs.dag.get(taskCid);
-//     })
-//     .then((task)=>{
-//       console.log("taskCid from IPFS", taskCid);
-//       resolve(true);
-//     })
-//   });
-// };
+const validatePot = (proofOfTrust)=>{
+  const {psrData, isHacked, tpmPublicKey} = proofOfTrust;
 
-const validatePot = ()=>{
-  logToWebPage(`inside validatePot, not impletemented yet. Just return true`);
+  return ! isHacked;
 }

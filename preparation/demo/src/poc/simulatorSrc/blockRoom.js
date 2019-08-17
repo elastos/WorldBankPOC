@@ -65,7 +65,7 @@ const processNewBlock = async (options)=>{
       if(j.gt(0)){
         console.log("I am lucky!!!", j.toFixed());
         logToWebPage(`I am lucky!! J is ${j.toFixed()}`);
-        remoteAttestation({tx, options, j, proof, value, blockCid, taskCid:cid});
+        remoteAttestation({tx, options, j, proof, value, blockCid, taskCid:cid, publicKey:userInfo.pubicKey});
       }else{
         console.log("bad luck, try next", j.toFixed());
         logToWebPage(`bad luck, try next time`);
