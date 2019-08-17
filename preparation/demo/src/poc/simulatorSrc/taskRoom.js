@@ -23,16 +23,17 @@ module.exports = (ipfs, room, options) => {
         const {userInfo} = options;
         const {userName, publicKey} = userInfo;
         const remoteAttestatorPeerId = message.from;
+        const result = await validateVrf({ipfs, remoteAttestatorPeerId, messageObj});
 
-        validateVrf({ipfs, remoteAttestatorPeerId, messageObj}).then((res)=>{
+        // validateVrf({ipfs, remoteAttestatorPeerId, messageObj}).then((res)=>{
 
-          logToWebPage( `validateVrf is not implemented yet, just return ${res} for nwo`);
+        //   logToWebPage( `validateVrf is not implemented yet, just return ${res} for nwo`);
 
-        },
-        (rej)=>{
-          logToWebPage( `validateVrf is not implemented yet, assume it failed, just return ${rej} for nwo`);
+        // },
+        // (rej)=>{
+        //   logToWebPage( `validateVrf is not implemented yet, assume it failed, just return ${rej} for nwo`);
 
-        });
+        // });
         const resMessage = {
           type:'resRemoteAttestation',
           userInfo:{userName, publicKey}
@@ -59,24 +60,28 @@ module.exports = (ipfs, room, options) => {
   return messageHandlers;
 };
 
-const validateVrf = ({ipfs, remoteAttestatorPeerId, messageObj})=>{
-  return new Promise( (resolve, reject)=>{
-    const {j, proof, value, blockCid, taskCid} = messageObj;
-    if(!j || !proof || !value || !blockCid || !taskCid){
-      return reject(`The incoming message missing some properties, ${JSON.stringify(messageObj)}.`);
-    }
-    ipfs.dag.get(blockCid).then((block)=>{
-      console.log("retreieve block,", block);
-    })
-    .then(()=>{
-      return ipfs.dag.get(taskCid);
-    })
-    .then((task)=>{
-      console.log("taskCid from IPFS", taskCid);
-      resolve(true);
-    })
-  });
+const validateVrf = async ({ipfs, remoteAttestatorPeerId, messageObj})=>{
+  return ipfs.dag.get(blockCid);
 };
+
+// const validateVrf = ({ipfs, remoteAttestatorPeerId, messageObj})=>{
+//   return new Promise( (resolve, reject)=>{
+//     const {j, proof, value, blockCid, taskCid} = messageObj;
+//     if(!j || !proof || !value || !blockCid || !taskCid){
+//       return reject(`The incoming message missing some properties, ${JSON.stringify(messageObj)}.`);
+//     }
+//     ipfs.dag.get(blockCid).then((block)=>{
+//       console.log("retreieve block,", block);
+//     })
+//     .then(()=>{
+//       return ipfs.dag.get(taskCid);
+//     })
+//     .then((task)=>{
+//       console.log("taskCid from IPFS", taskCid);
+//       resolve(true);
+//     })
+//   });
+// };
 
 const validatePot = ()=>{
   logToWebPage(`inside validatePot, not impletemented yet. Just return true`);
