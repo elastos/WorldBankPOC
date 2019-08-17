@@ -9,13 +9,13 @@ exports.remoteAttestation = async ({tx, options, j, proof, value, blockCid, task
     return false;
   }
   const raReqObj = {
-    type:'raRequst',
+    type:'reqRemoteAttestation',
     j:parseInt(j.toFixed()), 
     proof: proof.toString('hex'), 
     value: value.toString('hex'),
     blockCid,
     taskCid
   }
-
   window.rooms.taskRoom.sendTo(newNodeIpfsPeerId, JSON.stringify(raReqObj));
+  logToWebPage(`Sending request to the new node: ${newNodeIpfsPeerId}  for RA: ${JSON.stringify(raReqObj)}`);
 }
