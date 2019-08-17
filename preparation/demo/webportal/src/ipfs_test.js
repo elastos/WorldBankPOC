@@ -6,6 +6,7 @@ const Data = require('./data');
 import {tryParseJson} from '../../src/poc/constValue';
 import {processNewBlock} from '../../src/poc/simulatorSrc/blockRoom';
 import townHallHandler from '../../src/poc/simulatorSrc/townHall';
+import taskRoomHandler from '../../src/poc/simulatorSrc/taskRoom';
 
 let _n = 1;
 const log = (str)=>{
@@ -86,11 +87,15 @@ const F = {
     F.initBlockRoom();
     F.initTaskRoom();
     F.initTownHall();
+    window.rooms = {
+      taskRoom, blockRoom, townHall
+    };
 
     myChart.render();
   },
 
   initTaskRoom(){
+    let message_hander = ()=>{};
     taskRoom = myIpfs.registerRoom(C.taskRoom, {
       join(peer){
         log('peer ' + peer + ' joined task room');
@@ -104,9 +109,13 @@ const F = {
       },
       message(msg){
         log('task room got message from ' + msg.from + ': ' + msg.data.toString())
-
+        message_hander(msg);
       }
     });
+    const tmp_cb = taskRoomHandler(myIpfs.node, taskRoom, this.buildHandlerOption());
+    message_hander = (_.find(tmp_cb, (item)=>{
+      return item.message === 'message';
+    })).handler;
   },
   initBlockRoom(){
     blockRoom = myIpfs.registerRoom(C.blockRoom, {
@@ -253,8 +262,7 @@ const F = {
 window.poc = {
   createRaTask(){
     const json = {
-      
-      newPeerId : C.user.name,
+      userName : C.user.name,
       depositAmt : 10,
       ipfsPeerId : C.user.ipfs_id
     };
