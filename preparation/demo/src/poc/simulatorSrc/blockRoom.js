@@ -2,7 +2,6 @@ import {tryParseJson, logToWebPage} from './utils'
 import { ExceptionHandler, exceptions } from 'winston';
 const {utils, ecvrf, sortition} = require('vrf.js');
 import {sha256} from 'js-sha256';
-import {sendRemoteAttestationRequest} from './remoteAttestation';
 
 const Big = require('big.js');
 
@@ -53,6 +52,10 @@ const processNewBlock = async (options)=>{
         console.log("I am the node myself, I cannot do remote attestation on myself, skip");
         return;
       }
+      if(tx.value.depositAmt < 10){
+        console.log(`The new node did not pay enough gas to do the RA, he has paid ${tx.value.depositAmt}. Remote attestation abort now`);
+        return;
+      }
       const {blockCid} = options;
       console.log("received a RA task",tx.value, blockCid, cid);
       const vrfMsg = sha256.update(blockCid).update(cid).hex();
@@ -65,13 +68,23 @@ const processNewBlock = async (options)=>{
       if(j.gt(0)){
         console.log("I am lucky!!!", j.toFixed());
         logToWebPage(`I am lucky!! J is ${j.toFixed()}`);
-        sendRemoteAttestationRequest({tx, options, j, proof, value, blockCid, taskCid:cid, publicKey:userInfo.pubicKey});
-      }else{
-        console.log("bad luck, try next", j.toFixed());
-        logToWebPage(`bad luck, try next time`);
-        
-      }
-      
+        const raReqObj = {
+          type:'reqRemoteAttestation',
+          j:parseInt(j.toFixed()), 
+          proof: proof.toString('hex'), 
+          value: value.toString('hex'),
+          blockCid,
+          taskCid:cid,
+          publicKey:userInfo.pubicKey
+        }
+        window.rooms.townHall.sendTo(tx.value.ipfsPeerId, JSON.stringify(raReqObj));
+        logToWebPage(`Sending townhall request to the new node: ${tx.value.ipfsPeerId}  for RA:`, raReqObj);
+            }else{
+              console.log("bad luck, try next", j.toFixed());
+              logToWebPage(`bad luck, try next time`);
+              
+            }
+            
 
     })
   });

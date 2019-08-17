@@ -17,7 +17,7 @@ export default (ipfs, room, options)=>{
         processResult = await newNodeJoinNeedRaProcess(ipfs, room, options, messageObj.cid);
         break;
       case "remoteAttestationDone":
-        processResult = await remoteAttestationDone(ipfs, room, options, messageObj.cid);
+        processResult = await remoteAttestationDoneProcess(ipfs, room, options, messageObj.cid);
         break;
       default:
         console.log("taskRoom Unhandled message, ", messageObj);
@@ -92,7 +92,14 @@ const newNodeJoinNeedRaProcess = async (ipfs, room, options, cid)=>{
 
 
 
-const remoteAttestationDone = async (ipfs, room, options, cid)=>{
+const remoteAttestationDoneProcess = async (ipfs, room, options, cid)=>{
+  const tx = await ipfs.dag.get(cid);
+  if(! tx || ! tx.value){
+    console.log("in remoteAttestationDoneProcess, tx is not existing", tx);
+    return false;
+  }
+  const {potResult,proofOfTrust,proofOfVrf} = tx.value;
+  
   console.log("remoteAttestationDone - Not impplemented yet");
   return false;
 }

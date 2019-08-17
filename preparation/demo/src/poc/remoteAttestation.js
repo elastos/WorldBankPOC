@@ -1,31 +1,9 @@
 
-import {minimalNewNodeJoinRaDeposit} from '../constValue';
-import {tryParseJson, logToWebPage} from './utils'
+import {minimalNewNodeJoinRaDeposit} from './constValue';
+import {tryParseJson, logToWebPage} from './simulatorSrc/utils'
 import {sha256} from 'js-sha256';
 import { ecvrf, sortition} from 'vrf.js';
 import Big from 'big.js';
-
-exports.sendRemoteAttestationRequest = async ({tx, options, j, proof, value, blockCid, taskCid, publicKey})=>{
-  const newNodeIpfsPeerId = tx.value.ipfsPeerId;
-  const newNodeUserName = tx.value.userName;
-  if(tx.value.depositAmt < 10){
-    console.log(`The new node did not pay enough gas to do the RA, he has paid ${tx.value.depositAmt}. Remote attestation abort now`);
-    return false;
-  }
-  const raReqObj = {
-    type:'reqRemoteAttestation',
-    j:parseInt(j.toFixed()), 
-    proof: proof.toString('hex'), 
-    value: value.toString('hex'),
-    blockCid,
-    taskCid,
-    publicKey
-  }
-  window.rooms.townHall.sendTo(newNodeIpfsPeerId, JSON.stringify(raReqObj));
-  logToWebPage(`Sending townhall request to the new node: ${newNodeIpfsPeerId}  for RA:`, raReqObj);
-}
-
-
 
 exports.validateVrf = async ({ipfs, remoteAttestatorPeerId, messageObj})=>{
   const {j, proof, value, blockCid, taskCid, publicKey} = messageObj;

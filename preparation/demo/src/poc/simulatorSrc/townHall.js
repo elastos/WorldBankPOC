@@ -2,7 +2,7 @@ import {tryParseJson, logToWebPage} from './utils';
 const {utils, ecvrf, sortition} = require('vrf.js');
 import {sha256} from 'js-sha256';
 import Big from 'big.js';
-import {validateVrf, validatePot, verifyOthersRemoteAttestationVrfAndProof}  from './remoteAttestation';
+import {validateVrf, validatePot, verifyOthersRemoteAttestationVrfAndProof}  from '../remoteAttestation';
 
 
 module.exports = (ipfs, room, options) => {
@@ -64,7 +64,7 @@ module.exports = (ipfs, room, options) => {
       }
 
       case "resRemoteAttestation":{//now, I am the remote attestator, validate new node
-        logToWebPage(`I am a Remote Attestator, I received new node${message.from} 's reply :, payload is `, message.data);
+        logToWebPage(`I am a Remote Attestator, I received new node${message.from} 's reply :, payload is `, messageObj);
         const newNodePeerId = message.from;
         const {proofOfVrf, proofOfTrust} = messageObj;
         const potResult = validatePot(proofOfTrust);
@@ -72,7 +72,7 @@ module.exports = (ipfs, room, options) => {
         const cid = await ipfs.dag.put({potResult,proofOfTrust,proofOfVrf});
         const remoteAttestationDoneMsg = {
           txType:'remoteAttestationDone',
-          cid
+          cid: cid.toBaseEncodedString()
         }
         options.rooms.taskRoom.broadcast(JSON.stringify(remoteAttestationDoneMsg))
         logToWebPage(`Broadcast in taskRoom about the Proof of trust verify result: ${potResult}`);
