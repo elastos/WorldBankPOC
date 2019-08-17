@@ -2,8 +2,6 @@ import {tryParseJson, logToWebPage} from './utils';
 const {utils, ecvrf, sortition} = require('vrf.js');
 import {sha256} from 'js-sha256';
 const Big = require('big.js');
-import {validateVrf, validatePot, verifyOthersRemoteAttestationVrfAndProof}  from '../remoteAttestation';
-
 
 module.exports = (ipfs, room, options) => {
   const option = {};

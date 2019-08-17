@@ -1,5 +1,7 @@
 import {tryParseJson, minimalNewNodeJoinRaDeposit} from '../constValue'
-
+import {sha256} from 'js-sha256';
+import { ecvrf, sortition} from 'vrf.js';
+import Big from 'big.js';
 
 export default (ipfs, room, options)=>{
   return async (m)=>{
@@ -17,7 +19,7 @@ export default (ipfs, room, options)=>{
         processResult = await newNodeJoinNeedRaProcess(ipfs, room, options, messageObj.cid);
         break;
       case "remoteAttestationDone":
-        processResult = await remoteAttestationDoneProcess(ipfs, room, options, messageObj.cid);
+        processResult = await remoteAttestationDoneProcess(ipfs, room, options, messageObj.cid, m.from);
         break;
       default:
         console.log("taskRoom Unhandled message, ", messageObj);
@@ -98,8 +100,24 @@ const remoteAttestationDoneProcess = async (ipfs, room, options, cid)=>{
     console.log("in remoteAttestationDoneProcess, tx is not existing", tx);
     return false;
   }
+  console.log("tx.value,", tx.value);
+
   const {potResult,proofOfTrust,proofOfVrf} = tx.value;
+  const {globalState} = options;
+  const {j, proof, value, taskCid, blockCid, userName, publicKey} = proofOfVrf;
+  const vrfMsg = sha256.update(blockCid).update(taskCid).hex();
   
+  const vrfVerifyResult = ecvrf.verify(Buffer.from(publicKey, 'hex'), Buffer.from(vrfMsg, 'hex'), Buffer.from(proof, 'hex'), Buffer.from(value, 'hex'));
+  if(! vrfVerifyResult){
+    const reason = 'VRF verify failed';
+    console.log('remoteAttestationDoneProcess fail, ', reason);
+    return false;
+  }
+  // const p = 5 / totalCreditForOnlineNodes;
+  // const remoteAttestatorCredit = globalState.creditMap[userName];
+  
+  
+
   console.log("remoteAttestationDone - Not impplemented yet");
   return false;
-}
+};

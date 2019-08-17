@@ -26,11 +26,7 @@ const processNewBlock = async (options)=>{
     totalCredit += block.creditMap[c];
   }
   
-  let totalCreditForOnlineNodes = 0;
-  for( const c in block.trustedPeerToUserInfo){
-    const currUserInfo = block.trustedPeerToUserInfo[c];
-    totalCreditForOnlineNodes += block.creditMap[currUserInfo.userName];
-  }
+  let totalCreditForOnlineNodes = block.totalCreditForOnlineNodes;
 
   updateNodeStatusOnNewBlock(options, totalGas, totalCredit, totalCreditForOnlineNodes);
   const watchingTxTypes = ['newNodeJoinNeedRa','remoteAttestationDone'];
@@ -75,7 +71,8 @@ const processNewBlock = async (options)=>{
           value: value.toString('hex'),
           blockCid,
           taskCid:cid,
-          publicKey:userInfo.pubicKey
+          publicKey:userInfo.pubicKey,
+          userName:userInfo.userName
         }
         window.rooms.townHall.sendTo(tx.value.ipfsPeerId, JSON.stringify(raReqObj));
         logToWebPage(`Sending townhall request to the new node: ${tx.value.ipfsPeerId}  for RA:`, raReqObj);

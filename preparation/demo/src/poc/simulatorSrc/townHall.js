@@ -39,8 +39,7 @@ module.exports = (ipfs, room, options) => {
       case "reqRemoteAttestation":{//Now I am new node, sending back poT after validate the remote attestation is real
         const {userInfo} = options;
         const {userName, publicKey} = userInfo;
-        const remoteAttestatorPeerId = message.from;
-        const validateReturn = await validateVrf({ipfs, remoteAttestatorPeerId, messageObj});
+        const validateReturn = await validateVrf({ipfs, messageObj});
         if(! validateReturn.result){
           logToWebPage(`VRF Validation failed, reason is `, validateReturn.reason);
           break;
