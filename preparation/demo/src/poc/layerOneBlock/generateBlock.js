@@ -1,8 +1,11 @@
 import {minRemoteAttestatorsToPassRaTask, initialCreditIssuedWhenPassRa, awardCreditWhenRaSuccessful, penaltyCreditWhenRaFail} from '../constValue';
-
+import _ from 'lodash';
+import {totalCreditToken} from '../constValue';
+import Big from 'big.js';
 
 exports.generateBlock = async ({ipfs, globalState, blockRoom})=>{
   await runSettlementBeforeNewBlock(ipfs, globalState);
+  globalState.creditMap = runCreditNormalization(globalState.creditMap, totalCreditToken);
   const {gasMap, creditMap, processedTxs, previousBlockHeight, previousBlockCid, trustedPeerToUserInfo, escrowGasMap, pendingTasks} = globalState;
   //calculate totalCredit for online users
   let totalCreditForOnlineNodes = 0;
@@ -114,3 +117,19 @@ const settleNewNodeRa = (taskCid, globalState, allChildrenTasks)=>{
   })
   return true;
 }
+const runCreditNormalization = (creditMapInput, maxCredit)=>{
+  const currentTotalCredit = Object.values(creditMapInput).reduce((accu, c)=>{
+    return accu + c;
+  }, 0);
+  if(currentTotalCredit == maxCredit)
+    return creditMapInput;
+  const inflation = Big(maxCredit) - Big(currentTotalCredit);
+  const creditMap = {};
+  Object.keys(creditMapInput).forEach(k=>{
+    const newCredit = Big(creditMapInput[k]).times(Big(inflation)).div(Big(currentTotalCredit)).plus(Big(creditMapInput[k]));
+    creditMap[k] = parseInt(newCredit.toFixed());
+  });
+  return creditMap;
+};
+
+exports.runCreditNormalization = runCreditNormalization;
