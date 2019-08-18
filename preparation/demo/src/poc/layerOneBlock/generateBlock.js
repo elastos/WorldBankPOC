@@ -3,14 +3,10 @@
 
 exports.generateBlock = async ({ipfs, globalState, blockRoom})=>{
   //console.log("generating block, globalState:", globalState);
-  const gasMap = globalState.gasMap;
-  const creditMap = globalState.creditMap;
-  const processedTxs = globalState.txPool;
-  const previousBlockHeight = globalState.blockHeight || 0;
-  const previousBlockCid = globalState.blockCid || "";
-  const trustedPeerToUserInfo = globalState.trustedPeerToUserInfo || {};
-  const escrowGasMap = globalState.escrowGasMap || {};
 
+  runSettlementBeforeNewBlock(ipfs, globalState);
+
+  const {gasMap, creditMap, processedTxs, previousBlockHeight, previousBlockCid, trustedPeerToUserInfo, escrowGasMap, pendingTasks} = globalState;
 //calculate totalCredit for online users
   let totalCreditForOnlineNodes = 0;
   for( const c in trustedPeerToUserInfo){
@@ -31,7 +27,8 @@ exports.generateBlock = async ({ipfs, globalState, blockRoom})=>{
     previousBlockCid,
     trustedPeerToUserInfo,
     totalCreditForOnlineNodes,
-    escrowGasMap
+    escrowGasMap,
+    pendingTasks
   };
   globalState.blockHeight = newBlock.blockHeight; 
   globalState.blockCid = "generating new block CID, please wait";//while generating block, set the blockCid to 0 for temperary because of async await, other code may run into globalState.blockCid while await is waiting for new blockCid.
@@ -46,3 +43,13 @@ exports.generateBlock = async ({ipfs, globalState, blockRoom})=>{
   return newBlock;
 }
 
+const runSettlementBeforeNewBlock = async (ipfs, globalState)=>{
+  const pendingTasks = globalState.pendingTasks || {};
+  const promises = Object.keys(pendingTasks).map( async (taskCid)=>{
+    const task = await ipfs.dag.get(taskCid);
+    return task? task.value : null;
+  });
+  const results = await Promise.all(promises);
+  console.log('allPendingTasks,', results);
+
+};

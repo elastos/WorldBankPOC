@@ -149,7 +149,7 @@ const blockRoom = (ipfs, room, options) => {
       console.log("received block height=", block.value.blockHeight);
       logToWebPage(`Received new block Height: ${block.value.blockHeight}`);
       if(options.isProcessingBlock){
-        throw new exceptions("Racing conditions found. Some async funciton is processing block while new block just came in, how to handle this issue?");
+        throw new Exceptions("Racing conditions found. Some async funciton is processing block while new block just came in, how to handle this issue?");
       }
       options.block = block.value;
       options.blockCid = cid;

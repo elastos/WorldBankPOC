@@ -77,13 +77,17 @@ const newNodeJoinNeedRaProcess = async (ipfs, room, options, cid)=>{
     console.log("Please pay more deposit to get your new node verified. Minimal is,", minimalNewNodeJoinRaDeposit);
     return false;
   }
-  return takeEscrow(globalState, userName, depositAmt, cid);
+  if (! takeEscrow(globalState, userName, depositAmt, cid))
+    return false;
+  if (!globalState.pendingTasks[cid]) globalState.pendingTasks[cid] = [];
+  globalState.pendingTasks[cid].push(cid);
+  return true;
 }
 
 
 
-const remoteAttestationDoneProcess = async (ipfs, room, options, cid)=>{
-  const tx = await ipfs.dag.get(cid);
+const remoteAttestationDoneProcess = async (ipfs, room, options, raDoneCid)=>{
+  const tx = await ipfs.dag.get(raDoneCid);
   if(! tx || ! tx.value){
     console.log("in remoteAttestationDoneProcess, tx is not existing", tx);
     return false;
@@ -117,7 +121,8 @@ const remoteAttestationDoneProcess = async (ipfs, room, options, cid)=>{
   }
   
   console.log("this RA passed VRF verify. now we need to see how many of RA passes, and if reaches the limit, we can close this task");
-
+  if (!globalState.pendingTasks[taskCid]) globalState.pendingTasks[taskCid] = [];
+  globalState.pendingTasks[taskCid].push(raDoneCid);
   return true;
 };
 
