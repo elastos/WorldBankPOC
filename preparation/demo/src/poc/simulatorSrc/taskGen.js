@@ -20,7 +20,7 @@ document.addEventListener("DOMContentLoaded", ()=>{
       txType:"gasTransfer",
       fromPeerId:"user #2",
       toPeerId:"user #3",
-      amt:1
+      amt:50
     })
   };
   document.getElementById('btn2').onclick = ()=>{

@@ -103,7 +103,8 @@ const settleNewNodeRa = (taskCid, globalState, allChildrenTasks)=>{
 
   const totalAwardGas = globalState.escrowGasMap[taskCid];
   
-  globalState.creditMap[newNodeUserName] += initialCreditIssuedWhenPassRa;
+  if (voteResultWeighted > 0) 
+    globalState.creditMap[newNodeUserName] += initialCreditIssuedWhenPassRa;
   const rewardGasToEach = totalAwardGas / winnerArray.length;
   winnerArray.forEach(u=>{
     globalState.creditMap[u] += awardCreditWhenRaSuccessful;

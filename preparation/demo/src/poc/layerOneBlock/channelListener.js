@@ -32,9 +32,9 @@ const createGenesysBlock = (ipfs, presetUsers)=>{
   const locs = createRandomGeoLocation(presetUsers.length);
   for(let i = 0; i < presetUsers.length; i ++){
     const u = presetUsers[i];
-    block.gasMap[u.name] = i * 100 + 20; //we add 20 to make sure User#0 still have 20 gas in his account;
+    block.gasMap[u.name] = i < 10? i * 10 : 50;
     totalGas += block.gasMap[u.name];
-    block.creditMap[u.name] = i; // we do not add 20, so that User#0 will have money to pay for RA, but he doesn't have credit, that means he is not trustable yet
+    block.creditMap[u.name] = i < 10? i: 50; //
     totalCredit += block.creditMap[u.name];
     block.peerProfile[u.name] = {
       loc : locs[i]
