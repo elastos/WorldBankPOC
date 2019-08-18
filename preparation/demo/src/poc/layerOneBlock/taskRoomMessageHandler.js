@@ -52,7 +52,7 @@ const gasTransferProcess = async (ipfs, room, options, cid)=>{
     if(! globalState.gasMap[toPeerId])  globalState.gasMap[toPeerId] = amt;
     else globalState.gasMap[toPeerId] += amt;
 
-    log('gas_transger', {
+    log('gas_transfer', {
       from : fromPeerId,
       to : toPeerId,
       amt : amt,
