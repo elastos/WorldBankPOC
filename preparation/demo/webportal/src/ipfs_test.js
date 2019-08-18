@@ -112,10 +112,10 @@ const F = {
         message_hander(msg);
       }
     });
-    const tmp_cb = taskRoomHandler(myIpfs.node, taskRoom, this.buildHandlerOption());
-    message_hander = (_.find(tmp_cb, (item)=>{
-      return item.message === 'message';
-    })).handler;
+    // const tmp_cb = taskRoomHandler(myIpfs.node, taskRoom, this.buildHandlerOption());
+    // message_hander = (_.find(tmp_cb, (item)=>{
+    //   return item.message === 'message';
+    // })).handler;
   },
   initBlockRoom(){
     blockRoom = myIpfs.registerRoom(C.blockRoom, {

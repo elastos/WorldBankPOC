@@ -3,6 +3,7 @@ import {sha256} from 'js-sha256';
 import { ecvrf, sortition} from 'vrf.js';
 import Big from 'big.js';
 import {validatePot} from '../remoteAttestation';
+import {log} from '../PotLog';
 
 export default (ipfs, room, options)=>{
   return async (m)=>{
@@ -50,6 +51,15 @@ const gasTransferProcess = async (ipfs, room, options, cid)=>{
     globalState.gasMap[fromPeerId] -= amt;
     if(! globalState.gasMap[toPeerId])  globalState.gasMap[toPeerId] = amt;
     else globalState.gasMap[toPeerId] += amt;
+
+    log('gas_transger', {
+      from : fromPeerId,
+      to : toPeerId,
+      amt : amt,
+      from_balance : globalState.gasMap[fromPeerId],
+      to_balance : globalState.gasMap[toPeerId]
+    });
+
     return true;
   }else{
     console.log("gasTransferProcess error tx.value, globalState,", tx.value, globalState);
@@ -81,6 +91,12 @@ const newNodeJoinNeedRaProcess = async (ipfs, room, options, cid)=>{
     return false;
   if (!globalState.pendingTasks[cid]) globalState.pendingTasks[cid] = [];
   globalState.pendingTasks[cid].push(cid);
+
+  log('new_ra', {
+    name : userName,
+    amt : depositAmt,
+    cid : cid
+  });
   return true;
 }
 
