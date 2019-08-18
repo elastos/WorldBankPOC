@@ -1,4 +1,6 @@
 import {tryParseJson} from '../constValue';
+import {log} from '../PotLog';
+
 export default (ipfs, room, options)=>{
   return (m)=>{
     const {globalState} = options;
@@ -11,6 +13,11 @@ export default (ipfs, room, options)=>{
         const {userInfo} = messageObj;
         globalState.trustedPeerToUserInfo[m.from] = userInfo;
         console.log("trustedPeerToUserInfo, ", globalState.trustedPeerToUserInfo);
+
+        log('user_online', {
+          name : userInfo.userName,
+          ipfs_id : m.from
+        });
         break;
       default:
         return console.log("townHallMessageHandler received unknown type message object,", messageObj );
