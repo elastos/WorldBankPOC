@@ -77,20 +77,7 @@ const newNodeJoinNeedRaProcess = async (ipfs, room, options, cid)=>{
     console.log("Please pay more deposit to get your new node verified. Minimal is,", minimalNewNodeJoinRaDeposit);
     return false;
   }
-  
-  if( globalState && globalState.gasMap && globalState.gasMap[userName] && globalState.gasMap[userName] > depositAmt)
-  {
-    globalState.gasMap[userName] -= depositAmt;
-    if (! globalState.escrowGasMap) globalState.escrowGasMap = {};
-    if (! globalState.escrowGasMap[cid])  globalState.escrowGasMap[cid] = depositAmt;
-    else globalState.escrowGasMap[cid] += depositAmt;
-    
-    return true;
-  }else{
-    console.log("newNodeJoinNeedRaProcess error tx.value, globalState,", tx.value, globalState);
-    return false;
-  };
-
+  return takeEscrow(globalState, userName, depositAmt, cid);
 }
 
 
@@ -101,11 +88,16 @@ const remoteAttestationDoneProcess = async (ipfs, room, options, cid)=>{
     console.log("in remoteAttestationDoneProcess, tx is not existing", tx);
     return false;
   }
-  //console.log("tx.value,", tx.value);
-  takeEscrowFromRemoteAttestator();
+
   const {potResult,proofOfTrust,proofOfVrf} = tx.value;
   const {j, proof, value, taskCid, blockCid, userName, publicKey} = proofOfVrf;
-  
+  const {globalState} = options;
+  const task = await ipfs.dag.get(taskCid);
+  console.log('task,', task);
+  const {depositAmt} = task.value;
+  if (! takeEscrow(globalState, userName, depositAmt, taskCid)){
+    return false;
+  }
   const vrfMsg = sha256.update(blockCid).update(taskCid).hex();
   
   const vrfVerifyResult = ecvrf.verify(Buffer.from(publicKey, 'hex'), Buffer.from(vrfMsg, 'hex'), Buffer.from(proof, 'hex'), Buffer.from(value, 'hex'));
@@ -126,12 +118,20 @@ const remoteAttestationDoneProcess = async (ipfs, room, options, cid)=>{
   
   console.log("this RA passed VRF verify. now we need to see how many of RA passes, and if reaches the limit, we can close this task");
 
-  
-
-  console.log("remoteAttestationDone - Not impplemented yet");
-  return false;
+  return true;
 };
 
-const takeEscrowFromRemoteAttestator = ()=>{
-
+const takeEscrow = (globalState, userName, depositAmt, taskCid)=>{
+  if( globalState && globalState.gasMap && globalState.gasMap[userName] && globalState.gasMap[userName] > depositAmt)
+  {
+    globalState.gasMap[userName] -= depositAmt;
+    if (! globalState.escrowGasMap) globalState.escrowGasMap = {};
+    if (! globalState.escrowGasMap[taskCid])  globalState.escrowGasMap[taskCid] = depositAmt;
+    else globalState.escrowGasMap[taskCid] += depositAmt;
+    
+    return true;
+  }else{
+    console.log("takeEscrow error ,", {userName, depositAmt, taskCid});
+    return false;
+  };
 };

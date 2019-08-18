@@ -77,7 +77,6 @@ router
     const globalState = req.app.get('globalState');
     const rooms = req.app.get('pubsubRooms');
     const {blockRoom} = rooms;
-    console.log("before generate new block, globalState is:", globalState);
     const newBlock = await generateBlock({ipfs, globalState, blockRoom})
     const htmlDoc = '<html><head></head><body><pre><code>' + JSON.stringify(newBlock, undefined, 2) + '</code></pre></body></html>';
     res.status(200).send(htmlDoc);
