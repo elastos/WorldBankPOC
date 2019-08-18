@@ -18,7 +18,7 @@
     "lint": "eslint ./src/ --ignore-path .gitignore --ignore-pattern internals/scripts",
     "lint:fix": "yarn lint --fix",
     "lint:watch": "yarn lint --watch",
-    "test": "cross-env NODE_ENV=test mocha --compilers js:babel-core/register --require babel-polyfill src/unittest -w --recursive",
+    "test": "cross-env NODE_ENV=test mocha --timeout 30000 --compilers js:babel-core/register --require babel-polyfill src/unittest -w --recursive",
     "test:integration": "cross-env NODE_ENV=test mocha --timeout 20000 src/api/tests/integration",
     "test:watch": "cross-env NODE_ENV=test mocha --watch src/api/tests/unit",
     "coverage": "nyc report --reporter=text-lcov | coveralls",

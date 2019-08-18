@@ -6,19 +6,15 @@ const logger = name => (...args) => {
 }
 const log = logger('Sortition');
 exports.tryVrf = (req, res)=>{
-  // const X = Buffer.from('test')
- 
-  // const [publicKey, privateKey] = utils.generatePair()
-  // //console.log('publickey, privatekey', publicKey.value.toString('hex'), privateKey.value.toString('hex'));
-  // console.log('publickey, privatekey', publicKey.toString('hex'), privateKey.toString('hex'));
-
-  // const {value, proof} = ecvrf.vrf(publicKey, privateKey, X)
-  // console.log('value, proof', value.toString('hex'), proof.toString('hex'));
-  // const result = ecvrf.verify(publicKey, X, proof, value);
-  // console.log('result,', result);
-
-
   const total = parseInt(req.query.total || '10'); //how many users will be in this comittee competition
+  
+  const output = testVrfSortition(total)
+
+  res.send(output);
+}
+
+exports.testVrfSortition = (total)=>{
+  let output = "";
   const getAverangeResult = (f, total) =>{
     let sum = 0;
     for (let i = 0; i < total; i++) {
@@ -54,9 +50,9 @@ exports.tryVrf = (req, res)=>{
   const W = totalCoins;
 
   for (let a = 1; a <= users.length; a++) {//Now we are going to elect <a> users into the comittee from total of <users.length> users. We start from one , then up to the total numbers (every one can be elected)
-    console.log('Now, let vote for ', a , ' delegates from ', users.length, ' users');
+    //console.log('Now, let vote for ', a , ' delegates from ', users.length, ' users');
     const p = a / W;
-  
+    let winners = [];
     const c = getAverangeResult(() => {
       let count = 0;
       for (let i = 0; i < users.length; i++) {//lets loop each user in users. 
@@ -65,7 +61,7 @@ exports.tryVrf = (req, res)=>{
         const pri = user.pri;
         const w = user.owns;
         const { proof, value } = ecvrf.vrf(pub, pri, utils.B(msg));
-  
+
         const j = sortition.getVotes(value, new Big(w), new Big(p));
         user.j.push(j.toFixed(0));//we can record the j for each vote.
         j.gt(0) && count++;//if j < 0, this user is not elected, if j > 0, this user is elected into the committee. j is also the weight during voting
@@ -77,17 +73,16 @@ exports.tryVrf = (req, res)=>{
       return count;//There are <count> users are elected to be in the committee. 
     }, 3);//We do this election 3 times, then we can average the number <c>
     
-    console.log('Election result: We want to elect ', a, ' committee members, we actually got ', parseInt(c), ' commitee members. They are:');
+    //console.log('Election result: We want to elect ', a, ' committee members, we actually got ', parseInt(c), ' commitee members. They are:');
     for(var i = 0; i < users.length; i ++){
       const user = users[i];
       const winOfLose = user.j[0] > 0? "winner": "-----"
-      console.log('     -', winOfLose, '-- ', user.name, ' owns ', user.owns, ' coins, ', 'voting weight(j):', user.j[0]);
+      if(user.j[0] > 0) winners.push(`\t${user.name} Voting Power: ${user.j[0]}  `);
+      //console.log('     -', winOfLose, '-- ', user.name, ' owns ', user.owns, ' coins, ', 'voting weight(j):', user.j[0]);
       user.j = [];
     }
-    
+    output += `Voting for ${a} committee members, actually got ${c}, they are ${winners} \n\r`;
   }
   
-
-  
-  res.send("vrf test");
+  return output;
 }
