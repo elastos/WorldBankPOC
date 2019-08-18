@@ -1,7 +1,7 @@
 import {tryParseJson} from '../constValue';
 exports.join = (ipfs, room, options)=>{
   return (peer)=>{
-    console.log("someone Joined townhall, asking it's userinfo now ", peer);
+    console.log("someone Joined townhall, asking its userinfo now ", peer);
     const reqObj = {
       type:'reqUserInfo'
     }

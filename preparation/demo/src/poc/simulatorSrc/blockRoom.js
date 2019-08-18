@@ -11,7 +11,7 @@ const Big = require('big.js');
 const processNewBlock = async (options)=>{
   const ipfs = options.ipfs;
 
-  options.isProcessingBlock = true;
+  //options.isProcessingBlock = true;
   const {userInfo, block} = options;
   if (verifyBlockIntegrity()){
     options.block.processedTxs
@@ -93,7 +93,7 @@ const processNewBlock = async (options)=>{
     })
   });
 
-  options.isProcessingBlock = false;
+  //options.isProcessingBlock = false;
   return options;
   
 }
@@ -153,7 +153,9 @@ const blockRoom = (ipfs, room, options) => {
       }
       options.block = block.value;
       options.blockCid = cid;
+      options.isProcessingBlock = true;
       processNewBlock(options);
+      options.isProcessingBlock = false;
     }
   });
   return messageHandlers;

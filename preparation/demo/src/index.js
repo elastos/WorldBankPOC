@@ -28,7 +28,7 @@ standard_input.on('data', function (data) {
   .then((ipfs)=>{
     app.set('ipfs', ipfs);
     app.set('randRoomPostfix', randRoomPostfix);
-    console.log("Generating 100 preset users, please wait a few seconds...");
+    console.log("Generating 20 preset users, please wait a few seconds...");
     let presetUsers = [];
     for(let i = 0; i < 20; i ++){
       const [publicKey, privateKey] = utils.generatePair();
@@ -48,7 +48,7 @@ standard_input.on('data', function (data) {
     app.set('globalState', globalState);
     const {blockRoom} = pubsubRooms;
     const blockGenerationInterval = 1000*30;
-    const firstBlockDelay = 1000 * 3;
+    const firstBlockDelay = 1000 * 10;
 
     // const loop = async ({ipfs, globalState, blockRoom})=>{
     //   await generateBlock({ipfs, globalState, blockRoom});

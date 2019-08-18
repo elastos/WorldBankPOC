@@ -15,7 +15,6 @@ exports.generateBlock = async ({ipfs, globalState, blockRoom})=>{
   }
 
 
-  globalState.txPool = [];
   const peerProfile = globalState.peerProfile;
 
   const newBlock = {
@@ -31,6 +30,7 @@ exports.generateBlock = async ({ipfs, globalState, blockRoom})=>{
     pendingTasks
   };
   globalState.blockHeight = newBlock.blockHeight; 
+
   globalState.blockCid = "generating new block CID, please wait";//while generating block, set the blockCid to 0 for temperary because of async await, other code may run into globalState.blockCid while await is waiting for new blockCid.
   const newBlockCid = await ipfs.dag.put(newBlock);
   globalState.blockCid = newBlockCid.toBaseEncodedString();
@@ -40,6 +40,7 @@ exports.generateBlock = async ({ipfs, globalState, blockRoom})=>{
   }
   // console.log("before blockRoom broadcast, the obj,", broadcastObj)
   blockRoom.broadcast(JSON.stringify(broadcastObj))
+  globalState.previousBlockHeight = globalState.blockHeight;
   return newBlock;
 }
 
@@ -47,9 +48,15 @@ const runSettlementBeforeNewBlock = async (ipfs, globalState)=>{
   const pendingTasks = globalState.pendingTasks || {};
   const promises = Object.keys(pendingTasks).map( async (taskCid)=>{
     const task = await ipfs.dag.get(taskCid);
+    switch(task.txType){
+      case 'newNodeJoinNeedRa':{
+
+        break;
+      }
+    }
     return task? task.value : null;
   });
   const results = await Promise.all(promises);
   console.log('allPendingTasks,', results);
-
+  globalState.processedTxs = [];
 };

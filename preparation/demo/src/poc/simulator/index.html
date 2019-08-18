@@ -48,12 +48,16 @@
   </head>
   <body>
     <div class="tab">
-      <button class="tablinks" onclick="clickTab(event, 'statustab')">Status</button>
+      <button class="tablinks" onclick="clickTab(event, 'statustab')"><span id='userName'></span>@Room#<span id='roomPostfix'></span></button>
       <button class="tablinks" onclick="clickTab(event, 'actiontab')">Action</button>
       <button id="defaultOpen" class="tablinks" onclick="clickTab(event, 'logtab')">Logs</button>
+      <button class='tablinks'>
+        <a href='/poc/forceManualGenerateNewBlock' target='_blank'>
+          <span>Block#</span><span id='blockheight'></span>
+        </a>
+      </button>
     </div>
     <div id="statustab" class="tabcontent">
-        <h1>This is the node simulator for this user:<span id='userName'></span></h1>
         <table>
           <thead>
             <tr>
@@ -62,10 +66,6 @@
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td>Random Room Name Postfix</td>
-              <td><span id='roomPostfix'></span></td>
-            </tr>
             <tr>
               <td>
                 Public key
@@ -114,14 +114,7 @@
                 <span id='totalcredit_onlineonly'>...</span> points
               </td>
             </tr>
-            <tr>
-              <td>
-                Current block height
-              </td>
-              <td>
-                <span id='blockheight'>...waiting for next block...</span>
-              </td>
-            </tr>
+            
             <tr>
               <td>
                 My current gas balance

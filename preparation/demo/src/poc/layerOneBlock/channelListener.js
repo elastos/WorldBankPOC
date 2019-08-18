@@ -23,7 +23,6 @@ const createRandomGeoLocation = (n)=>{
 const createGenesysBlock = (ipfs, presetUsers)=>{
   console.log("**** Generating Genesis Block **** In our demo, we assume everytime we start the system we will start from the very beginning...")
   const block = {};
-  block.txPool = [];
   block.gasMap = {};
   block.creditMap = {};
   block.peerProfile = {};
@@ -41,6 +40,7 @@ const createGenesysBlock = (ipfs, presetUsers)=>{
       loc : locs[i]
     };
   }
+  block.previousBlockHeight = -1;//this is a special case for genesis block, it is -1;
   block.totalGas = totalGas;
   block.totalCredit = totalCredit;
   block.processedTxs = [],
