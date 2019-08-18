@@ -27,7 +27,7 @@ export default (ipfs, room, options)=>{
     }
     if(processResult){
       globalState.processedTxs.push(messageObj);
-      console.log("after process tx cid=", messageObj.cid,  " the globalState is,", globalState);
+      //console.log("after process tx cid=", messageObj.cid,  " the globalState is,", globalState);
     }
     else{
       console.log("process task failed, tx is dropped, ", messageObj.cid);
@@ -97,7 +97,7 @@ const remoteAttestationDoneProcess = async (ipfs, room, options, raDoneCid)=>{
   const {j, proof, value, taskCid, blockCid, userName, publicKey} = proofOfVrf;
   const {globalState} = options;
   const task = await ipfs.dag.get(taskCid);
-  console.log('task,', task);
+  //console.log('task,', task);
   const {depositAmt} = task.value;
   if (! takeEscrow(globalState, userName, depositAmt, taskCid)){
     return false;
@@ -120,7 +120,6 @@ const remoteAttestationDoneProcess = async (ipfs, room, options, raDoneCid)=>{
     return false;
   }
   
-  console.log("this RA passed VRF verify. now we need to see how many of RA passes, and if reaches the limit, we can close this task");
   if (!globalState.pendingTasks[taskCid]) globalState.pendingTasks[taskCid] = [];
   globalState.pendingTasks[taskCid].push(raDoneCid);
   return true;

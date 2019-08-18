@@ -1,13 +1,10 @@
-
+import {minRemoteAttestatorsToPassRaTask, initialCreditIssuedWhenPassRa, awardCreditWhenRaSuccessful, penaltyCreditWhenRaFail} from '../constValue';
 
 
 exports.generateBlock = async ({ipfs, globalState, blockRoom})=>{
-  //console.log("generating block, globalState:", globalState);
-
-  runSettlementBeforeNewBlock(ipfs, globalState);
-
+  await runSettlementBeforeNewBlock(ipfs, globalState);
   const {gasMap, creditMap, processedTxs, previousBlockHeight, previousBlockCid, trustedPeerToUserInfo, escrowGasMap, pendingTasks} = globalState;
-//calculate totalCredit for online users
+  //calculate totalCredit for online users
   let totalCreditForOnlineNodes = 0;
   for( const c in trustedPeerToUserInfo){
     const currUserInfo = trustedPeerToUserInfo[c];
@@ -41,22 +38,79 @@ exports.generateBlock = async ({ipfs, globalState, blockRoom})=>{
   // console.log("before blockRoom broadcast, the obj,", broadcastObj)
   blockRoom.broadcast(JSON.stringify(broadcastObj))
   globalState.previousBlockHeight = globalState.blockHeight;
+  globalState.processedTxs = [];
   return newBlock;
 }
 
 const runSettlementBeforeNewBlock = async (ipfs, globalState)=>{
   const pendingTasks = globalState.pendingTasks || {};
-  const promises = Object.keys(pendingTasks).map( async (taskCid)=>{
-    const task = await ipfs.dag.get(taskCid);
+  const promisesTasks = Object.keys(pendingTasks).map( async (taskCid)=>{
+    const childrenTaskCids = pendingTasks[taskCid];
+
+    const task = (await ipfs.dag.get(taskCid)).value;
+    
     switch(task.txType){
       case 'newNodeJoinNeedRa':{
-
-        break;
-      }
+        if(childrenTaskCids.length < minRemoteAttestatorsToPassRaTask){
+          break;//we have not reached the minimal requirement of the number of Remote Attestators
+        }else{
+          const promisesChildren = childrenTaskCids.map( async (childCid)=>{
+            return (await ipfs.dag.get(childCid)).value;
+          });
+          const allChildrenTasks = await Promise.all(promisesChildren);
+          console.log('allChildrenTasks,', allChildrenTasks);
+          console.log('before settleNewNodeRa, globalState gasMap, creditMap, pendingTasks', globalState.gasMap, globalState.creditMap, globalState.pendingTasks)
+          if (settleNewNodeRa(taskCid, globalState, allChildrenTasks)){
+            delete pendingTasks[taskCid];
+          };
+          console.log('after settleNewNodeRa, globalState gasMap, creditMap, pendingTasks', globalState.gasMap, globalState.creditMap, globalState.pendingTasks)
+          
+        }
+      break;
+      }//case
     }
     return task? task.value : null;
-  });
-  const results = await Promise.all(promises);
-  console.log('allPendingTasks,', results);
-  globalState.processedTxs = [];
+  });//map
+  return Promise.all(promisesTasks);
 };
+
+const settleNewNodeRa = (taskCid, globalState, allChildrenTasks)=>{
+  let voteYes = [];
+  let voteNo = [];
+  let voteResultWeighted = 0;
+  
+  let newNodeUserName;
+  allChildrenTasks.forEach(t=>{
+    if(t.txType == 'newNodeJoinNeedRa'){
+      newNodeUserName = t.userName;
+    }else{
+      if(t.potResult){
+        voteResultWeighted += t.proofOfVrf.j;
+        voteYes.push(t.proofOfVrf.userName);
+      }else{
+        voteResultWeighted -= t.proofOfVrf.j;
+        voteNo.push(t.proofOfVrf.userName);
+      } 
+    }
+
+  });
+  //console.log('voteYes, voteNo, voteResultWeighted:', {voteYes, voteNo, voteResultWeighted});
+  const winnerArray = voteResultWeighted >= 0? voteYes : voteNo;
+  const loserArray = voteResultWeighted < 0? voteYes : voteNo;
+
+  const totalAwardGas = globalState.escrowGasMap[taskCid];
+  
+  globalState.creditMap[newNodeUserName] += initialCreditIssuedWhenPassRa;
+  const rewardGasToEach = totalAwardGas / winnerArray.length;
+  winnerArray.forEach(u=>{
+    globalState.creditMap[u] += awardCreditWhenRaSuccessful;
+    //console.log('user u, add credit', {u, awardCreditWhenRaSuccessful});
+    globalState.gasMap[u] += rewardGasToEach;
+    //console.log('user u add gas:', {u, rewardGasToEach});
+  });
+  loserArray.forEach(u=>{
+    globalState.creditMap[u] -= penaltyCreditWhenRaFail;
+    //console.log('user u, lose gas:', {u, penaltyCreditWhenRaFail});
+  })
+  return true;
+}
