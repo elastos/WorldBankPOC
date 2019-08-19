@@ -8,7 +8,7 @@ Boilerplate/Generator/Starter Project for building RESTful APIs and microservice
 
 ## Requirements
 
- - [Node v7.6+](https://nodejs.org/en/download/current/) or [Docker](https://www.docker.com/)
+ - [Node v7.6+](https://nodejs.org/en/download/current/) and [Docker](https://www.docker.com/)
  - [Yarn](https://yarnpkg.com/en/docs/install)
 
 ## Getting Started
@@ -18,42 +18,49 @@ Clone the repo and make it yours:
 Install dependencies:
 
 ```bash
-yarn
+npm i
 ```
-## Running MongoDB
-If your mongodb is not running on localhost, please modify the .env file so that the db url points to your own mongodb host.
 
-## Running Locally
-
+A docker image is offered for running the rendezvous service in local machine instead of the free server /dns4/ws-star.discovery.libp2p.io/tcp/443/wss/p2p-websocket-star
 ```bash
-yarn dev
+docker pull libp2p/websocket-star-rendezvous:release
+docker run -d -p 9090:9090 --name rendezvous libp2p/websocket-star-rendezvous:release
 ```
+BTW, To disable prometheus metrics run the server with -e DISABLE_METRICS=1
 
-## Running in Production
 
+# Compile client side node simulator
 ```bash
-yarn start
+npm run compile
 ```
 
-## Lint
-
+## Running LayerOne AKA block server simulator
 ```bash
-# lint code with ESLint
-yarn lint
-
-# try to fix ESLint errors
-yarn lint:fix
-
-# lint and watch for changes
-yarn lint:watch
+npm run dev
 ```
 
-## Test
+## Unit Test
 
 ```bash
 # run all tests with Mocha
-yarn test
+npm run test
+```
+# Run
 
+## Show multiple running node simulators
+In browser open http://localhost:3000/ and click 'demo'. You can see a list of pre-created nodes links. You would better start multiple (suggest > 6) nodes in separated browser windows NOT TABS. Try to tile them in the screen side by side, so that you can see them at the same time. Another benefit is some browser (eg. Chrome) reduce the background js when tab is not visible. Doing so can make sure the js run faster. Of course, it burns more electricity. 
+## Show the overview of all nodes in one window
+The http://localhost:3000/webportal shows you the overview of all running nodes. You'd better show it all the time in a separate browser window too.
+## Status, Action and Log
+In each node simulator window, you can switch between 3 tabs. In Action tab you can start a new task. In Log tab, you can see what is happening inside this node. In Status tab (the first tab with user name and room number on the title) you can see current gas balance and credit balance. 
+
+## Manually force generate a new block
+At the time of your demo, we should already start auto block generate periodically. If it doesn't, or you do not want to wait for next block to be generated on schedule, you can always click the "block#NUMBER" tabl to force generate new block right now. A new tab will be open showing the content of new block. 
+
+
+
+
+<!-- 
 # run unit tests
 yarn test:unit
 
@@ -127,8 +134,5 @@ Run deploy script:
 yarn deploy
 or
 sh ./deploy.sh
-```
+``` -->
 
-# Run
-In browser open http://localhost:3000/v1/poc/
-You should see "You are doing great"

@@ -5,7 +5,6 @@ exports.main = ({userInfo})=>{
   document.getElementById('roomPostfix').innerText = randRoomPostfix;
   document.getElementById('userName').innerText = userName;
   document.getElementById('pubkey').innerText = pubicKey;
-  document.getElementById('privkey').title = privateKey;
   
   const ipfs = window.ipfs;
   const pubsubRooms = window.rooms;
@@ -20,7 +19,7 @@ exports.main = ({userInfo})=>{
       txType:"gasTransfer",
       fromPeerId: userName,
       toPeerId:"user #0",
-      amt:1
+      amt:15
     })
   }
   document.getElementById('btn2').onclick = ()=>{
