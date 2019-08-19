@@ -53,8 +53,8 @@ const F = {
       case 'gas_transfer':
         log = `
         ${opts.from} transger ${opts.amt} to ${opts.to}.
-        ${opts.from} balance is ${opts.from_balance}
-        ${opts.to} balance is ${opts.to_balance}
+        ${opts.from} balance is ${opts.from_balance}.
+        ${opts.to} balance is ${opts.to_balance}.
         `;
         data[C.gas].push(log);
         break;

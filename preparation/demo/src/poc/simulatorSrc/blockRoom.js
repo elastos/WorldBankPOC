@@ -90,7 +90,7 @@ const processNewBlock = async (options)=>{
       }else{
         updateLog('req_ra_send', {
           name : userInfo.userName,
-          j,
+          j: parseInt(j.toFixed()),
           cid,
         })
 

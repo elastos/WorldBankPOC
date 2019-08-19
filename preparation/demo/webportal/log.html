@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+
+  <script type="text/javascript" src="lib/jquery.js"></script>
+  <script type="text/javascript" src="lib/lodash.js"></script>
+
+  
+</head>
+
+<body style="background: #eee;">
+  <h2>Users</h2>
+  <div class="js_user">
+
+  </div>
+  <h2>Gas</h2>
+  <div class="js_gas"></div>
+  
+  <div class="js_ra">
+    
+  </div>
+
+</body>
+</html>
+<script type="text/javascript">
+function userBox(list){
+  const html = list.join('<br />');
+  $('.js_user').html(html);
+}
+function gasBox(list){
+  const html = list.join('<br />');
+  $('.js_gas').html(html);
+}
+function raBox(json){
+  let html = '';
+  _.each(json, (list, cid)=>{
+    html += '<h2>'+cid+'</h2>';
+
+    html += list.join('<br />');
+  });
+  $('.js_ra').html(html);
+}
+function getData(){
+  $.ajax({
+    type : 'get',
+    url : '/poc/pot_log',
+  }).then((d)=>{
+    const rs = d.data;
+    userBox(rs.users || []);
+    gasBox(rs.gas_transfer || []);
+    raBox(rs.remote_attestation || {});
+  });
+}
+
+$(()=>{
+  window.setInterval(getData, 3000);
+})
+</script>

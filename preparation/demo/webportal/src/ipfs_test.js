@@ -21,7 +21,9 @@ const C = {
   taskRoom : 'taskRoom',
   townHall : 'townHall',
   user : null,
-  r : null
+  r : null,
+
+  pot_log : {}
 };
 
 let myIpfs = null;
@@ -344,9 +346,11 @@ window.poc = {
     }
     
     const d = $('#js_node_detail').data('json');
-    taskRoom.sendTo(d.ipfs_id, val);
+    townHall.sendTo(d.ipfs_id, val);
     alert('success');
-  }
+  },
+
+  
 };
 
 $(async ()=>{
