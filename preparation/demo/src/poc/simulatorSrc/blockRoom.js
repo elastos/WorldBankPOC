@@ -2,7 +2,7 @@ import {tryParseJson, logToWebPage, updateLog} from './utils'
 import { ExceptionHandler, exceptions } from 'winston';
 const {utils, ecvrf, sortition} = require('vrf.js');
 import {sha256} from 'js-sha256';
-import {expectNumberOfRemoteAttestatorsToBeVoted} from '../constValue';
+import {expectNumberOfRemoteAttestatorsToBeVoted, minimalNewNodeJoinRaDeposit} from '../constValue';
 const Big = require('big.js');
 
 
@@ -48,11 +48,21 @@ const processNewBlock = async (options)=>{
         console.log("I am the node myself, I cannot do remote attestation on myself, skip");
         return;
       }
-      if(tx.value.depositAmt < 10){
+      if(tx.value.depositAmt < minimalNewNodeJoinRaDeposit){
         console.log(`The new node did not pay enough gas to do the RA, he has paid ${tx.value.depositAmt}. Remote attestation abort now`);
+        logToWebPage("Found the new node doesn't have enough gas to pay for the remote attestaiton process. I will not continue to process. just drop it for now");
         return;
       }
-      const {blockCid} = options;
+      const myCurrentGasBalance = options.block.gasMap[options.userInfo.userName];
+      if ( myCurrentGasBalance < tx.value.depositAmt){
+        logToWebPage("I do not have enough gas as escrow to start this remote attestation. I have to quit this competition. Sorry. ")
+        return;
+      }
+      const myCurrentCreditBalance = options.block.creditMap[options.userInfo.userName];
+      if ( myCurrentCreditBalance == 0){
+        logToWebPage("My credit balance is 0. I have to quit this competition. Sorry. ");
+        return;
+      }const {blockCid} = options;
       console.log("received a RA task",tx.value, blockCid, cid);
       const vrfMsg = sha256.update(blockCid).update(cid).hex();
       const p = expectNumberOfRemoteAttestatorsToBeVoted / totalCreditForOnlineNodes;

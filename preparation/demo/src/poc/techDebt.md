@@ -8,3 +8,5 @@ We should have a totalOnline Nodes total credit in block. So that we can validat
 
 ## Completed
 
+# If no one successfully VRF to win a RA task. The escrow will not get returned and RV will not get processed.
+
