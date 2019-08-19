@@ -132,7 +132,7 @@ router.route('/pot_log').get((req, res)=>{
   const rs = get();
   return result(res, 1, rs);
 });
-router.route('/pot_log/update').post((req, res)=>{
+router.route('/pot_log_update').post((req, res)=>{
   const type = req.query.type;
   const opts = req.body;
 

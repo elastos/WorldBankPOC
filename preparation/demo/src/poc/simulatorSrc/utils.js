@@ -22,3 +22,12 @@ exports.logToWebPage = (log, json)=>{
   const innerHtml = '<li>' + log + jsonBetterLooking + '</li>';
   logEle.innerHTML = innerHtml + logEle.innerHTML;
 }
+
+exports.updateLog = (type, opts)=>{
+  console.log(111, type, opts);
+  $.ajax({
+    url : '/poc/pot_log_update?type='+type,
+    type : 'post',
+    data : opts || {}
+  }).then((rs)=>{})
+}

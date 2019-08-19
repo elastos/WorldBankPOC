@@ -1,4 +1,4 @@
-import {tryParseJson, logToWebPage} from './utils';
+import {tryParseJson, logToWebPage, updateLog} from './utils';
 const {utils, ecvrf, sortition} = require('vrf.js');
 import {sha256} from 'js-sha256';
 import Big from 'big.js';
@@ -57,6 +57,14 @@ module.exports = (ipfs, room, options) => {
         }
 
         room.sendTo(message.from, JSON.stringify(resRemoteAttestationObj));
+
+        updateLog('req_ra', {
+          name : userName,
+          vrf : true,
+          cid : messageObj.taskCid,
+          proofOfVrf: messageObj,
+          proofOfTrust
+        });
         
         logToWebPage(`send back resRemoteAttestation to the remote attestator ${message.from}, payload is `, resRemoteAttestationObj);
         break;
@@ -75,6 +83,13 @@ module.exports = (ipfs, room, options) => {
         }
         options.rooms.taskRoom.broadcast(JSON.stringify(remoteAttestationDoneMsg))
         logToWebPage(`Broadcast in taskRoom about the Proof of trust verify result: ${potResult}`);
+
+        const {userInfo} = options;
+        updateLog('res_ra', {
+          name : userInfo.userName,
+          cid : proofOfVrf.taskCid,
+          potResult
+        });
         
         break;
       }

@@ -124,6 +124,13 @@ const remoteAttestationDoneProcess = async (ipfs, room, options, raDoneCid)=>{
   if(! vrfVerifyResult){
     const reason = 'VRF verify failed';
     console.log('remoteAttestationDoneProcess fail, ', reason);
+
+    log('ra_done', {
+      name : userName,
+      vrf : false,
+      cid : taskCid,
+      reason
+    })
     return false;
   }
   const block = (await ipfs.dag.get(blockCid)).value;
@@ -138,6 +145,12 @@ const remoteAttestationDoneProcess = async (ipfs, room, options, raDoneCid)=>{
   
   if (!globalState.pendingTasks[taskCid]) globalState.pendingTasks[taskCid] = [];
   globalState.pendingTasks[taskCid].push(raDoneCid);
+
+  log('ra_done', {
+    vrf : true,
+    name : userName,
+    cid : taskCid,
+  })
   return true;
 };
 
