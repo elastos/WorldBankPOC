@@ -11,6 +11,7 @@ const {channelListener} = require('./poc/layerOneBlock/channelListener');
 const {generateBlock} = require('./poc/layerOneBlock/generateBlock');
 const {utils} = require('vrf.js');
 import inquirer from 'inquirer';
+import { swarm } from 'ipfs/src/core/components';
 
 // Prompt user to input data in console.
 console.clear();
@@ -22,6 +23,14 @@ var questions = [{
 }]
 
 inquirer.prompt([
+    {
+      type:'input',
+      name:'swarmUrl',
+      message:'IP address of your IPFS swarm server. Or type "local" for 127.0.0.1. If leave it blank the defalt is /dns4/127.0.0.1/tcp/9090/wss/p2p-websocket-star',
+      default:()=>{
+        return '';
+      }
+    },
     {
       type:'input',
       name:'blockGenerationInterval',
@@ -40,16 +49,27 @@ inquirer.prompt([
     }
   ]
 ).then(answers => {
+  let swarmUrl;
+  if(answers['swarmUrl'] == 'local'){
+    swarmUrl = '/dns4/127.0.0.1/tcp/9090/wss/p2p-websocket-star';
+  }else if(answers['swarmUrl'] == ''){
+    swarmUrl = '/ip4/127.0.0.1/tcp/9090/ws/p2p-websocket-star';
+  }else{
+    swarmUrl = '/ip4/' + answers['swarmUrl'] + '/tcp/9090/ws/p2p-websocket-star';
+  }
+  console.log('swarmUrl:', swarmUrl);
   const roomPostfixUserInput = answers['roomPostfixUserInput'];
   const blockGenerationInterval = parseInt(answers['blockGenerationInterval']) * 1000;  
-  main(roomPostfixUserInput, blockGenerationInterval);
+  main(roomPostfixUserInput, blockGenerationInterval, swarmUrl);
   
 });
 
 
-const main = (randRoomPostfix, blockGenerationInterval)=>{
-  ipfsStart()
+
+const main = (randRoomPostfix, blockGenerationInterval, swarmUrl)=>{
+  ipfsStart(swarmUrl)
   .then((ipfs)=>{
+    app.set('swarmUrl', swarmUrl);
     app.set('ipfs', ipfs);
     app.set('randRoomPostfix', randRoomPostfix);
     console.log("Generating 20 preset users, please wait a few seconds...");
@@ -93,7 +113,8 @@ const main = (randRoomPostfix, blockGenerationInterval)=>{
 
 };
 
-const ipfsStart = async ()=>{
+const ipfsStart = async (swarmUrl)=>{
+  
   const ipfs = await IPFS.create({
     repo: 'ipfs-storage-no-git/poc/' + Math.random(),
     EXPERIMENTAL: {
@@ -103,7 +124,8 @@ const ipfsStart = async ()=>{
       Addresses: {
         Swarm: [
           //'/dns4/127.0.0.1/tcp/9090/wss/p2p-websocket-star'
-          '/ip4/127.0.0.1/tcp/9090/ws/p2p-websocket-star'
+          //'/ip4/127.0.0.1/tcp/9090/ws/p2p-websocket-star'
+          swarmUrl
         ]
       }
     }

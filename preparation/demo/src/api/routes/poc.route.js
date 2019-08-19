@@ -18,7 +18,7 @@ router
     const users = req.app.get('presetUsers');
     let loopUserLink = users.reduce((accumulator, u)=>{
 
-      return accumulator + "<a href='/simulator?u=" + u.name + "&&r=" +  req.app.get('randRoomPostfix') + "&&pub=" + u.pub + "&&pri=" + u.pri + "'  target='_blank'>Simulator for " + u.name + "</a></br>";
+      return accumulator + "<a href='/simulator?u=" + u.name + "&&s=" + req.app.get('swarmUrl') + "&&r=" +  req.app.get('randRoomPostfix') + "&&pub=" + u.pub + "&&pri=" + u.pri + "'  target='_blank'>Simulator for " + u.name + "</a></br>";
     }, "");
     
     const template = "<html><head></head><body>" 
@@ -35,7 +35,7 @@ router
     const users = req.app.get('presetUsers');
     let loopUserLink = users.reduce((accumulator, u)=>{
 
-      return accumulator + "<a href='/webportal/ipfs_test.html?u=" + u.name + "&&r=" +  req.app.get('randRoomPostfix') + "&&pub=" + u.pub + "&&pri=" + u.pri + "'  target='_blank'>Simulator for " + u.name + "</a></br>";
+      return accumulator + "<a href='/webportal/ipfs_test.html?u=" + u.name + "&&s=" + req.app.get('swarmUrl') +  "&&r=" +  req.app.get('randRoomPostfix') + "&&pub=" + u.pub + "&&pri=" + u.pri + "'  target='_blank'>Simulator for " + u.name + "</a></br>";
     }, "");
     
     const template = "<html><head></head><body><h1><a href='/poc/forceManualGenerateNewBlock' target='_blank'>Force generate new block</a></h1>"

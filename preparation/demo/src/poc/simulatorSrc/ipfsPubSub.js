@@ -9,8 +9,8 @@ import {main } from './simulator';
 
 function init(){
   //const peer = await PeerId.createFromJSON(demoPeerKeys[0]);
-
-
+  const swarmUrl = getUrlVars().s;
+  console.log('swarmUrl:|', swarmUrl, '|');
   window.IPFS = IPFS;
   IPFS.create({
     repo: 'ipfs-leo/poc/' + Math.random(),
@@ -26,7 +26,7 @@ function init(){
           //'/dns4/ws-star.discovery.libp2p.io/tcp/443/wss/p2p-websocket-star'
           //'/dns4/127.0.0.1/tcp/9090/wss/p2p-websocket-star'
           //'/ip4/127.0.0.1/tcp/9090/ws/p2p-websocket-star'
-          '/ip4/127.0.0.1/tcp/9090/ws/p2p-websocket-star'
+          swarmUrl
         ]
       }
     }
