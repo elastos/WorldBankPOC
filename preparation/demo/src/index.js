@@ -10,20 +10,44 @@ const app = require('./config/express');
 const {channelListener} = require('./poc/layerOneBlock/channelListener');
 const {generateBlock} = require('./poc/layerOneBlock/generateBlock');
 const {utils} = require('vrf.js');
-
-// Get process.stdin as the standard input object.
-var standard_input = process.stdin;
-
-// Set input character encoding.
-standard_input.setEncoding('utf-8');
+import inquirer from 'inquirer';
 
 // Prompt user to input data in console.
 console.clear();
-console.log("Please input a random pubsub room postfix. Press enter to get a random number as default:");
 
-// When user input data and click enter key.
-standard_input.on('data', function (data) {
-  const randRoomPostfix = data? parseInt(data) : Math.round(Math.random()*1000).toString();
+var questions = [{
+  type: 'input',
+  name: '',
+  message: ""
+}]
+
+inquirer.prompt([
+    {
+      type:'input',
+      name:'blockGenerationInterval',
+      message:'Please input the interval of auto block generation in seconds or leave it blank to manually generate',
+      default:()=>{
+        return 0;
+      }
+    },
+    {
+      type:'input',
+      name:'roomPostfixUserInput',
+      message:'In order to prevent conflicts between different testing users, please input a random pubsub room postfix. Leave it blank will auto generate a random number as the default',
+      default: ()=>{
+        return Math.round(Math.random()*1000).toString();
+      }
+    }
+  ]
+).then(answers => {
+  const roomPostfixUserInput = answers['roomPostfixUserInput'];
+  const blockGenerationInterval = parseInt(answers['blockGenerationInterval']) * 1000;  
+  main(roomPostfixUserInput, blockGenerationInterval);
+  
+});
+
+
+const main = (randRoomPostfix, blockGenerationInterval)=>{
   ipfsStart()
   .then((ipfs)=>{
     app.set('ipfs', ipfs);
@@ -39,6 +63,7 @@ standard_input.on('data', function (data) {
       }
       presetUsers.push(u);
     }
+    //
     console.log("presetUsers,", presetUsers);
     app.set('presetUsers', presetUsers);
     return channelListener(app.get('ipfs'), randRoomPostfix, presetUsers);
@@ -47,22 +72,26 @@ standard_input.on('data', function (data) {
     app.set('pubsubRooms', pubsubRooms);
     app.set('globalState', globalState);
     const {blockRoom} = pubsubRooms;
-    const blockGenerationInterval = 1000*30;
     const firstBlockDelay = 1000 * 10;
+    if(blockGenerationInterval > 0){
+      const loop = async ({ipfs, globalState, blockRoom})=>{
+        await generateBlock({ipfs, globalState, blockRoom});
+        _.delay(loop, blockGenerationInterval, {ipfs, globalState, blockRoom});
+      }
+      _.delay(loop, firstBlockDelay, {ipfs, globalState, blockRoom});
+      console.log("Automacial block genreation starts. New block will be generated every" + blockGenerationInterval + ' seconds');
+    }
+    else{
+      _.delay(generateBlock, firstBlockDelay, {ipfs, globalState, blockRoom});
+      console.log("No automatical block generation after the genesis block. You have to manually force generate new block every time!")
+    }
 
-    // const loop = async ({ipfs, globalState, blockRoom})=>{
-    //   await generateBlock({ipfs, globalState, blockRoom});
-    //   _.delay(loop, blockGenerationInterval, {ipfs, globalState, blockRoom});
-    // };
-    //_.delay(loop, firstBlockDelay, {ipfs, globalState, blockRoom});
-    _.delay(generateBlock, firstBlockDelay, {ipfs, globalState, blockRoom});
-    //console.log("in index.js init, pubsubRooms in app:", pubsubRooms);
   })
 
   // listen to requests
   app.listen(port, () => logger.info(`server started on port ${port} (${env})`));
 
-});
+};
 
 const ipfsStart = async ()=>{
   const ipfs = await IPFS.create({

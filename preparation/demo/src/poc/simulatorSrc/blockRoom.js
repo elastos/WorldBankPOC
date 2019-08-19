@@ -166,7 +166,7 @@ const blockRoom = (ipfs, room, options) => {
       }
       const block = await ipfs.dag.get(cid);
       console.log("received block height=", block.value.blockHeight);
-      logToWebPage(`Received new block Height: ${block.value.blockHeight}`);
+      //logToWebPage(`Received new block Height: ${block.value.blockHeight}`);
       if(options.isProcessingBlock){
         throw new Exceptions("Racing conditions found. Some async funciton is processing block while new block just came in, how to handle this issue?");
       }

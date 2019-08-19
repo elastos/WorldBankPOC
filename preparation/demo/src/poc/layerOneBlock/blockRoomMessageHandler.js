@@ -15,7 +15,8 @@ export default (ipfs, room, options)=>{
     if(txType == "newBlock"){
       const newBlock = await ipfs.dag.get(cid);
       if(cid != options.globalState.blockCid){
-        throw new Exception("the new block is not the one server genreated!!!!!");
+
+        console.error("the new block is not the one server genreated!!!!!", cid, options.globalState.blockCid);
       }
       else{
         console.log("received new block, CID matches:", cid);
