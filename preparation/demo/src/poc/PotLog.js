@@ -6,6 +6,7 @@ const C = {
   users : 'users',
   gas : 'gas_transfer',
   ra : 'remote_attestation',
+  other : 'others'
 };
 const q = [];
 
@@ -31,6 +32,9 @@ const F = {
     if(!data[C.ra]){
       data[C.ra] = {};
     }
+    if(!data[C.other]){
+      data[C.other] = []
+    }
 
     const ra = data[C.ra];
 
@@ -53,11 +57,42 @@ const F = {
         ${opts.to} balance is ${opts.to_balance}
         `;
         data[C.gas].push(log);
+        break;
 
       case 'new_ra':
         log = `${opts.name} apply for RA with gas ${opts.amt}, cid is ${opts.cid}`;
         ra[opts.cid] = [];
         ra[opts.cid].push(log);
+        break;
+      
+      case 'req_ra_send':
+        log = `${opts.name} send reqRemoteAttestation in townHall. j is ${opts.j}. `;
+        if(opts.j > 0){
+          log += `Lucky, proof is ${opts.proof}. blockCid is ${opts.blockCid}`;
+        }
+        else{
+          log += 'Bad Lucky, try next time.';
+        }
+        ra[opts.cid].push(log);
+        break;
+      
+      case 'req_ra':
+        log = `${opts.name} send resRemoteAttestation in townHall. vrf is ${opts.vrf}. proofOfVrf is ${JSON.stringify(opts.proofOfVrf)}. proofOfTrust is ${JSON.stringify(opts.proofOfTrust)}`;
+        ra[opts.cid].push(log);
+        break;
+      
+      case 'res_ra':
+        log = `${opts.name} broadcase remoteAttestationDone in townHall. potResult is ${opts.potResult}`;
+        ra[opts.cid].push(log);
+        break;
+      
+      case 'ra_done':
+        log = `${opts.name} set remoteAttestationDone in taskRoom. vrfVerifyResult is ${opts.vrf}. `;
+        if(!opts.vrf){
+          log += `reason is ${opts.reason}`;
+        }
+        ra[opts.cid].push(log);
+        break;
 
       default:
         throw 'invalid type => '+type;

@@ -1,4 +1,4 @@
-import {tryParseJson, logToWebPage} from './utils'
+import {tryParseJson, logToWebPage, updateLog} from './utils'
 import { ExceptionHandler, exceptions } from 'winston';
 const {utils, ecvrf, sortition} = require('vrf.js');
 import {sha256} from 'js-sha256';
@@ -74,13 +74,32 @@ const processNewBlock = async (options)=>{
           publicKey:userInfo.pubicKey,
           userName:userInfo.userName
         }
+
+        updateLog('req_ra_send', {
+          name : userInfo.userName,
+          j: parseInt(j.toFixed()),
+          blockCid,
+          cid,
+          proof: proof.toString('hex')
+        });
+
         window.rooms.townHall.sendTo(tx.value.ipfsPeerId, JSON.stringify(raReqObj));
         logToWebPage(`Sending townhall request to the new node: ${tx.value.ipfsPeerId}  for RA:`, raReqObj);
-            }else{
-              console.log("bad luck, try next", j.toFixed());
-              logToWebPage(`bad luck, try next time`);
-              
-            }
+
+        
+      }else{
+        updateLog('req_ra_send', {
+          name : userInfo.userName,
+          j,
+          cid,
+        })
+
+        console.log("bad luck, try next", j.toFixed());
+        logToWebPage(`bad luck, try next time`);
+
+        
+        
+      }
             
 
     })
