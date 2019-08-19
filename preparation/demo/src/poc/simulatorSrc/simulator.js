@@ -27,13 +27,16 @@ exports.main = ({userInfo})=>{
       txType:"newNodeJoinNeedRa",
       userName,
       depositAmt:10,
-      ipfsPeerId:pubsubRooms.taskRoom.getMyPeerId()
+      ipfsPeerId:pubsubRooms.taskRoom.getMyPeerId(),
+
     })
   };
   document.getElementById('btn3').onclick = ()=>{
     editor.set({
-      txType:"computationTask",
-      cid:""
+      txType:'setProofOfTrustForThisNode',
+      psrData:'placeholder',
+      isHacked:true,
+      tpmPublicKey:'placeholder'
     })
   };
   document.getElementById('btn4').onclick = ()=>{
@@ -60,9 +63,9 @@ exports.main = ({userInfo})=>{
           
           break;
         }
-        case "placeHolder":
-          channelRoom = pubsubRooms.townHall;
-          break;
+        case "setProofOfTrustForThisNode":
+          window.proofOfTrustTest = jsonObj;
+          return;
         case "newNodeJoinNeedRa":{
           channelRoom = pubsubRooms.taskRoom;
 

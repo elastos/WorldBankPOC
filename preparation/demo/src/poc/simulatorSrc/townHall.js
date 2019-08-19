@@ -45,9 +45,9 @@ module.exports = (ipfs, room, options) => {
           break;
         }
         logToWebPage(`VRF Validation passed`);
-        const proofOfTrust ={
+        const proofOfTrust = window.proofOfTrustTest? window.proofOfTrustTest : {
           psrData:'placeholder',
-          isHacked:true,
+          isHacked:false,
           tpmPublicKey:'placeholder'
         }
         const resRemoteAttestationObj = {
