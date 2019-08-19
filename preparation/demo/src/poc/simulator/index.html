@@ -48,17 +48,20 @@
   </head>
   <body>
     <div class="tab">
-      <button class="tablinks" onclick="clickTab(event, 'statustab')"><span id='userName'></span>@Room#<span id='roomPostfix'></span></button>
-      <button class="tablinks" onclick="clickTab(event, 'actiontab')">Action</button>
-      <button id="defaultOpen" class="tablinks" onclick="clickTab(event, 'logtab')">Logs</button>
-      <button class='tablinks'>
+      <button  class="tablinks" >
+        <span id='userName'></span>
+      </button>
+      <button>
+          @Room#<span id='roomPostfix'></span>
+      </button>
+      <button>
         <a href='/poc/forceManualGenerateNewBlock' target='_blank'>
           <span>Block#</span><span id='blockheight'></span>
         </a>
       </button>
+
     </div>
-    <div id="statustab" class="tabcontent">
-        <table>
+      <table>
           <thead>
             <tr>
               <th>Prop</th>
@@ -129,16 +132,21 @@
           </tbody>
         </table>
         
+    <div class="tab">
+      <button class="tablinks" onclick="clickTab(event, 'actiontab')">Action</button>
+      <button id="defaultOpen"  class="tablinks" onclick="clickTab(event, 'logtab')">Logs</button>
+      <button class='tablinks'>
+        
+      </button>
+    </div>
+    <div id="statustab" class="tabcontent">
+
       </div>
       
       <div id="actiontab" class="tabcontent">
         <h1>Actions</h1>
-        <h3><a href='/poc/forceManualGenerateNewBlock' target='_blank'>Force generate new block</a>
-        </h3>
-        <p><button id='btn1'>Task: transfer 15 Gas to user #0</button></p>
-        <p><button id='btn2'>Task: new node join waiting for RA</button></p>
-        <p><button id='btn3'>Set Proof of Trust (to be hacked?)</button></p>
-        <p><button id='btn4'> NOT IMPLEMENTED YET Townhall Message: Server to log current global state</button></p>
+        
+        <p><button id='btn1'>Task: transfer 15 Gas to user #0</button><button id='btn2'>Task: new node join waiting for RA</button><button id='btn3'>Set Proof of Trust (to be hacked?)</button><button id='btn4'> NOT IMPLEMENTED YET Townhall Message: Server to log current global state</button></p>
         <h2>Please modify the JSON below</h2>
         <p>
           <div id="jsoneditor" style="width: 400px; height: 400px;"></div>

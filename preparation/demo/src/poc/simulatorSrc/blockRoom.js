@@ -124,22 +124,29 @@ const verifyBlockIntegrity = (options)=>{
 
 
 
+const setEleValue = (id, newValue)=>{
+  if(!document.getElementById(id))return;
+  if(document.getElementById(id).innerHTML != newValue){
+    document.getElementById(id).innerHTML = newValue;
+    document.getElementById(id).style.color = '#d00';
+  }
+  else{
+    document.getElementById(id).style.color = '#000'
+  }
+}
 
 const updateNodeStatusOnNewBlock = ({block, userInfo} , totalGas, totalCredit, totalCreditForOnlineNodes)=>{
   const userName = userInfo.userName;
   const blockHeight = block.blockHeight;
   const gasBalance = block.gasMap[userName] || "";
   const creditBalance = block.creditMap[userName] || "";
-
-  try{
-    document.getElementById('blockheight').innerHTML = blockHeight;
-    document.getElementById('gasbalance').innerHTML = gasBalance;
-    document.getElementById('creditbalance').innerHTML = creditBalance;
-    document.getElementById('totalgas').innerHTML = totalGas;
-    document.getElementById('totalcredit').innerHTML = totalCredit;
-    document.getElementById('totalcredit_onlineonly').innerHTML = totalCreditForOnlineNodes;
-    
-  }catch(e){console.log('updateNodeStatusOnNewBlock, ', e)} 
+  setEleValue('blockheight', blockHeight);
+  setEleValue('gasbalance', gasBalance);
+  setEleValue('creditbalance', creditBalance);
+  setEleValue('totalgas', totalGas);
+  setEleValue('totalcredit', totalCredit);
+  setEleValue('totalcredit_onlineonly', totalCreditForOnlineNodes);
+  
 }
 
 
