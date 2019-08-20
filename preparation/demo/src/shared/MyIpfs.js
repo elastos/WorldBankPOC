@@ -4,10 +4,9 @@ const _ = require('lodash');
 
 const MyIpfs = class  {
 
-  constructor(){
+  constructor(ipfs_url){
 
     this.room_map = {};
-
     this.config = {
       repo: 'ipfs-leo/poc/' + Math.random(),
       EXPERIMENTAL: {
@@ -19,7 +18,8 @@ const MyIpfs = class  {
       config: {
         Addresses: {
           Swarm: [
-            '/dns4/ws-star.discovery.libp2p.io/tcp/443/wss/p2p-websocket-star'
+            // '/dns4/ws-star.discovery.libp2p.io/tcp/443/wss/p2p-websocket-star'
+            ipfs_url
           ]
         }
       }

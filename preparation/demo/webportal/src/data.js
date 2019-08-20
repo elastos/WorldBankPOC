@@ -4,6 +4,8 @@ const Data = class {
   constructor(myIpfs){
     this.myIpfs = myIpfs;
 
+    this.me = {};
+
     this.peer_list = [];
     this.peer_map = {};
 
@@ -12,9 +14,8 @@ const Data = class {
   }
 
 
-  addPeer(peer){
-    console.log('add peer => ', peer);
-    this.peer_list.push(peer);
+  setMyPeer(peer){
+    this.me = peer;
     this.peer_map[peer.name] = peer;
   }
 
@@ -44,7 +45,16 @@ const Data = class {
     return this.block ? this.block.value : null;
   }
   refreshPeerList(){
-    this.peer_list = _.map(this.peer_list, (item)=>{
+    const block = this.getCurrentBlock();
+    const list = [];
+    _.each(block.trustedPeerToUserInfo, (val, ipfs_id)=>{
+      list.push({
+        name: val.userName,
+        ipfs_id
+      })
+    });
+    const peer_list = list;  //_.concat(this.me, list);
+    this.peer_list = _.map(peer_list, (item)=>{
       item.profile = this.getProfile(item.name);
       item.profile.ipfs_id = item.ipfs_id;
       this.peer_map[item.name] = item;

@@ -54,7 +54,7 @@ const F = {
     C.taskRoom = 'taskRoom'+params.r;
     C.townHall = 'townHall'+params.r;
 
-    myIpfs = new MyIpfs();
+    myIpfs = new MyIpfs(params.s);
     myChart = new EChart($('#echart-div')[0], {
       user: C.user,
       click(d){
@@ -124,7 +124,6 @@ const F = {
       join(peer){
         log('peer ' + peer + ' joined block room');
 
-        F.processNewJoinPeer(peer);
 
       },
       left(peer){
@@ -184,7 +183,7 @@ const F = {
         type : 'get'
       });
 
-      myData.addPeer({
+      myData.setMyPeer({
         name : C.user.name,
         pub : C.user.pub,
         pri : C.user.pri,
@@ -193,22 +192,6 @@ const F = {
     }, 100);
   },
 
-  processNewJoinPeer(ipfs_id){
-    $.ajax({
-      url : '/poc/get_user_by_ipfs',
-      type : 'get',
-      data : {
-        ipfs_id
-      }
-    }).then((rs)=>{
-      const user = rs.data;
-      if(!user){
-        return false;
-      }
-
-      myData.addPeer(user);
-    })
-  },
 
   buildHandlerOption(){
     return {
