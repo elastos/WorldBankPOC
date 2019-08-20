@@ -80,20 +80,22 @@ const F = {
         }, 100);
       }
     });
-    myData = new Data(myIpfs);
-    window.myData = myData;
+    // myData = new Data(myIpfs);
+    // window.myData = myData;
 
-    await myIpfs.start();
-    window.myIpfs = myIpfs;
+    // await myIpfs.start();
+    // window.myIpfs = myIpfs;
 
-    F.initBlockRoom();
-    F.initTaskRoom();
-    F.initTownHall();
-    window.rooms = {
-      taskRoom, blockRoom, townHall
-    };
+    // F.initBlockRoom();
+    // F.initTaskRoom();
+    // F.initTownHall();
+    // window.rooms = {
+    //   taskRoom, blockRoom, townHall
+    // };
 
-    myChart.render();
+    myChart.render(window.test_data);
+
+    // F.initLoopData();
   },
 
   initTaskRoom(){
@@ -239,6 +241,30 @@ const F = {
     }
     
     return log('In block room got an unhandled message from ' + message.from + ': ' + message.data.toString());
+  },
+
+  initLoopData(){
+    const loop = async ()=>{
+      const rs = await $.ajax({
+        type : 'get',
+        url : '/poc/pot_data',
+      });
+      const d = rs.data;
+
+      if(d && d.remote_attestation){
+        myData.setWorkStatus(d.remote_attestation[_.first(_.keys(d.remote_attestation))], ()=>{
+          const list = myData.getAllListForChart();
+          myChart.render(list);
+        });
+      }
+      
+
+      _.delay(async ()=>{
+        await loop();
+      }, 2000);
+    };
+
+    loop();
   }
 
 };

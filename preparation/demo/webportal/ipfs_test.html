@@ -10,7 +10,7 @@
 
   <script type="text/javascript" src="lib/jquery.js"></script>
   <script type="text/javascript" src="lib/bootstrap/bootstrap.min.js"></script>
-  <script type="text/javascript" src="lib/echart/echarts.min.js"></script>
+  <script type="text/javascript" src="lib/echart/echarts.js"></script>
   <script type="text/javascript" src="lib/echart/world.js"></script>
   <script type="text/javascript" src="lib/lodash.js"></script>
   <script type="text/javascript" src="lib/fakeLoader/fakeLoader.js"></script>
@@ -105,3 +105,72 @@
 </html>
 <script type="text/javascript" src="js/util.js"></script>
 <script type="text/javascript" src="dist/ipfs_test.js"></script>
+
+<script>
+window.test_data = [
+  {
+    peerId : 'test',
+    location : [111, 20],
+    creditScore : 10,
+    gas: 20,
+    status : '',
+  },
+  {
+    peerId : '11',
+    location : [91, 30],
+    creditScore : 10,
+    gas: 20,
+    status : 'new_ra',
+  },
+  {
+    peerId : '22',
+    location : [71, 40],
+    creditScore : 10,
+    gas: 20,
+    status : 'req_ra_send',
+    pd : {
+      j : 10
+    }
+  },
+  {
+    peerId : '33',
+    location : [71, -40],
+    creditScore : 10,
+    gas: 20,
+    status : 'req_ra_send',
+    pd : {
+      j : -10
+    }
+  },
+
+  {
+    peerId : '44',
+    location : [51, 30],
+    creditScore : 10,
+    gas: 20,
+    status : 'req_ra',
+    pd : {
+    }
+  },
+
+  {
+    peerId : '55',
+    location : [51, 20],
+    creditScore : 10,
+    gas: 20,
+    status : 'res_ra',
+    pd : {
+    }
+  },
+
+  {
+    peerId : '66',
+    location : [151, 20],
+    creditScore : 10,
+    gas: 20,
+    status : 'ra_done',
+    pd : {
+    }
+  }
+];
+</script>

@@ -2,6 +2,7 @@ const _ = require('lodash');
 
 
 const key = 'pot_log';
+const k1 = 'pot_data';
 const C = {
   users : 'users',
   gas : 'gas_transfer',
@@ -21,33 +22,48 @@ const F = {
   },
 
   process(type, opts){
+    opts.type = type;
     const app = require('../index');
     const data = app.get(key) || {};
+    const d1 = app.get(k1) || {};
     if(!data[C.users]){
       data[C.users] = [];
+      d1[C.users] = [];
     }
     if(!data[C.gas]){
       data[C.gas] = [];
+      d1[C.gas] = [];
     }
     if(!data[C.ra]){
       data[C.ra] = {};
+      d1[C.ra] = {};
     }
     if(!data[C.other]){
       data[C.other] = []
+      d1[C.other] = [];
     }
 
     const ra = data[C.ra];
+    const ra1 = d1[C.ra];
 
     let log = '';
     switch(type){
       case 'user_online':
         log = `${opts.name}[${opts.ipfs_id}] is online`;
         data[C.users].push(log);
+        d1[C.users].push({
+          name: opts.name,
+          status: 'online'
+        });
         break;
 
       case 'user_offline':
         log = `${opts.name}[${opts.ipfs_id}] is offline`;
         data[C.users].push(log);
+        d1[C.users].push({
+          name: opts.name,
+          status: 'offline'
+        });
         break;
 
       case 'gas_transfer':
@@ -57,12 +73,15 @@ const F = {
         ${opts.to} balance is ${opts.to_balance}.
         `;
         data[C.gas].push(log);
+        d1[C.gas].push(opts);
         break;
 
       case 'new_ra':
         log = `${opts.name} apply for RA with gas ${opts.amt}, cid is ${opts.cid}`;
         ra[opts.cid] = [];
+        ra1[opts.cid] = [];
         ra[opts.cid].push(log);
+        ra1[opts.cid].push(opts);
         break;
       
       case 'req_ra_send':
@@ -74,16 +93,19 @@ const F = {
           log += 'Bad Lucky, try next time.';
         }
         ra[opts.cid].push(log);
+        ra1[opts.cid].push(opts);
         break;
       
       case 'req_ra':
         log = `${opts.name} send resRemoteAttestation in townHall. vrf is ${opts.vrf}. proofOfVrf is ${JSON.stringify(opts.proofOfVrf)}. proofOfTrust is ${JSON.stringify(opts.proofOfTrust)}`;
         ra[opts.cid].push(log);
+        ra1[opts.cid].push(opts);
         break;
       
       case 'res_ra':
         log = `${opts.name} broadcase remoteAttestationDone in townHall. potResult is ${opts.potResult}`;
         ra[opts.cid].push(log);
+        ra1[opts.cid].push(opts);
         break;
       
       case 'ra_done':
@@ -92,12 +114,14 @@ const F = {
           log += `reason is ${opts.reason}`;
         }
         ra[opts.cid].push(log);
+        ra1[opts.cid].push(opts);
         break;
 
       default:
         throw 'invalid type => '+type;
     }
     app.set(key, data);
+    app.set(k1, d1);
   }
 };
 
@@ -111,4 +135,9 @@ exports.log = (type, opts)=>{
 exports.get = ()=>{
   const app = require('../index');
   return app.get(key);
+}
+
+exports.getData = ()=>{
+  const app = require('../index');
+  return app.get(k1);
 }

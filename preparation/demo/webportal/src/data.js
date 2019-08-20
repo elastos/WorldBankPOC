@@ -9,14 +9,34 @@ const Data = class {
     this.peer_list = [];
     this.peer_map = {};
 
+
     this.block_list = [];
     this.block = null;
+
+    this.work_status = [];
   }
 
 
   setMyPeer(peer){
-    this.me = peer;
-    this.peer_map[peer.name] = peer;
+    // this.me = peer;
+    // this.peer_map[peer.name] = peer;
+  }
+
+  setWorkStatus(list, cb){
+    if(!list || list.length === this.work_status.length) return false;
+    this.work_status = list;
+
+    console.log('work status => ', this.work_status);
+    
+    _.each(this.work_status, (item)=>{
+      if(this.peer_map[item.name]){
+        this.peer_map[item.name].status = item.type;
+        this.peer_map[item.name].pd = item;
+      }
+
+    });
+
+    cb && cb();
   }
 
   removePeerById(id){
@@ -55,10 +75,14 @@ const Data = class {
     });
     const peer_list = list;  //_.concat(this.me, list);
     this.peer_list = _.map(peer_list, (item)=>{
-      item.profile = this.getProfile(item.name);
-      item.profile.ipfs_id = item.ipfs_id;
-      this.peer_map[item.name] = item;
-      return item;
+      if(!this.peer_map[item.name]){
+        this.peer_map[item.name] = {};
+      }
+      const tmp = this.peer_map[item.name];
+      tmp.profile = this.getProfile(item.name);
+      tmp.profile.ipfs_id = item.ipfs_id;
+      this.peer_map[item.name] = tmp;
+      return tmp;
     });
   }
 
@@ -74,7 +98,10 @@ const Data = class {
 
   getAllListForChart(){
     return _.map(this.peer_list, (item)=>{
-      return item.profile
+      const tmp = item.profile;
+      tmp.status = item.status;
+      tmp.pd = item.pd;
+      return tmp;
     });
   }
 

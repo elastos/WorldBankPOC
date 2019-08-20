@@ -74,39 +74,40 @@ const EChart = class {
           type: 'effectScatter',
           coordinateSystem: 'geo',
           data: opts.data || [],
-          // symbol: 'diamond',
+          symbol: (val)=>{
+
+            const rs = this.formatDataItem(val);
+            return rs.symbol;
+          },
           // symbol: 'path://M832 160 192 160c-38.4 0-64 32-64 64l0 448c0 38.4 32 64 64 64l256 0 0 64L352 800C332.8 800 320 812.8 320 832c0 19.2 12.8 32 32 32l320 0c19.2 0 32-12.8 32-32 0-19.2-12.8-32-32-32L576 800l0-64 256 0c38.4 0 64-32 64-64l0-448C896 192 864 160 832 160zM832 672l-640 0 0-448 640 0 0 0L832 672z',
           symbolSize: (val)=>{
             return util.symbolSize(val[2]);
           },
-          showEffectOn: 'render',
+          showEffectOn: ({status})=>{
+            if(status === 'new_ra'){
+              return 'render';
+            }
+            return '';
+          },
           rippleEffect: {
             brushType: 'stroke'
           },
           hoverAnimation: true,
           
           label: {
-              normal: {
-                formatter: '{b}',
-                position: 'right',
-                show: true
-              }
+            normal: {
+              formatter: '{b}',
+              position: 'right',
+              show: true
+            }
           },
           itemStyle: {
             normal: {
               color: (e)=>{
                 const d = e.data;
-                if(this.user.name === d.peerId){
-                  return '#e9e9e9';
-                }
-                if(d.hacked){
-                  return '#f00';
-                }
-                if(d.creditScore < 1){
-                  return '#ff0';
-                }
 
-                return '#0f0';
+                const rs = this.formatDataItem(d);
+                return rs.color;
               },
               shadowBlur: 10,
               shadowColor: '#333'
@@ -140,6 +141,42 @@ const EChart = class {
       score: ${d.creditScore} <br/>
       gas: ${d.gas} <br/>
     `;
+  }
+
+  formatDataItem({status, pd}){
+    const rs = {
+      symbol : 'circle',
+      color : '#0f0'
+    };
+
+    if(status === 'new_ra'){
+      rs.color = 'yellow';
+    }
+    else if(status === 'req_ra_send'){
+      rs.symbol = 'rect';
+
+      if(pd.j > 0){
+        rs.color = 'yellow';
+      }
+      else{
+        rs.color = 'gray';
+      }
+    }
+    else if(status === 'req_ra'){
+      rs.symbol = 'rect';
+      rs.color = '#f58220';
+    }
+    else if(status === 'res_ra'){
+      rs.symbol = 'rect';
+      rs.color = '#f58220';
+    }
+    else if(status === 'ra_done'){
+      rs.symbol = 'diamond';
+      rs.color = 'cyan';
+    }
+
+
+    return rs;
   }
 };
 

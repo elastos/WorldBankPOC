@@ -9,7 +9,7 @@ const {tryVrf} = require('../../poc/tryVrf')
 
 const router = express.Router();
 //console.log("credit", creditScore);
-const {get, log} = require('../../poc/PotLog');
+const {get, log, getData} = require('../../poc/PotLog');
 
 router
   .route('/')
@@ -128,6 +128,10 @@ router
     }
   });
 
+router.route('/pot_data').get((req, res)=>{
+  const rs = getData();
+  return result(res, 1, rs);
+});
 router.route('/pot_log').get((req, res)=>{
   const rs = get();
   return result(res, 1, rs);
