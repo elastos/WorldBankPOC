@@ -51,9 +51,9 @@ inquirer.prompt([
 ).then(answers => {
   let swarmUrl;
   if(answers['swarmUrl'] == 'local'){
-    swarmUrl = '/dns4/127.0.0.1/tcp/9090/wss/p2p-websocket-star';
-  }else if(answers['swarmUrl'] == ''){
     swarmUrl = '/ip4/127.0.0.1/tcp/9090/ws/p2p-websocket-star';
+  }else if(answers['swarmUrl'] == ''){
+    swarmUrl = '/dns4/ws-star.discovery.libp2p.io/tcp/443/wss/p2p-websocket-star';
   }else{
     swarmUrl = '/ip4/' + answers['swarmUrl'] + '/tcp/9090/ws/p2p-websocket-star';
   }
@@ -123,7 +123,7 @@ const ipfsStart = async (swarmUrl)=>{
      config: {
       Addresses: {
         Swarm: [
-          //'/dns4/127.0.0.1/tcp/9090/wss/p2p-websocket-star'
+          //'/dns4/ws-star.discovery.libp2p.io/tcp/443/wss/p2p-websocket-star'
           //'/ip4/127.0.0.1/tcp/9090/ws/p2p-websocket-star'
           swarmUrl
         ]
