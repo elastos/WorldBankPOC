@@ -5,7 +5,7 @@ import Big from 'big.js';
 import {log} from '../PotLog';
 
 exports.generateBlock = async ({ipfs, globalState, blockRoom})=>{
-  await runSettlementBeforeNewBlock(ipfs, globalState);
+  runSettlementBeforeNewBlock(ipfs, globalState);
   globalState.creditMap = runCreditNormalization(globalState.creditMap, totalCreditToken);
   const {gasMap, creditMap, processedTxs, previousBlockHeight, previousBlockCid, trustedPeerToUserInfo, escrowGasMap, pendingTasks} = globalState;
   //calculate totalCredit for online users
@@ -46,35 +46,39 @@ exports.generateBlock = async ({ipfs, globalState, blockRoom})=>{
   return newBlock;
 }
 
-const runSettlementBeforeNewBlock = async (ipfs, globalState)=>{
-  const pendingTasks = globalState.pendingTasks || {};
-  const promisesTasks = Object.keys(pendingTasks).map( async (taskCid)=>{
-    const childrenTaskCids = pendingTasks[taskCid];
+const runSettlementBeforeNewBlock = (ipfs, globalState)=>{
+  if(! globalState.pendingTasks)  return;
 
-    const task = (await ipfs.dag.get(taskCid)).value;
-    switch(task.txType){
+  const pendingTasks = globalState.pendingTasks;
+
+  const promisesTasks = Object.keys(pendingTasks).map( async (taskCid)=>{
+    const {type, followUps} = pendingTasks[taskCid];
+    switch(type){
       case 'newNodeJoinNeedRa':{
-        if(childrenTaskCids.length < minRemoteAttestatorsToPassRaTask){
+        if(followUps.length < minRemoteAttestatorsToPassRaTask){
           break;//we have not reached the minimal requirement of the number of Remote Attestators
         }else{
-          const promisesChildren = childrenTaskCids.map( async (childCid)=>{
+          const promisesChildren = followUps.map( async (childCid)=>{
             return (await ipfs.dag.get(childCid)).value;
           });
           const allChildrenTasks = await Promise.all(promisesChildren);
-          console.log('allChildrenTasks,', allChildrenTasks);
-          console.log('before settleNewNodeRa, globalState gasMap, creditMap, pendingTasks', globalState.gasMap, globalState.creditMap, globalState.pendingTasks)
+          //console.log('before settleNewNodeRa, globalState gasMap, creditMap, pendingTasks', globalState.gasMap, globalState.creditMap, globalState.pendingTasks)
           if (settleNewNodeRa(taskCid, globalState, allChildrenTasks)){
             delete pendingTasks[taskCid];
           };
-          console.log('after settleNewNodeRa, globalState gasMap, creditMap, pendingTasks', globalState.gasMap, globalState.creditMap, globalState.pendingTasks)
-          
+          //console.log('after settleNewNodeRa, globalState gasMap, creditMap, pendingTasks', globalState.gasMap, globalState.creditMap, globalState.pendingTasks)
+            
         }
-      break;
+        break;
       }//case
-    }
-    return task? task.value : null;
+      case 'computeTask':{
+        console.log('computeTask not implemented yet in runSettlementBeforeNewBlock');
+        break;
+      }
+    }//switch
+    return ;
   });//map
-  return Promise.all(promisesTasks);
+  return ;
 };
 
 const settleNewNodeRa = (taskCid, globalState, allChildrenTasks)=>{

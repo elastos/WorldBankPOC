@@ -100,8 +100,13 @@ const newNodeJoinNeedRaProcess = async (ipfs, room, options, cid)=>{
   }
   if (! takeEscrow(globalState, userName, depositAmt, cid))
     return false;
-  if (!globalState.pendingTasks[cid]) globalState.pendingTasks[cid] = [];
-  globalState.pendingTasks[cid].push(cid);
+  if (!globalState.pendingTasks[cid]) globalState.pendingTasks[cid] = {
+    type: 'newNodeJoinNeedRa',
+    initiator: userName,
+    startBlockHeight: globalState.blockHeight + 1,
+    followUps:  []
+  };
+  globalState.pendingTasks[cid].followUps.push(cid);
 
   log('new_ra', {
     name : userName,
@@ -153,9 +158,13 @@ const remoteAttestationDoneProcess = async (ipfs, room, options, raDoneCid)=>{
     console.log("vrf soritition failed,", jVerify.toFixed());
     return false;
   }
-  
-  if (!globalState.pendingTasks[taskCid]) globalState.pendingTasks[taskCid] = [];
-  globalState.pendingTasks[taskCid].push(raDoneCid);
+  if (!globalState.pendingTasks[taskCid]) globalState.pendingTasks[taskCid] = {
+    type: 'remoteAttestationDone',
+    initiator: userName,
+    startBlockHeight: globalState.blockHeight + 1,
+    followUps:  []
+  };
+  globalState.pendingTasks[taskCid].followUps.push(raDoneCid);
 
   log('ra_done', {
     vrf : true,
@@ -203,8 +212,17 @@ const computeTask = async (ipfs, room, options, cid, from)=>{
   
   if (! takeEscrow(globalState, userName, depositAmt, cid))
     return false;
-  if (!globalState.pendingTasks[cid]) globalState.pendingTasks[cid] = [];
-  globalState.pendingTasks[cid].push(cid);
+    
+
+
+  if (!globalState.pendingTasks[cid]) globalState.pendingTasks[cid] = {
+    type: 'computeTask',
+    initiator: userName,
+    startBlockHeight: globalState.blockHeight + 1,
+    followUps:  []
+  };
+  globalState.pendingTasks[cid].followUps.push(raDoneCid);
+
 
   return true;
 }
