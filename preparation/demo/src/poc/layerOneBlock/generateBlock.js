@@ -2,6 +2,7 @@ import {minRemoteAttestatorsToPassRaTask, initialCreditIssuedWhenPassRa, awardCr
 import _ from 'lodash';
 import {totalCreditToken} from '../constValue';
 import Big from 'big.js';
+import {log} from '../PotLog';
 
 exports.generateBlock = async ({ipfs, globalState, blockRoom})=>{
   await runSettlementBeforeNewBlock(ipfs, globalState);
@@ -51,7 +52,6 @@ const runSettlementBeforeNewBlock = async (ipfs, globalState)=>{
     const childrenTaskCids = pendingTasks[taskCid];
 
     const task = (await ipfs.dag.get(taskCid)).value;
-    
     switch(task.txType){
       case 'newNodeJoinNeedRa':{
         if(childrenTaskCids.length < minRemoteAttestatorsToPassRaTask){
@@ -111,19 +111,37 @@ const settleNewNodeRa = (taskCid, globalState, allChildrenTasks)=>{
     //console.log('user u, add credit', {u, awardCreditWhenRaSuccessful});
     globalState.gasMap[u] += rewardGasToEach;
     //console.log('user u add gas:', {u, rewardGasToEach});
+
+    log('ra_reward', {
+      name : u,
+      credit : awardCreditWhenRaSuccessful,
+      credit_balance : globalState.creditMap[u],
+      gas : rewardGasToEach,
+      gas_balance : globalState.gasMap[u],
+      cid : taskCid
+    });
   });
   loserArray.forEach(u=>{
     globalState.creditMap[u] -= penaltyCreditWhenRaFail;
     //console.log('user u, lose gas:', {u, penaltyCreditWhenRaFail});
+
+    log('ra_penalty', {
+      name : u,
+      credit : penaltyCreditWhenRaFail,
+      credit_balance : globalState.creditMap[u],
+      cid : taskCid
+    });
   })
   return true;
 }
 const runCreditNormalization = (creditMapInput, maxCredit)=>{
-  const currentTotalCredit = Object.values(creditMapInput).reduce((accu, c)=>{
+  let currentTotalCredit = Object.values(creditMapInput).reduce((accu, c)=>{
+    if(!c) c = 0;
     return accu + c;
   }, 0);
   if(currentTotalCredit == maxCredit)
     return creditMapInput;
+
   const inflation = Big(maxCredit) - Big(currentTotalCredit);
   const creditMap = {};
   Object.keys(creditMapInput).forEach(k=>{

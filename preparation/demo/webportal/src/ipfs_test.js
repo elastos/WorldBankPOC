@@ -4,7 +4,7 @@ const PeerId = require('peer-id');
 const EChart = require('./echart');
 const Data = require('./data');
 import {tryParseJson} from '../../src/poc/constValue';
-import {processNewBlock} from '../../src/poc/simulatorSrc/blockRoom';
+import blockRoomHandler from '../../src/poc/simulatorSrc/blockRoom';
 import townHallHandler from '../../src/poc/simulatorSrc/townHall';
 import taskRoomHandler from '../../src/poc/simulatorSrc/taskRoom';
 
@@ -49,6 +49,8 @@ const F = {
       pub : params.pub,
       pri : params.pri
     };
+
+    window.current_user = C.user;
     C.r = params.r;
     C.blockRoom = 'blockRoom'+params.r;
     C.taskRoom = 'taskRoom'+params.r;
@@ -80,22 +82,24 @@ const F = {
         }, 100);
       }
     });
-    // myData = new Data(myIpfs);
-    // window.myData = myData;
+    myData = new Data(myIpfs);
+    window.myData = myData;
 
-    // await myIpfs.start();
-    // window.myIpfs = myIpfs;
+    await myIpfs.start();
+    window.myIpfs = myIpfs;
 
-    // F.initBlockRoom();
-    // F.initTaskRoom();
-    // F.initTownHall();
-    // window.rooms = {
-    //   taskRoom, blockRoom, townHall
-    // };
+    F.initBlockRoom();
+    F.initTaskRoom();
+    F.initTownHall();
+    window.rooms = {
+      taskRoom, blockRoom, townHall
+    };
 
-    myChart.render(window.test_data);
+    myChart.render();
 
-    // F.initLoopData();
+    F.initLoopData();
+
+    // myChart.render(window.test_data);
   },
 
   initTaskRoom(){
@@ -122,6 +126,8 @@ const F = {
     // })).handler;
   },
   initBlockRoom(){
+    let options = this.buildHandlerOption();
+    let message_hander = ()=>{};
     blockRoom = myIpfs.registerRoom(C.blockRoom, {
       join(peer){
         log('peer ' + peer + ' joined block room');
@@ -141,9 +147,23 @@ const F = {
       message(msg){
         log('block room got message from ' + msg.from + ': ' + msg.data.toString())
 
-        F.processMessage(msg);
+        message_hander(msg).then(()=>{
+          console.log(11, options);
+          myData.addBlock({value : options.block});
+
+          log('receive new block, refresh data.');
+          const list = myData.getAllListForChart();
+          myChart.render(list);
+        });
+        
+
       }
     });
+
+    const tmp_cb = blockRoomHandler(myIpfs.node, blockRoom, options);
+    message_hander = (_.find(tmp_cb, (item)=>{
+      return item.message === 'message';
+    })).handler;
 
     window.blockRoom = blockRoom;
   },
@@ -205,42 +225,10 @@ const F = {
         userName : C.user.name,
         randRoomPostfix : C.r,
         pubicKey : C.user.pub,
-        privateKey : C.user.pri
-      },
-      ipfsId : C.user.ipfs_id
-    };
-  },
-
-  async processMessage(message){
-    const blockObj = tryParseJson(message.data);
-
-    if(typeof blockObj === 'undefined'){
-      return log('In block room got an non-parsable message from ' + message.from + ': ' + message.data.toString());
-    }
-    const {txType, cid} = blockObj;
-    let options = F.buildHandlerOption();
-    if(txType === 'newBlock'){
-      const block = await myIpfs.node.dag.get(cid);
-
-      log("received block height = "+block.value.blockHeight);
-      if(options.isProcessingBlock){
-        throw ("Racing conditions found. Some async funciton is processing block while new block just came in, how to handle this issue?");
+        privateKey : C.user.pri,
+        ipfsPeerId : myIpfs.node._peerInfo.id.toB58String()
       }
-
-      options.block = block.value;
-      options.blockCid = cid;
-      options = await processNewBlock(options);
-      console.log('options', options); 
-      console.log("new block:", options.block);
-      myData.addBlock({value : options.block});
-
-      log('receive new block, refresh data.');
-      const list = myData.getAllListForChart();
-      myChart.render(list);
-      return true;
-    }
-    
-    return log('In block room got an unhandled message from ' + message.from + ': ' + message.data.toString());
+    };
   },
 
   initLoopData(){
@@ -275,7 +263,8 @@ window.poc = {
     const json = {
       userName : C.user.name,
       depositAmt : 10,
-      ipfsPeerId : C.user.ipfs_id
+      ipfsPeerId : C.user.ipfs_id,
+      txType : 'newNodeJoinNeedRa',
     };
 
     // const config = {
@@ -293,7 +282,7 @@ window.poc = {
     // })
 
     const broadcastObj = {
-      txType : 'newNodeJoinNeedRa',
+      txType : json.txType
     };
     myIpfs.node.dag.put(json).then((cid)=>{
       broadcastObj.cid = cid.toBaseEncodedString();

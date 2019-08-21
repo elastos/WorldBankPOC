@@ -87,6 +87,7 @@ module.exports = (ipfs, room, options) => {
         const {userInfo} = options;
         updateLog('res_ra', {
           name : userInfo.userName,
+          from : message.from,
           cid : proofOfVrf.taskCid,
           potResult
         });

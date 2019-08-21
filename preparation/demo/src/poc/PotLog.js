@@ -117,6 +117,20 @@ const F = {
         ra1[opts.cid].push(opts);
         break;
 
+      case 'ra_reward':
+        log = `${opts.name} get ra reward. gas is ${opts.gas}, credit is ${opts.credit}`;
+        ra[opts.cid].push(log);
+        ra1[opts.cid].push(opts);
+
+        break;
+
+      case 'ra_penalty':
+        log = `${opts.name} get ra penalty. credit is ${opts.credit}`;
+        ra[opts.cid].push(log);
+        ra1[opts.cid].push(opts);
+
+        break;
+
       default:
         throw 'invalid type => '+type;
     }

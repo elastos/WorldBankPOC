@@ -5,6 +5,8 @@ const EChart = class {
 
     this.user = opts.user;
 
+    this.ori = null;
+
 
     this.buildCallback(opts);
   }
@@ -57,7 +59,7 @@ const EChart = class {
         right: 24,
         roam: true,
         scaleLimit: {
-          min: 0.8,
+          min: 1,
           max: 4
         },
         itemStyle: {
@@ -71,7 +73,7 @@ const EChart = class {
       series : [
         {
           name: 'node',
-          type: 'effectScatter',
+          type: 'graph',
           coordinateSystem: 'geo',
           data: opts.data || [],
           symbol: (val)=>{
@@ -96,7 +98,9 @@ const EChart = class {
           
           label: {
             normal: {
-              formatter: '{b}',
+              formatter: (e)=>{
+                return this.formatLabel(e.data);
+              },
               position: 'right',
               show: true
             }
@@ -119,7 +123,21 @@ const EChart = class {
               const d = e.data;
               return this.tooltipFormatter(d);
             }
-          }
+          },
+          links: this.formatDataLinks(opts.data),
+          animation: true,
+          animationDuration: (idx)=>{
+            return 500;
+          },
+          animationDelay : (idx)=>{
+            return 0;
+          },
+          animationDurationUpdate : (idx)=>{
+            return 500;
+          },
+          
+          animationEasingUpdate : 'cubicOut',
+          animationDelayUpdate : 500
         }
       ],
       tooltip: {
@@ -143,40 +161,143 @@ const EChart = class {
     `;
   }
 
-  formatDataItem({status, pd}){
+  formatDataLinks(data){
+    const rs = [];
+    let target = [];
+
+    _.each(data, (item)=>{
+      if(item.status === 'new_ra'){
+        this.ori = item.name;
+      }
+      if(item.status === 'req_ra' || item.status === 'res_ra'){
+        if(item.name === this.ori) return true;
+
+        let tar = {}; 
+
+        if(item.status === 'req_ra'){
+
+          tar = {
+            ori : item.name,
+            tar : this.ori
+          };
+          
+        }
+        else{
+          tar = {
+            ori : this.ori,
+            tar : item.name
+          };
+        }
+
+        target.push(tar);
+      }
+    });
+
+    if(!this.ori || target.length < 1) return rs;
+
+    _.each(target, (n)=>{
+      const tmp = {
+        source : n.ori,
+        target : n.tar,
+        lineStyle : {
+          color : {
+            type: 'radial',
+            x: 0.5,
+            y: 0.5,
+            r: 0.5,
+            colorStops: [{
+                offset: 0, color: '#fff' // 0% 处的颜色
+            }, {
+                offset: 1, color: '#0f0' // 100% 处的颜色
+            }],
+            global: false // 缺省为 false
+          },
+          width : 4,
+          type : 'solid',
+          curveness : 0.1
+        },
+        symbol : ['arrow', 'arrow'],
+        symbolSize : [15, 15]
+      }
+      rs.push(tmp);
+    });
+
+    console.log(rs);
+    return rs;
+  }
+
+  formatDataItem({status, pd, name}){
     const rs = {
       symbol : 'circle',
       color : '#0f0'
     };
 
     if(status === 'new_ra'){
-      rs.color = 'yellow';
+      rs.color = '#ff0';
+
+      this.ori = name;
     }
     else if(status === 'req_ra_send'){
       rs.symbol = 'rect';
 
       if(pd.j > 0){
-        rs.color = 'yellow';
+        rs.color = '#f58220';
       }
       else{
         rs.color = 'gray';
       }
     }
     else if(status === 'req_ra'){
-      rs.symbol = 'rect';
-      rs.color = '#f58220';
+      if(name === this.ori){
+        rs.symbol = 'circle';
+        rs.color = '#ff0';
+      }
+      else{
+        rs.symbol = 'rect';
+        rs.color = '#ff0';
+      }
+      
     }
     else if(status === 'res_ra'){
-      rs.symbol = 'rect';
-      rs.color = '#f58220';
+      if(name === this.ori){
+        rs.symbol = 'circle';
+        rs.color = '#ff0';
+      }
+      else{
+        rs.symbol = 'rect';
+        rs.color = '#ff0';
+      }
     }
-    else if(status === 'ra_done'){
+    else if(_.includes(['ra_done', 'ra_reward', 'ra_penalty'], status)){
       rs.symbol = 'diamond';
       rs.color = 'cyan';
+
+      if(status === 'ra_reward'){
+        rs.color = '#0f0';
+      }
+      else if(status === 'ra_penalty'){
+        rs.color = '#f00';
+      }
+    }
+
+    if(this.user.name === name){
+      // rs.color = '#eee';
     }
 
 
     return rs;
+  }
+
+  formatLabel(d){
+    const {status, pd, name} = d;
+    if(status === 'ra_reward'){
+      return `${name} [gas+${pd.gas} credit+${pd.credit}]`;
+    }
+    else if(status === 'ra_penalty'){
+      return `${name} [credit-${pd.credit}]`;
+    }
+
+    return name;
   }
 };
 
