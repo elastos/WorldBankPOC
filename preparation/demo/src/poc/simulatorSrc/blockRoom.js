@@ -71,7 +71,7 @@ const processNewBlock = async (options)=>{
       console.log("VRFing.... this takes some time, please be patient..., ", userInfo, vrfMsg);
       const { proof, value } = ecvrf.vrf(Buffer.from(userInfo.publicKey, 'hex'), Buffer.from(userInfo.privateKey, 'hex'), Buffer.from(vrfMsg, 'hex'));
       console.log("VRF{ proof, value }", { proof:proof.toString('hex'), value: value.toString('hex') });
-      console.log("Now running VRF sortition...it also needs some time... please be patient...");
+      console.log("Now running VRF sortition...it also needs some time... please be patient...", userCreditBalance, p);
       const j = sortition.getVotes(value, new Big(userCreditBalance), new Big(p));
       if(j.gt(0)){
         console.log("I am lucky!!!", j.toFixed());
@@ -158,7 +158,7 @@ const processNewBlock = async (options)=>{
       console.log("VRFing.... this takes some time, please be patient..., ", userInfo, vrfMsg);
       const { proof, value } = ecvrf.vrf(Buffer.from(userInfo.publicKey, 'hex'), Buffer.from(userInfo.privateKey, 'hex'), Buffer.from(vrfMsg, 'hex'));
       console.log("VRF{ proof, value }", { proof:proof.toString('hex'), value: value.toString('hex') });
-      console.log("Now running VRF sortition...it also needs some time... please be patient...");
+      console.log("Now running VRF sortition...it also needs some time... please be patient...", userCreditBalance, p);
       const j = sortition.getVotes(value, new Big(userCreditBalance), new Big(p));
       if(j.gt(0)){
         console.log("I am lucky!!!", j.toFixed());

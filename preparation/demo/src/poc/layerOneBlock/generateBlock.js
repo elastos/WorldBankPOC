@@ -159,7 +159,7 @@ const runCreditNormalization = (creditMapInput, maxCredit)=>{
   const creditMap = {};
   Object.keys(creditMapInput).forEach(k=>{
     const newCredit = creditMapInput[k] * inflation / currentTotalCredit + creditMapInput[k]; //TODO: possible overflow
-    creditMap[k] = newCredit;
+    creditMap[k] = Math.round(newCredit);
   });
   return creditMap;
 };
