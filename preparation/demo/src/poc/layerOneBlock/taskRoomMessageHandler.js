@@ -106,7 +106,6 @@ const newNodeJoinNeedRaProcess = async (ipfs, room, options, cid)=>{
     startBlockHeight: globalState.blockHeight + 1,
     followUps:  []
   };
-  globalState.pendingTasks[cid].followUps.push(cid);
 
   log('new_ra', {
     name : userName,
@@ -158,11 +157,9 @@ const remoteAttestationDoneProcess = async (ipfs, room, options, raDoneCid)=>{
     console.log("vrf soritition failed,", jVerify.toFixed());
     return false;
   }
-  if (!globalState.pendingTasks[taskCid]) globalState.pendingTasks[taskCid] = {
-    type: 'remoteAttestationDone',
-    initiator: userName,
-    startBlockHeight: globalState.blockHeight + 1,
-    followUps:  []
+  if (!globalState.pendingTasks[taskCid]) {
+    console.log("This could caused by a late response RA done message. Because when this message received, the RA done has been processed and removed. We have to drop this RA done because it is too late");
+    return false;
   };
   globalState.pendingTasks[taskCid].followUps.push(raDoneCid);
 
@@ -221,8 +218,7 @@ const computeTask = async (ipfs, room, options, cid, from)=>{
     startBlockHeight: globalState.blockHeight + 1,
     followUps:  []
   };
-  globalState.pendingTasks[cid].followUps.push(raDoneCid);
-
+  
 
   return true;
 }

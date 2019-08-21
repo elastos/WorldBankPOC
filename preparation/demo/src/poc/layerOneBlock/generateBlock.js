@@ -52,7 +52,7 @@ const runSettlementBeforeNewBlock = (ipfs, globalState)=>{
   const pendingTasks = globalState.pendingTasks;
 
   const promisesTasks = Object.keys(pendingTasks).map( async (taskCid)=>{
-    const {type, followUps} = pendingTasks[taskCid];
+    const {type, initiator, followUps} = pendingTasks[taskCid];
     switch(type){
       case 'newNodeJoinNeedRa':{
         if(followUps.length < minRemoteAttestatorsToPassRaTask){
@@ -63,7 +63,7 @@ const runSettlementBeforeNewBlock = (ipfs, globalState)=>{
           });
           const allChildrenTasks = await Promise.all(promisesChildren);
           //console.log('before settleNewNodeRa, globalState gasMap, creditMap, pendingTasks', globalState.gasMap, globalState.creditMap, globalState.pendingTasks)
-          if (settleNewNodeRa(taskCid, globalState, allChildrenTasks)){
+          if (settleNewNodeRa(initiator, taskCid, globalState, allChildrenTasks)){
             delete pendingTasks[taskCid];
           };
           //console.log('after settleNewNodeRa, globalState gasMap, creditMap, pendingTasks', globalState.gasMap, globalState.creditMap, globalState.pendingTasks)
@@ -81,25 +81,20 @@ const runSettlementBeforeNewBlock = (ipfs, globalState)=>{
   return ;
 };
 
-const settleNewNodeRa = (taskCid, globalState, allChildrenTasks)=>{
+const settleNewNodeRa = (initiator, taskCid, globalState, allChildrenTasks)=>{
   let voteYes = [];
   let voteNo = [];
   let voteResultWeighted = 0;
   
-  let newNodeUserName;
+  const newNodeUserName = initiator;
   allChildrenTasks.forEach(t=>{
-    if(t.txType == 'newNodeJoinNeedRa'){
-      newNodeUserName = t.userName;
+    if(t.potResult){
+      voteResultWeighted += t.proofOfVrf.j;
+      voteYes.push(t.proofOfVrf.userName);
     }else{
-      if(t.potResult){
-        voteResultWeighted += t.proofOfVrf.j;
-        voteYes.push(t.proofOfVrf.userName);
-      }else{
-        voteResultWeighted -= t.proofOfVrf.j;
-        voteNo.push(t.proofOfVrf.userName);
-      } 
-    }
-
+      voteResultWeighted -= t.proofOfVrf.j;
+      voteNo.push(t.proofOfVrf.userName);
+    } 
   });
   //console.log('voteYes, voteNo, voteResultWeighted:', {voteYes, voteNo, voteResultWeighted});
   let winnerArray;
