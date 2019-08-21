@@ -158,7 +158,7 @@ const runCreditNormalization = (creditMapInput, maxCredit)=>{
     if(!c) c = 0;
     return accu + c;
   }, 0);
-  if(currentTotalCredit == maxCredit)
+  if(Math.abs((currentTotalCredit - maxCredit) / maxCredit ) < 0.01)
     return creditMapInput;
   const inflation = maxCredit - currentTotalCredit;
   const creditMap = {};
