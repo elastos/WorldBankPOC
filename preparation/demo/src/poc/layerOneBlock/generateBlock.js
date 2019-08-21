@@ -1,4 +1,4 @@
-import {minRemoteAttestatorsToPassRaTask, initialCreditIssuedWhenPassRa, awardCreditWhenRaSuccessful, penaltyCreditWhenRaFail} from '../constValue';
+import {minRemoteAttestatorsToPassRaTask, initialCreditIssuedWhenPassRa, awardCreditWhenRaSuccessful, penaltyCreditWhenRaFail, reduceFactualIfRaFail} from '../constValue';
 import _ from 'lodash';
 import {totalCreditToken} from '../constValue';
 import Big from 'big.js';
@@ -98,14 +98,27 @@ const settleNewNodeRa = (taskCid, globalState, allChildrenTasks)=>{
 
   });
   //console.log('voteYes, voteNo, voteResultWeighted:', {voteYes, voteNo, voteResultWeighted});
-  const winnerArray = voteResultWeighted >= 0? voteYes : voteNo;
-  const loserArray = voteResultWeighted < 0? voteYes : voteNo;
+  let winnerArray;
+  let loserArray;
 
+  if(voteResultWeighted > 0){
+    winnerArray = voteYes;
+    loserArray = voteNo;
+  }else if(voteResultWeighted < 0){
+    winnerArray = voteNo;
+    loserArray = voteYes;
+  }else{
+    winnerArray = [];
+    loserArray = [];
+  }
+  
   const totalAwardGas = globalState.escrowGasMap[taskCid];
   
   if (voteResultWeighted > 0) 
     globalState.creditMap[newNodeUserName] += initialCreditIssuedWhenPassRa;
-  const rewardGasToEach = totalAwardGas / winnerArray.length;
+  else
+    globalState.creditMap[newNodeUserName] = 0;//reduceFactualIfRaFail;
+  const rewardGasToEach = winnerArray.length? totalAwardGas / winnerArray.length : 0;
   winnerArray.forEach(u=>{
     globalState.creditMap[u] += awardCreditWhenRaSuccessful;
     //console.log('user u, add credit', {u, awardCreditWhenRaSuccessful});
@@ -131,7 +144,9 @@ const settleNewNodeRa = (taskCid, globalState, allChildrenTasks)=>{
       credit_balance : globalState.creditMap[u],
       cid : taskCid
     });
-  })
+  });
+  
+  delete globalState.escrowGasMap[taskCid];
   return true;
 }
 const runCreditNormalization = (creditMapInput, maxCredit)=>{
@@ -141,12 +156,16 @@ const runCreditNormalization = (creditMapInput, maxCredit)=>{
   }, 0);
   if(currentTotalCredit == maxCredit)
     return creditMapInput;
+<<<<<<< HEAD
 
   const inflation = Big(maxCredit) - Big(currentTotalCredit);
+=======
+  const inflation = maxCredit - currentTotalCredit;
+>>>>>>> 1eb912d9115cf800dc634b81e69064e892632aff
   const creditMap = {};
   Object.keys(creditMapInput).forEach(k=>{
-    const newCredit = Big(creditMapInput[k]).times(Big(inflation)).div(Big(currentTotalCredit)).plus(Big(creditMapInput[k]));
-    creditMap[k] = parseInt(newCredit.toFixed());
+    const newCredit = creditMapInput[k] * inflation / currentTotalCredit + creditMapInput[k]; //TODO: possible overflow
+    creditMap[k] = newCredit;
   });
   return creditMap;
 };

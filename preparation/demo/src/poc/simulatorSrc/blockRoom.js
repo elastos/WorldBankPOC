@@ -118,7 +118,7 @@ const processNewBlock = async (options)=>{
   remoteAttestationDoneTxsCid.map((cid)=>{
     ipfs.dag.get(cid).then(tx=>{
       console.log("received a RADone task, not implemented yet",tx.value);
-      logToWebPage(`Blockroom Received a RA Done Message `, tx);
+      //logToWebPage(`Blockroom Received a RA Done Message `, tx);
     })
   });
 
@@ -137,11 +137,13 @@ const verifyBlockIntegrity = (options)=>{
 const setEleValue = (id, newValue)=>{
   if(!document.getElementById(id))return;
   if(document.getElementById(id).innerHTML != newValue){
-    document.getElementById(id).innerHTML = newValue;
+    document.getElementById(id + "_was")? document.getElementById(id + "_was").innerHTML = document.getElementById(id).innerHTML : null;
+    document.getElementById(id).innerHTML = newValue;;
     document.getElementById(id).style.color = '#d00';
   }
   else{
     document.getElementById(id).style.color = '#000'
+    document.getElementById(id + "_was")? document.getElementById(id + "_was").innerHTML = "": null;
   }
 }
 

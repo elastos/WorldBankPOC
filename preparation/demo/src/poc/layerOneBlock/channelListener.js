@@ -34,7 +34,7 @@ const createGenesysBlock = (ipfs, presetUsers)=>{
     const u = presetUsers[i];
     block.gasMap[u.name] = i < 10? i * 10 : 50;
     totalGas += block.gasMap[u.name];
-    block.creditMap[u.name] = i < 10? i: 50; //
+    block.creditMap[u.name] = i < 10? i: 5; //
     totalCredit += block.creditMap[u.name];
     block.peerProfile[u.name] = {
       loc : locs[i]
@@ -58,6 +58,7 @@ exports.channelListener = (ipfs, randRoomPostfix, presetUsers)=>{
   
   //We assume every time we start the demo, it starts from genesis block
   const globalState = createGenesysBlock(ipfs, presetUsers);
+  console.log('asdfasdfasdfad', globalState);
   const options = {globalState};//default placeholder
   const rooms = {};
   const taskRoom = Room(ipfs, 'taskRoom' + randRoomPostfix, {pollInterval:333});
