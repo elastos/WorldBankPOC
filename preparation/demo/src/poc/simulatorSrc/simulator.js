@@ -41,8 +41,37 @@ exports.main = ({userInfo})=>{
   };
   document.getElementById('btn4').onclick = ()=>{
     editor.set({
-      txType:"placeHolder"
-    })
+      txType:"uploadLambda",
+      lambdaCid:"hello_world",
+      dockerImg:"placeholder",
+      payment:"payPerUse",
+      amt:30
+    });
+  };
+  document.getElementById('btn5').onclick = ()=>{
+    editor.set({
+      txType:"computeTask",
+      lambdaCid:"hello_world",
+      postSecData:'placeholder',
+      env:{
+        network:'totalIsolated',
+        ipAllowed:'none',
+        p2pTrafficInAllowed:'owner',
+        resultSendBackTo:'owner',
+        errorSendBackTo:'owner',
+        osRequirement:"none",
+        timeOut:'100',
+        cleanUpAfter:'totalWipeout'
+      },
+      executorRequirement:{
+        credit:3,
+        deposit:10
+
+      },
+      multiParties:'none',
+      amt:30
+    });
+
   };
   document.getElementById('sendAction').onclick = ()=>{
     console.log("ready to send action,",JSON.stringify(editor.get(), null, 2));
@@ -74,8 +103,9 @@ exports.main = ({userInfo})=>{
           break;
         }
   
-        case "blockroom":
-          channelRoom = pubsubRooms.blockRoom;
+        case "computeTask":
+          channelRoom = pubsubRooms.taskRoom;
+          promiseCid = ipfs.dag.put(jsonObj);
           break;
         default:
           return console.log("unsupported pubsub room,", room);
