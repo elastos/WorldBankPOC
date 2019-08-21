@@ -43,10 +43,10 @@ function init(){
 
     const userName = getUrlVars().u;
     const randRoomPostfix = getUrlVars().r || "";
-    const pubicKey = getUrlVars().pub || "";
+    const publicKey = getUrlVars().pub || "";
     const privateKey = getUrlVars().pri || "";
     const ipfsPeerId = ipfs._peerInfo.id.toB58String();
-    const userInfo = {userName, randRoomPostfix, pubicKey, privateKey, ipfsPeerId}
+    const userInfo = {userName, randRoomPostfix, publicKey, privateKey, ipfsPeerId}
     
     console.log("randRoomPostfix", randRoomPostfix);
     const rooms = {};

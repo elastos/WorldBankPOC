@@ -32,13 +32,14 @@ module.exports = (ipfs, room, options) => {
           userInfo:{userName, publicKey}
         }
         room.sendTo(message.from, JSON.stringify(resMessage));
-        logToWebPage(`send back reqUserInfo to townhall manager`, resMessage);
+        //logToWebPage(`send back reqUserInfo to townhall manager`, resMessage);
         break;
       }
 
       case "reqRemoteAttestation":{//Now I am new node, sending back poT after validate the remote attestation is real
         const {userInfo} = options;
         const {userName, publicKey} = userInfo;
+
         const validateReturn = await validateVrf({ipfs, messageObj});
         if(! validateReturn.result){
           logToWebPage(`VRF Validation failed, reason is `, validateReturn.reason);
@@ -94,6 +95,29 @@ module.exports = (ipfs, room, options) => {
         
         break;
       }
+
+      case 'computeTaskWinnerApplication':{
+        if(messageObj.userName == options.userInfo.userName){
+          //myself
+          break;
+        }
+
+        const validateReturn = await validateVrf({ipfs, messageObj});
+        if(! validateReturn.result){
+          logToWebPage(`VRF Validation failed, reason is `, validateReturn.reason);
+          break;
+        }
+        //logToWebPage(`VRF Validation passed`);
+        if (options.computeTaskGroup && options.computeTaskGroup[messageObj.taskCid]){
+          options.computeTaskGroup[messageObj.taskCid].push({
+            ipfsPeerId: messageObj.ipfsPeerId,
+            j: messageObj.j});
+        }else{
+          //do nothing. since I am not lucky enough to get involved in this task, I do not bother to know who is in , unless I am a hacker
+        }
+        //logToWebPage('current options.computeTaskGroup', options.computeTaskGroup);
+        break;
+      }
       // case "remoteAttestationDone":{
       //   if(message.from != options.userInfo.ipfsPeerId){//I do not want to verify myself vrf and remote attestation
       //     if(! verifyOthersRemoteAttestationVrfAndProof(messageObj)){
@@ -110,7 +134,6 @@ module.exports = (ipfs, room, options) => {
     
   };
     
-
   messageHandlers.push({
     message: 'message',
     handler: (m)=>directMessageHandler(m)

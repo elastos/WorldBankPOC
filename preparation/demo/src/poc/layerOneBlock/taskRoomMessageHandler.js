@@ -11,6 +11,7 @@ export default (ipfs, room, options)=>{
     const messageString = m.data.toString();
     
     const messageObj = tryParseJson(messageString);
+    //console.log("before process tx cid=", messageObj.cid,  " the globalState.processedTxs is,", globalState.processedTxs);
     if( typeof messageObj == "undefined") return false;
     let processResult;
     switch(messageObj.txType){
@@ -23,12 +24,22 @@ export default (ipfs, room, options)=>{
       case "remoteAttestationDone":
         processResult = await remoteAttestationDoneProcess(ipfs, room, options, messageObj.cid, m.from);
         break;
+      case 'uploadLambda':{
+        processResult = await updateLambda(ipfs, room, options, messageObj.cid, m.from);
+        
+        break;
+      }
+      case 'computeTask':{
+        processResult = await computeTask(ipfs, room, options, messageObj.cid, m.from);
+        
+        break;
+      }
       default:
         console.log("taskRoom Unhandled message, ", messageObj);
     }
     if(processResult){
       globalState.processedTxs.push(messageObj);
-      //console.log("after process tx cid=", messageObj.cid,  " the globalState is,", globalState);
+      //console.log("after process tx cid=", messageObj.cid,  " the globalState.processedTxs is,", globalState.processedTxs);
     }
     else{
       console.log("process task failed, tx is dropped, ", messageObj.cid);
@@ -168,3 +179,33 @@ const takeEscrow = (globalState, userName, depositAmt, taskCid)=>{
     return false;
   };
 };
+
+const updateLambda = async (ipfs, room, options, cid)=>{
+  const tx = await ipfs.dag.get(cid);
+  if(! tx || ! tx.value){
+    console.log("in updateLambda, tx is not existing", tx);
+    return false;
+  }
+
+  if(tx.value.amt < 0) return false;
+  return true;
+}
+
+const computeTask = async (ipfs, room, options, cid, from)=>{
+  const {globalState} = options;
+  const tx = await ipfs.dag.get(cid);
+  if(! tx || ! tx.value){
+    console.log("in computeTask, tx is not existing", tx);
+    return false;
+  }
+  const {userName, depositAmt} = tx.value;
+  if (!userName)  return false;
+  
+  if (! takeEscrow(globalState, userName, depositAmt, cid))
+    return false;
+  if (!globalState.pendingTasks[cid]) globalState.pendingTasks[cid] = [];
+  globalState.pendingTasks[cid].push(cid);
+
+  return true;
+}
+

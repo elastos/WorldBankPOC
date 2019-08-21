@@ -1,10 +1,10 @@
 import {getUrlVars} from './utils.js';
 
 exports.main = ({userInfo})=>{
-  const {userName, pubicKey, privateKey, randRoomPostfix} = userInfo;
+  const {userName, publicKey, privateKey, randRoomPostfix} = userInfo;
   document.getElementById('roomPostfix').innerText = randRoomPostfix;
   document.getElementById('userName').innerText = userName;
-  document.getElementById('pubkey').innerText = pubicKey;
+  document.getElementById('pubkey').innerText = publicKey;
   
   const ipfs = window.ipfs;
   const pubsubRooms = window.rooms;
@@ -45,12 +45,13 @@ exports.main = ({userInfo})=>{
       lambdaCid:"hello_world",
       dockerImg:"placeholder",
       payment:"payPerUse",
-      amt:30
+      amt:2
     });
   };
   document.getElementById('btn5').onclick = ()=>{
     editor.set({
       txType:"computeTask",
+      userName,
       lambdaCid:"hello_world",
       postSecData:'placeholder',
       env:{
@@ -69,7 +70,7 @@ exports.main = ({userInfo})=>{
 
       },
       multiParties:'none',
-      amt:30
+      depositAmt:30
     });
 
   };
@@ -95,20 +96,14 @@ exports.main = ({userInfo})=>{
         case "setProofOfTrustForThisNode":
           window.proofOfTrustTest = jsonObj;
           return;
-        case "newNodeJoinNeedRa":{
-          channelRoom = pubsubRooms.taskRoom;
-
-          promiseCid = ipfs.dag.put(jsonObj);
-          
-          break;
-        }
-  
+        case "newNodeJoinNeedRa":
+        case 'uploadLambda':
         case "computeTask":
           channelRoom = pubsubRooms.taskRoom;
           promiseCid = ipfs.dag.put(jsonObj);
           break;
         default:
-          return console.log("unsupported pubsub room,", room);
+          return console.log("unsupported sendAction txType,", txType);
       }
       promiseCid.then((cid)=>{
         broadcastObj.cid = cid.toBaseEncodedString();

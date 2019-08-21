@@ -2,7 +2,7 @@ import {tryParseJson, logToWebPage, updateLog} from './utils'
 import { ExceptionHandler, exceptions } from 'winston';
 const {utils, ecvrf, sortition} = require('vrf.js');
 import {sha256} from 'js-sha256';
-import {expectNumberOfRemoteAttestatorsToBeVoted, minimalNewNodeJoinRaDeposit} from '../constValue';
+import {expectNumberOfRemoteAttestatorsToBeVoted, minimalNewNodeJoinRaDeposit, expectNumberOfExecutorGroupToBeVoted} from '../constValue';
 const Big = require('big.js');
 
 
@@ -29,14 +29,16 @@ const processNewBlock = async (options)=>{
   let totalCreditForOnlineNodes = block.totalCreditForOnlineNodes;
 
   updateNodeStatusOnNewBlock(options, totalGas, totalCredit, totalCreditForOnlineNodes);
-  const watchingTxTypes = ['newNodeJoinNeedRa','remoteAttestationDone'];
   const newNodeJoinNeedRaTxsCid = [];
   const remoteAttestationDoneTxsCid = [];
-  
+  const uploadLambdaTxsCid = [];
+  const computeTaskTxsCid = [];
  
   block.processedTxs.forEach((tx)=>{
     if(tx.txType == 'newNodeJoinNeedRa')  newNodeJoinNeedRaTxsCid.push(tx.cid);
     if(tx.txType == 'remoteAttestationDone')  remoteAttestationDoneTxsCid.push(tx.cid);
+    if(tx.txType == 'uploadLambda')  uploadLambdaTxsCid.push(tx.cid);
+    if(tx.txType == 'computeTask')  computeTaskTxsCid.push(tx.cid);
     
   });
   
@@ -67,7 +69,7 @@ const processNewBlock = async (options)=>{
       const vrfMsg = sha256.update(blockCid).update(cid).hex();
       const p = expectNumberOfRemoteAttestatorsToBeVoted / totalCreditForOnlineNodes;
       console.log("VRFing.... this takes some time, please be patient..., ", userInfo, vrfMsg);
-      const { proof, value } = ecvrf.vrf(Buffer.from(userInfo.pubicKey, 'hex'), Buffer.from(userInfo.privateKey, 'hex'), Buffer.from(vrfMsg, 'hex'));
+      const { proof, value } = ecvrf.vrf(Buffer.from(userInfo.publicKey, 'hex'), Buffer.from(userInfo.privateKey, 'hex'), Buffer.from(vrfMsg, 'hex'));
       console.log("VRF{ proof, value }", { proof:proof.toString('hex'), value: value.toString('hex') });
       console.log("Now running VRF sortition...it also needs some time... please be patient...");
       const j = sortition.getVotes(value, new Big(userCreditBalance), new Big(p));
@@ -81,7 +83,7 @@ const processNewBlock = async (options)=>{
           value: value.toString('hex'),
           blockCid,
           taskCid:cid,
-          publicKey:userInfo.pubicKey,
+          publicKey:userInfo.publicKey,
           userName:userInfo.userName
         }
 
@@ -122,10 +124,82 @@ const processNewBlock = async (options)=>{
     })
   });
 
-  //options.isProcessingBlock = false;
+  uploadLambdaTxsCid.map((cid)=>{
+    console.log("for upload Lamdba, we do not need to do anything. Just have a record there that in which block height, the CID of this ladba has been recorded. In case of some future search")
+  });
+  
+  computeTaskTxsCid.map((cid)=>{
+    ipfs.dag.get(cid).then(tx=>{
+      const {ipfsPeerId, depositAmt, executorRequirement} = tx.value;
+      if(ipfsPeerId == userInfo.ipfsPeerId){
+        console.log("I am the node myself, I cannot do execution compute task on myself, skip");
+        return;
+      }
+      if(depositAmt < 0){
+        console.log(`amt has to be greater than 0, otherwise he is stealing money from you: ${tx.value.depositAmt}. computTask abort now`);
+        logToWebPage(`amt has to be greater than 0, otherwise he is stealing money from you: ${tx.value.depositAmt}. computTask abort now`);
+        return;
+      }
+      const myCurrentGasBalance = options.block.gasMap[options.userInfo.userName];
+      
+      if ( myCurrentGasBalance < depositAmt){
+        logToWebPage("I do not have enough gas as escrow to start this compute task. I have to quit this competition. Sorry. ")
+        return;
+      }
+      const myCurrentCreditBalance = options.block.creditMap[options.userInfo.userName];
+      if ( myCurrentCreditBalance < executorRequirement.credit){
+        logToWebPage(`My credit balance is ${myCurrentCreditBalance} which is lower than the task client required ${executorRequirement.credit}. I have to quit this competition. Sorry. `);
+        return;
+      }
+      const {blockCid} = options;
+      //console.log("received a RA task",tx.value, blockCid, cid);
+      const vrfMsg = sha256.update(blockCid).update(cid).hex();
+      const p = expectNumberOfExecutorGroupToBeVoted / totalCreditForOnlineNodes;
+      console.log("VRFing.... this takes some time, please be patient..., ", userInfo, vrfMsg);
+      const { proof, value } = ecvrf.vrf(Buffer.from(userInfo.publicKey, 'hex'), Buffer.from(userInfo.privateKey, 'hex'), Buffer.from(vrfMsg, 'hex'));
+      console.log("VRF{ proof, value }", { proof:proof.toString('hex'), value: value.toString('hex') });
+      console.log("Now running VRF sortition...it also needs some time... please be patient...");
+      const j = sortition.getVotes(value, new Big(userCreditBalance), new Big(p));
+      if(j.gt(0)){
+        console.log("I am lucky!!!", j.toFixed());
+        logToWebPage(`I am lucky!! J is ${j.toFixed()}. However I should not tell anyone about my win. Do not want to get hacker noticed. I just join the secure p2p chat group for winner's only`);
+        if (! options.computeTaskGroup){
+          options.computeTaskGroup = {};
+        }
+        if(! options.computeTaskGroup[cid])
+          options.computeTaskGroup[cid] = [];
+
+          // we do not add anything here yet. because there is no reason to add myself into it, but this object is useful when I listen to othernodes. if it doesnt exists, I do not bother to add them into this array
+  
+        const applicationJoinSecGroup = {
+          type:'computeTaskWinnerApplication',
+          ipfsPeerId: userInfo.ipfsPeerId,//peerId for myself
+          userName: options.userInfo.userName,
+          publicKey: options.userInfo.publicKey,
+          taskCid: cid,
+          blockCid,proof, value, j
+        };
+      
+        window.rooms.townHall.broadcast(JSON.stringify(applicationJoinSecGroup));
+        logToWebPage(`I am asking to join the secure chatting group by sending everyone in this group my application`, applicationJoinSecGroup);
+        
+      }else{
+        // updateLog('req_ra_send', {
+        //   name : userInfo.userName,
+        //   j: parseInt(j.toFixed()),
+        //   cid,
+        // })
+  
+        console.log("bad luck, try next", j.toFixed());
+        logToWebPage(`bad luck, try next time`);
+      }
+    })
+  });
   return options;
   
 }
+
+
 
 const verifyBlockIntegrity = (options)=>{
   //Place holder, did not do anything yet, assume the block is valid

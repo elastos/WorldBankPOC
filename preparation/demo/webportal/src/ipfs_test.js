@@ -224,7 +224,7 @@ const F = {
       userInfo : {
         userName : C.user.name,
         randRoomPostfix : C.r,
-        pubicKey : C.user.pub,
+        publicKey : C.user.pub,
         privateKey : C.user.pri,
         ipfsPeerId : myIpfs.node._peerInfo.id.toB58String()
       }

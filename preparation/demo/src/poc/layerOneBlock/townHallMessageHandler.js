@@ -19,6 +19,8 @@ export default (ipfs, room, options)=>{
           ipfs_id : m.from
         });
         break;
+      case "computeTaskWinnerApplication":
+        break;
       default:
         return console.log("townHallMessageHandler received unknown type message object,", messageObj );
     }
