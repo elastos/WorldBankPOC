@@ -1,5 +1,5 @@
 exports.thresholdForVrfRa = 10;
-exports.totalCreditToken = 10000;
+exports.totalCreditToken = 95;
 exports.gasFaucetPeerId = 'faucet';
 exports.gasBurnPeerId = 'fireplace';
 exports.creditRewardToEverySuccessfulRa = 1;
