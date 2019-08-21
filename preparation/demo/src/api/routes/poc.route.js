@@ -80,7 +80,10 @@ router
     const rooms = req.app.get('pubsubRooms');
     const {blockRoom} = rooms;
     const newBlock = await generateBlock({ipfs, globalState, blockRoom})
-    const htmlDoc = '<html><head></head><body><pre><code>' + JSON.stringify(newBlock, undefined, 2) + '</code></pre></body></html>';
+    const htmlDoc = '<html><head><link href="/simulator/css/jsoneditor.min.css" rel="stylesheet" type="text/css"><script src="/simulator/dist/jsoneditor.min.js"></script></head>'
+     + '<body><h1>Block Height:' + newBlock.blockHeight + '</h1><p>Refresh this page to generate next block</p><div id="jsoneditor"></div><script>var container = document.getElementById("jsoneditor");var editor = new JSONEditor(container, {});editor.set('
+     + JSON.stringify(newBlock)
+    + ')</script></body></html>';
     res.status(200).send(htmlDoc);
   });
 

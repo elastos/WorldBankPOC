@@ -1,4 +1,4 @@
-import {minRemoteAttestatorsToPassRaTask, initialCreditIssuedWhenPassRa, awardCreditWhenRaSuccessful, penaltyCreditWhenRaFail} from '../constValue';
+import {minRemoteAttestatorsToPassRaTask, initialCreditIssuedWhenPassRa, awardCreditWhenRaSuccessful, penaltyCreditWhenRaFail, reduceFactualIfRaFail} from '../constValue';
 import _ from 'lodash';
 import {totalCreditToken} from '../constValue';
 import Big from 'big.js';
@@ -98,14 +98,27 @@ const settleNewNodeRa = (taskCid, globalState, allChildrenTasks)=>{
 
   });
   //console.log('voteYes, voteNo, voteResultWeighted:', {voteYes, voteNo, voteResultWeighted});
-  const winnerArray = voteResultWeighted >= 0? voteYes : voteNo;
-  const loserArray = voteResultWeighted < 0? voteYes : voteNo;
+  let winnerArray;
+  let loserArray;
 
+  if(voteResultWeighted > 0){
+    winnerArray = voteYes;
+    loserArray = voteNo;
+  }else if(voteResultWeighted < 0){
+    winnerArray = voteNo;
+    loserArray = voteYes;
+  }else{
+    winnerArray = [];
+    loserArray = [];
+  }
+  
   const totalAwardGas = globalState.escrowGasMap[taskCid];
   
   if (voteResultWeighted > 0) 
     globalState.creditMap[newNodeUserName] += initialCreditIssuedWhenPassRa;
-  const rewardGasToEach = totalAwardGas / winnerArray.length;
+  else
+    globalState.creditMap[newNodeUserName] = 0;//reduceFactualIfRaFail;
+  const rewardGasToEach = winnerArray.length? totalAwardGas / winnerArray.length : 0;
   winnerArray.forEach(u=>{
     globalState.creditMap[u] += awardCreditWhenRaSuccessful;
     //console.log('user u, add credit', {u, awardCreditWhenRaSuccessful});
@@ -115,7 +128,8 @@ const settleNewNodeRa = (taskCid, globalState, allChildrenTasks)=>{
   loserArray.forEach(u=>{
     globalState.creditMap[u] -= penaltyCreditWhenRaFail;
     //console.log('user u, lose gas:', {u, penaltyCreditWhenRaFail});
-  })
+  });
+  delete globalState.escrowGasMap[taskCid];
   return true;
 }
 const runCreditNormalization = (creditMapInput, maxCredit)=>{

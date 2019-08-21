@@ -137,11 +137,13 @@ const verifyBlockIntegrity = (options)=>{
 const setEleValue = (id, newValue)=>{
   if(!document.getElementById(id))return;
   if(document.getElementById(id).innerHTML != newValue){
-    document.getElementById(id).innerHTML = newValue;
+    document.getElementById(id + "_was")? document.getElementById(id + "_was").innerHTML = document.getElementById(id).innerHTML : null;
+    document.getElementById(id).innerHTML = newValue;;
     document.getElementById(id).style.color = '#d00';
   }
   else{
     document.getElementById(id).style.color = '#000'
+    document.getElementById(id + "_was")? document.getElementById(id + "_was").innerHTML = "": null;
   }
 }
 
