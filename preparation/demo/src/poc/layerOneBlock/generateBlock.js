@@ -3,7 +3,7 @@ import _ from 'lodash';
 import {totalCreditToken} from '../constValue';
 import Big from 'big.js';
 import {log} from '../PotLog';
-import {eligibilityCheck} from '../computeTask';
+import {eligibilityCheck, chooseExecutorAndMonitors} from '../computeTask';
 
 exports.generateBlock = async ({ipfs, globalState, blockRoom})=>{
   runSettlementBeforeNewBlock(ipfs, globalState);
@@ -77,6 +77,9 @@ const runSettlementBeforeNewBlock = (ipfs, globalState)=>{
         const result = eligibilityCheck(globalState.blockHeight, pendingTasks[taskCid]);
         if(result == 'needExtend')
           globalState.processedTxs.push(taskCid);
+        else if(result == 'timeUp'){
+          chooseExecutorAndMonitors(pendingTasks[taskCid]);
+        }
         break;
       }
     }//switch

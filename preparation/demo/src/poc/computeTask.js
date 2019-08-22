@@ -26,3 +26,8 @@ exports.executeCompute = async (options, taskCid, task, executor, executorJ)=>{
   //Now we just return hello world
   return "Hello World!";
 }
+
+exports.chooseExecutorAndMonitors = async (executeTask)=>{
+  const {followUps} = executeTask;
+  
+}

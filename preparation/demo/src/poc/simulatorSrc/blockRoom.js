@@ -224,28 +224,14 @@ const handlePendingTasks =  (options, totalGas, totalCredit, totalCreditForOnlin
       const task = options.block.pendingTasks[c];
       if(eligibilityCheck(options.block.blockHeight, task) == 'timeUp'){
         let executor;
-        let executorJ = 0;
-        Object.keys(options.computeTaskGroup).forEach(async k=>{
-          if(options.computeTaskGroup[k].j > executorJ){
-            executor = options.computeTaskGroup[k].userName;
-            executorJ = options.computeTaskGroup[k].j;
+        let maxJ = 0;
+        for(var i =0; i < task.followUps.length; i ++){
+          if ( parseInt(task.followUps[i].j) > maxJ){ //first come first server. If there are more than one member has the same highest J, the first is the winner. based on the block record
+            executor = task.followUps[i];
+            maxJ = parseInt(task.followUps[i].j);
           }
-
-        })
-        if(executor == options.userInfo.userName){
-          console.log("I am the executor because I have the J value,", executorJ);
-
-          const result = await executeTask(options, c, task, executor, executorJ);
-          const resultCid = await ipfs.dag.put(result);
-          const reusltMessage = {
-            txType:'computeResult',
-            cid: resultCid
-          }
-          window.rooms.taskRoom.broadcast(JSON.stringify(resultMessage));
-        }else{
-          console.log("I am not the executor but I can be the monitor");
-          logToWebPage(`I agree I am the monitor. i agree the executor is ${executor} `);
         }
+        console.log("executor is,", executor.userName);
       }
     })
   }

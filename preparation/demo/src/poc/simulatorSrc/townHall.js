@@ -110,10 +110,8 @@ module.exports = (ipfs, room, options) => {
         }
         //logToWebPage(`VRF Validation passed`);
         if (options.computeTaskGroup && options.computeTaskGroup[messageObj.taskCid]){
-          options.computeTaskGroup[messageObj.taskCid].push({
-            ipfsPeerId: messageObj.ipfsPeerId,
-            userName:messageObj.userName,
-            j: messageObj.j});
+          
+          options.computeTaskGroup[messageObj.taskCid].push({j, proof, value, taskCid, publicKey, userName, blockHeightWhenVRF});
         }else{
           //do nothing. since I am not lucky enough to get involved in this task, I do not bother to know who is in , unless I am a hacker
         }
