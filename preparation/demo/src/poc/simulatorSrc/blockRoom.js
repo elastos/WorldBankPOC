@@ -12,9 +12,9 @@ const processNewBlock = async (options)=>{
   const ipfs = options.ipfs;
 
   //options.isProcessingBlock = true;
-  const {userInfo, block} = options;
+  const {block} = options;
   if (verifyBlockIntegrity()){
-    options.block.processedTxs
+    //options.block.processedTxs
   }
   let totalGas = 0;
   for(const g in block.gasMap){
@@ -29,11 +29,20 @@ const processNewBlock = async (options)=>{
   let totalCreditForOnlineNodes = block.totalCreditForOnlineNodes;
 
   updateNodeStatusOnNewBlock(options, totalGas, totalCredit, totalCreditForOnlineNodes);
+  
+  handleProcessedTxs(options, totalGas, totalCredit, totalCreditForOnlineNodes);
+
+  return options;
+  
+}
+
+const handleProcessedTxs = (options, totalGas, totalCredit, totalCreditForOnlineNodes)=>{
+  const {userInfo, block} = options;
   const newNodeJoinNeedRaTxsCid = [];
   const remoteAttestationDoneTxsCid = [];
   const uploadLambdaTxsCid = [];
   const computeTaskTxsCid = [];
- 
+
   block.processedTxs.forEach((tx)=>{
     if(tx.txType == 'newNodeJoinNeedRa')  newNodeJoinNeedRaTxsCid.push(tx.cid);
     if(tx.txType == 'remoteAttestationDone')  remoteAttestationDoneTxsCid.push(tx.cid);
@@ -195,11 +204,7 @@ const processNewBlock = async (options)=>{
       }
     })
   });
-  return options;
-  
 }
-
-
 
 const verifyBlockIntegrity = (options)=>{
   //Place holder, did not do anything yet, assume the block is valid

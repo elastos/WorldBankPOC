@@ -3,11 +3,13 @@ import _ from 'lodash';
 import {totalCreditToken} from '../constValue';
 import Big from 'big.js';
 import {log} from '../PotLog';
+import {eligibilityCheck} from '../computeTask';
 
 exports.generateBlock = async ({ipfs, globalState, blockRoom})=>{
   runSettlementBeforeNewBlock(ipfs, globalState);
   globalState.creditMap = runCreditNormalization(globalState.creditMap, totalCreditToken);
   const {gasMap, creditMap, processedTxs, previousBlockHeight, previousBlockCid, trustedPeerToUserInfo, escrowGasMap, pendingTasks} = globalState;
+  
   //calculate totalCredit for online users
   let totalCreditForOnlineNodes = 0;
   for( const c in trustedPeerToUserInfo){
@@ -52,27 +54,28 @@ const runSettlementBeforeNewBlock = (ipfs, globalState)=>{
   const pendingTasks = globalState.pendingTasks;
 
   const promisesTasks = Object.keys(pendingTasks).map( async (taskCid)=>{
-    const {type, initiator, followUps} = pendingTasks[taskCid];
+    const {type, initiator, followUps, startBlockHeight} = pendingTasks[taskCid];
     switch(type){
       case 'newNodeJoinNeedRa':{
         if(followUps.length < minRemoteAttestatorsToPassRaTask){
           break;//we have not reached the minimal requirement of the number of Remote Attestators
-        }else{
-          const promisesChildren = followUps.map( async (childCid)=>{
-            return (await ipfs.dag.get(childCid)).value;
-          });
-          const allChildrenTasks = await Promise.all(promisesChildren);
-          //console.log('before settleNewNodeRa, globalState gasMap, creditMap, pendingTasks', globalState.gasMap, globalState.creditMap, globalState.pendingTasks)
-          if (settleNewNodeRa(initiator, taskCid, globalState, allChildrenTasks)){
-            delete pendingTasks[taskCid];
-          };
-          //console.log('after settleNewNodeRa, globalState gasMap, creditMap, pendingTasks', globalState.gasMap, globalState.creditMap, globalState.pendingTasks)
-            
         }
+        const promisesChildren = followUps.map( async (childCid)=>{
+          return (await ipfs.dag.get(childCid)).value;
+        });
+        const allChildrenTasks = await Promise.all(promisesChildren);
+        //console.log('before settleNewNodeRa, globalState gasMap, creditMap, pendingTasks', globalState.gasMap, globalState.creditMap, globalState.pendingTasks)
+        if (settleNewNodeRa(initiator, taskCid, globalState, allChildrenTasks)){
+          delete pendingTasks[taskCid];
+        };
+        //console.log('after settleNewNodeRa, globalState gasMap, creditMap, pendingTasks', globalState.gasMap, globalState.creditMap, globalState.pendingTasks)
         break;
       }//case
       case 'computeTask':{
-        console.log('computeTask not implemented yet in runSettlementBeforeNewBlock');
+        //console.log('computeTask not implemented yet in runSettlementBeforeNewBlock');
+        const result = eligibilityCheck(globalState.blockHeight, startBlockHeight, initiator, followUps);
+        if(result == 'needExtend')
+          globalState.processedTxs.push(taskCid);
         break;
       }
     }//switch
