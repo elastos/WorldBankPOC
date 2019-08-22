@@ -70,7 +70,7 @@ exports.main = ({userInfo})=>{
 
       },
       multiParties:'none',
-      depositAmt:30
+      depositAmt:3
     });
 
   };

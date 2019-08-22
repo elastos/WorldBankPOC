@@ -208,7 +208,8 @@ const computeTask = async (ipfs, room, options, cid, from)=>{
   const {userName, depositAmt} = tx.value;
   if (!userName)  return false;
   
-  if (! takeEscrow(globalState, userName, depositAmt, cid))
+
+  if (! globalState.escrowGasMap[cid] && ! takeEscrow(globalState, userName, depositAmt, cid)) //we should not double desposit for a delayed task due to unlucky vRF from other nodes.
     return false;
     
 
