@@ -6,10 +6,12 @@ import { ecvrf, sortition} from 'vrf.js';
 import Big from 'big.js';
 
 
-exports.validateVrf = async ({ipfs, messageObj})=>{
-  const {j, proof, value, blockCid, taskCid, publicKey, userName} = messageObj;
+exports.validateVrf = async ({ipfs, j, proof, value, blockCid, taskCid, publicKey, userName})=>{
   if(!j || !proof || !value || !blockCid || !taskCid || !publicKey){
-    return {result:false, reason:`The incoming message missing some properties,`, messageObj};
+    return {
+      result:false, 
+      reason:`The incoming message missing some properties: ${JSON.stringify({j, proof, value, blockCid, taskCid, publicKey, userName})}`
+    };
   }
   const block = (await ipfs.dag.get(blockCid)).value;
 

@@ -125,7 +125,8 @@ const remoteAttestationDoneProcess = async (ipfs, room, options, raDoneCid)=>{
   }
 
   const {potResult,proofOfTrust,proofOfVrf} = tx.value;
-  const {j, proof, value, taskCid, blockCid, userName, publicKey} = proofOfVrf;
+  const {j, proof, value, taskCid, blockHeightWhenVRF, userName, publicKey} = proofOfVrf;
+  const blockCid = options.globalState.blockHistory[blockHeightWhenVRF];
   const {globalState} = options;
   const task = await ipfs.dag.get(taskCid);
   //console.log('task,', task);

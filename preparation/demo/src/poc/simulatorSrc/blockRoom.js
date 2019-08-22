@@ -92,7 +92,7 @@ const handleProcessedTxs = (options, totalGas, totalCredit, totalCreditForOnline
           j:parseInt(j.toFixed()), 
           proof: proof.toString('hex'), 
           value: value.toString('hex'),
-          blockCid,
+          blockHeightWhenVRF: options.block.blockHeight,
           taskCid:cid,
           publicKey:userInfo.publicKey,
           userName:userInfo.userName
@@ -182,7 +182,10 @@ const handleProcessedTxs = (options, totalGas, totalCredit, totalCreditForOnline
         options.computeTaskGroup[cid].push({
           ipfsPeerId: userInfo.ipfsPeerId,
           userName: userInfo.userName,
-          j: j.toFixed()
+          j: j.toFixed(),
+          proof:proof.toString('hex'),
+          value:value.toString('hex'),
+          blockHeightWhenVRF: options.block.blockHeight
         });
         
         const applicationJoinSecGroup = {
@@ -191,7 +194,10 @@ const handleProcessedTxs = (options, totalGas, totalCredit, totalCreditForOnline
           userName: options.userInfo.userName,
           publicKey: options.userInfo.publicKey,
           taskCid: cid,
-          blockCid,proof, value, j
+          proof:proof.toString('hex'),
+          value: value.toString('hex'),
+          j: j.toFixed(),
+          blockHeightWhenVRF: options.block.blockHeight
         };
       
         window.rooms.townHall.broadcast(JSON.stringify(applicationJoinSecGroup));
@@ -228,6 +234,7 @@ const handlePendingTasks =  (options, totalGas, totalCredit, totalCreditForOnlin
         })
         if(executor == options.userInfo.userName){
           console.log("I am the executor because I have the J value,", executorJ);
+
           const result = await executeTask(options, c, task, executor, executorJ);
           const resultCid = await ipfs.dag.put(result);
           const reusltMessage = {
@@ -301,6 +308,8 @@ const blockRoom = (ipfs, room, options) => {
         return console.log('In block room got an unhandled message from ' + message.from + ': ' + message.data.toString());
       }
       const block = await ipfs.dag.get(cid);
+      if(! options.blockHistory)  options.blockHistory = {};
+      options.blockHistory[block.value.blockHeight] = cid;
       console.log("received block height=", block.value.blockHeight);
       //logToWebPage(`Received new block Height: ${block.value.blockHeight}`);
       if(options.isProcessingBlock){

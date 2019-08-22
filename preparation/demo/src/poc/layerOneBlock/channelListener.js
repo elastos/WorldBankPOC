@@ -58,6 +58,7 @@ exports.channelListener = (ipfs, randRoomPostfix, presetUsers)=>{
   
   //We assume every time we start the demo, it starts from genesis block
   const globalState = createGenesysBlock(ipfs, presetUsers);
+  globalState.blockHistory = {};
   console.log('asdfasdfasdfad', globalState);
   const options = {globalState};//default placeholder
   const rooms = {};

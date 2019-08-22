@@ -45,6 +45,7 @@ exports.generateBlock = async ({ipfs, globalState, blockRoom})=>{
   blockRoom.broadcast(JSON.stringify(broadcastObj))
   globalState.previousBlockHeight = globalState.blockHeight;
   globalState.processedTxs = [];
+  globalState.blockHistory[globalState.blockHeight] = globalState.blockCid;
   return newBlock;
 }
 
