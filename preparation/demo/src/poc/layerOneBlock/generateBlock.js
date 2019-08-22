@@ -73,7 +73,7 @@ const runSettlementBeforeNewBlock = (ipfs, globalState)=>{
       }//case
       case 'computeTask':{
         //console.log('computeTask not implemented yet in runSettlementBeforeNewBlock');
-        const result = eligibilityCheck(globalState.blockHeight, startBlockHeight, initiator, followUps);
+        const result = eligibilityCheck(globalState.blockHeight, pendingTasks[taskCid]);
         if(result == 'needExtend')
           globalState.processedTxs.push(taskCid);
         break;

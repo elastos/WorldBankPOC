@@ -4,7 +4,7 @@ const {utils, ecvrf, sortition} = require('vrf.js');
 import {sha256} from 'js-sha256';
 import {expectNumberOfRemoteAttestatorsToBeVoted, minimalNewNodeJoinRaDeposit, expectNumberOfExecutorGroupToBeVoted} from '../constValue';
 const Big = require('big.js');
-
+import {eligibilityCheck} from '../computeTask';
 
 
 
@@ -31,6 +31,8 @@ const processNewBlock = async (options)=>{
   updateNodeStatusOnNewBlock(options, totalGas, totalCredit, totalCreditForOnlineNodes);
   
   handleProcessedTxs(options, totalGas, totalCredit, totalCreditForOnlineNodes);
+
+  handlePendingTasks(options, totalGas, totalCredit, totalCreditForOnlineNodes);
 
   return options;
   
@@ -177,9 +179,12 @@ const handleProcessedTxs = (options, totalGas, totalCredit, totalCreditForOnline
         }
         if(! options.computeTaskGroup[cid])
           options.computeTaskGroup[cid] = [];
-
-          // we do not add anything here yet. because there is no reason to add myself into it, but this object is useful when I listen to othernodes. if it doesnt exists, I do not bother to add them into this array
-  
+        options.computeTaskGroup[cid].push({
+          ipfsPeerId: userInfo.ipfsPeerId,
+          userName: userInfo.userName,
+          j: j.toFixed()
+        });
+        
         const applicationJoinSecGroup = {
           type:'computeTaskWinnerApplication',
           ipfsPeerId: userInfo.ipfsPeerId,//peerId for myself
@@ -204,6 +209,39 @@ const handleProcessedTxs = (options, totalGas, totalCredit, totalCreditForOnline
       }
     })
   });
+}
+
+const handlePendingTasks =  (options, totalGas, totalCredit, totalCreditForOnlineNodes)=>{
+  if(options.computeTaskGroup){
+    const computeTaskCids = Object.keys(options.block.pendingTasks).filter((k)=>options.block.pendingTasks[k].type == 'computeTask');
+    computeTaskCids.forEach(async c=>{
+      const task = options.block.pendingTasks[c];
+      if(eligibilityCheck(options.block.blockHeight, task) == 'timeUp'){
+        let executor;
+        let executorJ = 0;
+        Object.keys(options.computeTaskGroup).forEach(async k=>{
+          if(options.computeTaskGroup[k].j > executorJ){
+            executor = options.computeTaskGroup[k].userName;
+            executorJ = options.computeTaskGroup[k].j;
+          }
+
+        })
+        if(executor == options.userInfo.userName){
+          console.log("I am the executor because I have the J value,", executorJ);
+          const result = await executeTask(options, c, task, executor, executorJ);
+          const resultCid = await ipfs.dag.put(result);
+          const reusltMessage = {
+            txType:'computeResult',
+            cid: resultCid
+          }
+          window.rooms.taskRoom.broadcast(JSON.stringify(resultMessage));
+        }else{
+          console.log("I am not the executor but I can be the monitor");
+          logToWebPage(`I agree I am the monitor. i agree the executor is ${executor} `);
+        }
+      }
+    })
+  }
 }
 
 const verifyBlockIntegrity = (options)=>{

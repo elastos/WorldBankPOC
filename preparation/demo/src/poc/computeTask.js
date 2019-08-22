@@ -1,6 +1,7 @@
-import {minComputeGroupMembersToStartCompute, minBlockDelayRequiredBeforeComputeStart} from './constValue';
+import {minComputeGroupMembersToStartCompute, minBlockDelayRequiredBeforeComputeStart, maxBlockDelayRequiredBeforeComputeStart} from './constValue';
 
-exports.eligibilityCheck = (currentBlockHeight, startBlockHeight, initiator, followUps)=>{
+exports.eligibilityCheck = (currentBlockHeight, task)=>{
+  const {startBlockHeight, initiator, followUps} = task;
   if(currentBlockHeight  - startBlockHeight < minBlockDelayRequiredBeforeComputeStart){
     console.log('we will need to wait more blocks until we can start computing. Let those slow nodes get more time responding the VRF');
     return null;
@@ -17,4 +18,11 @@ exports.eligibilityCheck = (currentBlockHeight, startBlockHeight, initiator, fol
   }
   //now it is time for those nodes who won the VRF to start. Server doesn't need to do anything.
   return "timeUp"
+}
+
+exports.executeCompute = async (options, taskCid, task, executor, executorJ)=>{
+  const taskObj = (await options.ipfs.dag.get(taskCid)).value;
+  //this is just a place holder, in the real system, we should launch docker and run the command to get the result.
+  //Now we just return hello world
+  return "Hello World!";
 }
