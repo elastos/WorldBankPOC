@@ -4,7 +4,7 @@ const {utils, ecvrf, sortition} = require('vrf.js');
 import {sha256} from 'js-sha256';
 import {expectNumberOfRemoteAttestatorsToBeVoted, minimalNewNodeJoinRaDeposit, expectNumberOfExecutorGroupToBeVoted} from '../constValue';
 const Big = require('big.js');
-import {eligibilityCheck} from '../computeTask';
+import {eligibilityCheck, executeCompute, chooseExecutorAndMonitors} from '../computeTask';
 
 
 
@@ -223,15 +223,14 @@ const handlePendingTasks =  (options, totalGas, totalCredit, totalCreditForOnlin
     computeTaskCids.forEach(async c=>{
       const task = options.block.pendingTasks[c];
       if(eligibilityCheck(options.block.blockHeight, task) == 'timeUp'){
-        let executor;
-        let maxJ = 0;
-        for(var i =0; i < task.followUps.length; i ++){
-          if ( parseInt(task.followUps[i].j) > maxJ){ //first come first server. If there are more than one member has the same highest J, the first is the winner. based on the block record
-            executor = task.followUps[i];
-            maxJ = parseInt(task.followUps[i].j);
-          }
-        }
+        const executor = chooseExecutorAndMonitors(task);
         console.log("executor is,", executor.userName);
+        if(options.userInfo.userName == executor.userName){
+          logToWebPage("I am the executor. I am going to run taskCid:", c);
+          executeCompute(options, c, executor);
+        }else{
+          logToWebPage(`I am the monitor, the executor is ${executor.userName}`);
+        }
       }
     })
   }

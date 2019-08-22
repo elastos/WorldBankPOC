@@ -1,4 +1,5 @@
 import {minComputeGroupMembersToStartCompute, minBlockDelayRequiredBeforeComputeStart, maxBlockDelayRequiredBeforeComputeStart} from './constValue';
+import { logToWebPage } from './simulatorSrc/utils';
 
 exports.eligibilityCheck = (currentBlockHeight, task)=>{
   const {startBlockHeight, initiator, followUps} = task;
@@ -20,14 +21,47 @@ exports.eligibilityCheck = (currentBlockHeight, task)=>{
   return "timeUp"
 }
 
-exports.executeCompute = async (options, taskCid, task, executor, executorJ)=>{
-  const taskObj = (await options.ipfs.dag.get(taskCid)).value;
+exports.executeCompute = async (options, taskCid, executor)=>{
   //this is just a place holder, in the real system, we should launch docker and run the command to get the result.
   //Now we just return hello world
+  const task = (await options.ipfs.dag.get(taskCid)).value;
+  console.log("I am executing task",task);
+  
+  const taskOwner = task.userName;
+  
+  const lambda = (await options.ipfs.dag.get(task.lambdaCid)).value;
+  console.log("lambda is,", lambda);
+  const lambdaOwner = lambda.ownerName;
+
+  options.executeTaskParams = options.executeTaskParams || {};
+  const taskOwnerPeerId = Object.values(options.block.trustedPeerToUserInfo).find((p)=>p.userName == taskOwner);
+  const lambdaOwnerPeerId = Object.values(options.block.trustedPeerToUserInfo).find((p)=>p.userName == lambdaOwner);
+  if(! taskOwnerPeerId || ! lambdaOwnerPeerId){
+    logToWebPage('either task owner or lambda owner is not online. computing cannot start. abort', {taskOwner, taskOwnerPeerId, lambdaOwner, lambdaOwnerPeerId, userList:options.block.trustedPeerToUserInfo, });
+    return "abort!";
+  }
+  const reqTaskParams = {
+    type:'reqTaskParams'
+  };  
+
+  const reqLambdaParams = {
+    type:'reqLambdaParams'
+  };
+  window.rooms.townHall.sendTo(taskOwnerPeerId, JSON.stringify(reqTaskParams));
+  logToWebPage(`Sending request for task data to taskOwner: ${taskOwner}`, reqTaskParams)
+  window.rooms.townHall.sendTo(lambdaOwnerPeerId, JSON.stringify(reqLambdaParams));
+  logToWebPage(`Sending request for lambda function code to lambda Owner: ${lambdaOwner}`, reqLambdaParams);
   return "Hello World!";
 }
 
-exports.chooseExecutorAndMonitors = async (executeTask)=>{
-  const {followUps} = executeTask;
-  
+exports.chooseExecutorAndMonitors = (task)=>{
+  let executor;
+  let maxJ = 0;
+  for(var i =0; i < task.followUps.length; i ++){
+    if ( parseInt(task.followUps[i].j) > maxJ){ //first come first server. If there are more than one member has the same highest J, the first is the winner. based on the block record
+      executor = task.followUps[i];
+      maxJ = parseInt(task.followUps[i].j);
+    }
+  }
+  return executor;
 }

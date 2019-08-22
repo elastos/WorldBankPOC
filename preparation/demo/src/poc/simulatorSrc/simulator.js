@@ -42,9 +42,10 @@ exports.main = ({userInfo})=>{
   document.getElementById('btn4').onclick = ()=>{
     editor.set({
       txType:"uploadLambda",
-      lambdaCid:"hello_world",
+      lambdaName:"hello_world",
       dockerImg:"placeholder",
       payment:"payPerUse",
+      ownerName:userName,
       amt:2
     });
   };
@@ -52,7 +53,7 @@ exports.main = ({userInfo})=>{
     editor.set({
       txType:"computeTask",
       userName,
-      lambdaCid:"hello_world",
+      lambdaCid:"PLEASE_REPLACE_THIS_VALUE_TO_THE_lambdaCid_YOU_GOT_FROM_PREVIOUS_uploadLambda_TASK",
       postSecData:'placeholder',
       env:{
         network:'totalIsolated',
@@ -107,6 +108,9 @@ exports.main = ({userInfo})=>{
       }
       promiseCid.then((cid)=>{
         broadcastObj.cid = cid.toBaseEncodedString();
+        if(txType == 'uploadLambda'){
+          logToWebPage(`Please record this CID number, you will need it when you submit a compute task using this Lamdba: ${broadcastObj.cid}`)
+        }
         channelRoom.broadcast(JSON.stringify(broadcastObj));
         console.log("Sent action: ",JSON.stringify(broadcastObj));
       }) 
