@@ -34,23 +34,27 @@ exports.executeCompute = async (options, taskCid, executor)=>{
   const lambdaOwner = lambda.ownerName;
 
   options.executeTaskParams = options.executeTaskParams || {};
-  const taskOwnerPeerId = Object.values(options.block.trustedPeerToUserInfo).find((p)=>p.userName == taskOwner);
-  const lambdaOwnerPeerId = Object.values(options.block.trustedPeerToUserInfo).find((p)=>p.userName == lambdaOwner);
+  const taskOwnerPeerId = Object.keys(options.block.trustedPeerToUserInfo).find((k)=>options.block.trustedPeerToUserInfo[k].userName == taskOwner);
+  const lambdaOwnerPeerId = Object.keys(options.block.trustedPeerToUserInfo).find((k)=>options.block.trustedPeerToUserInfo[k].userName == lambdaOwner);
   if(! taskOwnerPeerId || ! lambdaOwnerPeerId){
     logToWebPage('either task owner or lambda owner is not online. computing cannot start. abort', {taskOwner, taskOwnerPeerId, lambdaOwner, lambdaOwnerPeerId, userList:options.block.trustedPeerToUserInfo, });
     return "abort!";
   }
   const reqTaskParams = {
-    type:'reqTaskParams'
+    type:'reqTaskParams',
+    taskCid,
+    executor
   };  
 
   const reqLambdaParams = {
-    type:'reqLambdaParams'
+    type:'reqLambdaParams',
+    taskCid,
+    executor
   };
   window.rooms.townHall.sendTo(taskOwnerPeerId, JSON.stringify(reqTaskParams));
-  logToWebPage(`Sending request for task data to taskOwner: ${taskOwner}`, reqTaskParams)
+  logToWebPage(`Sending request for task data to taskOwner: ${taskOwner}  PeerId:${taskOwnerPeerId}`, reqTaskParams)
   window.rooms.townHall.sendTo(lambdaOwnerPeerId, JSON.stringify(reqLambdaParams));
-  logToWebPage(`Sending request for lambda function code to lambda Owner: ${lambdaOwner}`, reqLambdaParams);
+  logToWebPage(`Sending request for lambda function code to lambda Owner: ${lambdaOwner} PeerId:${lambdaOwnerPeerId}`, reqLambdaParams);
   return "Hello World!";
 }
 
@@ -65,3 +69,4 @@ exports.chooseExecutorAndMonitors = (task)=>{
   }
   return executor;
 }
+

@@ -3,6 +3,7 @@ const {utils, ecvrf, sortition} = require('vrf.js');
 import {sha256} from 'js-sha256';
 import Big from 'big.js';
 import {validateVrf, validatePot, verifyOthersRemoteAttestationVrfAndProof}  from '../remoteAttestation';
+import {chooseExecutorAndMonitors} from '../computeTask';
 
 
 module.exports = (ipfs, room, options) => {
@@ -18,7 +19,7 @@ module.exports = (ipfs, room, options) => {
 
 
   const directMessageHandler = async (message) => {
-    console.log('In townhall got message from ' + message.from + ': ' + message.data.toString());
+    //console.log('In townhall got message from ' + message.from + ': ' + message.data.toString());
     const messageObj = tryParseJson(message.data.toString());
     if(! messageObj)
       return console.log("townHallMessageHandler received non-parsable message, ", messageString);
@@ -118,15 +119,36 @@ module.exports = (ipfs, room, options) => {
         //logToWebPage('current options.computeTaskGroup', options.computeTaskGroup);
         break;
       }
-      // case "remoteAttestationDone":{
-      //   if(message.from != options.userInfo.ipfsPeerId){//I do not want to verify myself vrf and remote attestation
-      //     if(! verifyOthersRemoteAttestationVrfAndProof(messageObj)){
-      //       logToWebPage(`Found other node did wrong remote attestation VRF or PoT. Further action is not implemented yet. Just alert here for now. ${JSON.stringify}`)
-      //     }
-          
-      //   }
-      //   break;
-      // }
+      case "remoteAttestationDone":{
+        
+        break;
+      }
+      case 'reqTaskParams':{
+        console.log('reqTaskParams, messageObj', messageObj);
+        const {taskCid,executor} = messageObj;
+      }
+      case 'reqLambdaParams':{
+        console.log('reqLambdaParams, messageObj', messageObj);
+        const {taskCid,executor} = messageObj;
+        const task = options.block.pendingTasks[taskCid];
+        console.log('task,', task);
+        if(chooseExecutorAndMonitors(task).userName != executor.userName){
+          logToWebPage(`Executor validate fail`, {executor, task});
+          break;
+        }
+        const resLambdaParams = {
+          type:'resLambdaParams',
+          code:'function(a,b){return a + b}'
+        };
+        room.sendTo(message.from, JSON.stringify(resLambdaParams));
+        logToWebPage(`Sending response for Lambda Params back to executor.`, resLambdaParams);
+        break;
+      }
+      case 'resLambdaParams':{
+        const {code} = messageObj;
+        console.log('code, ', code);
+        break;
+      }
       default:{
         return console.log("townHallMessageHandler received unknown type message object,", messageObj );
       } 
