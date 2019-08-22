@@ -70,3 +70,8 @@ exports.chooseExecutorAndMonitors = (task)=>{
   return executor;
 }
 
+exports.executeComputeUsingEval = ({code, data})=>{
+  const args = data;
+  return eval(code);
+}
+

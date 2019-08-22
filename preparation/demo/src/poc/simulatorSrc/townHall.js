@@ -3,7 +3,7 @@ const {utils, ecvrf, sortition} = require('vrf.js');
 import {sha256} from 'js-sha256';
 import Big from 'big.js';
 import {validateVrf, validatePot, verifyOthersRemoteAttestationVrfAndProof}  from '../remoteAttestation';
-import {chooseExecutorAndMonitors} from '../computeTask';
+import {chooseExecutorAndMonitors, executeComputeUsingEval} from '../computeTask';
 
 
 module.exports = (ipfs, room, options) => {
@@ -134,10 +134,11 @@ module.exports = (ipfs, room, options) => {
         }
         const resTaskParams = {
           type:'resTaskParams',
-          params:['Hello', " World!"]
+          data:['Hello', " World!"],
+          taskCid
         };
         room.sendTo(message.from, JSON.stringify(resTaskParams));
-        logToWebPage(`Sending response for Task Params back to executor.`, resTaskParams);
+        logToWebPage(`Sending response for Task data back to executor.`, resTaskParams);
         break;
       }
       case 'reqLambdaParams':{
@@ -151,22 +152,51 @@ module.exports = (ipfs, room, options) => {
         }
         const resLambdaParams = {
           type:'resLambdaParams',
-          code:'function(a,b){return a + b}'
+          code:'args[0] + args[1]',
+          taskCid
         };
         room.sendTo(message.from, JSON.stringify(resLambdaParams));
         logToWebPage(`Sending response for Lambda Params back to executor.`, resLambdaParams);
         break;
       }
       case 'resLambdaParams':{
-        const {code} = messageObj;
+        const {code, taskCid} = messageObj;
         console.log('code, ', code);
         logToWebPage(`I have got the lambda code from lambda owner, `, code);
+        options.computeTaskBuffer = options.computeTaskBuffer || {};
+        options.computeTaskBuffer[taskCid] = options.computeTaskBuffer[taskCid] || {};
+        if(options.computeTaskBuffer[taskCid].code){
+          logToWebPage(`Error, executor has got the code already, why a new code come up again?`, {code, buffer: options.computeTaskBuffer});
+          break;
+        }
+
+        options.computeTaskBuffer[taskCid].code = code;
+        if(options.computeTaskBuffer[taskCid].code && options.computeTaskBuffer[taskCid].data){
+          logToWebPage(`Executor has got both data and code, it can start execution`, options.computeTaskBuffer[taskCid])
+          const result = executeComputeUsingEval(options.computeTaskBuffer[taskCid]);
+          delete options.computeTaskBuffer[taskCid];
+          logToWebPage( `Execution result:`, result);
+        }
         break;
       }
       case 'resTaskParams':{
-        const {params} = messageObj;
-        console.log('data, ', params);
-        logToWebPage(`I have got the task params from task owner, `, params);
+        const {data, taskCid} = messageObj;
+        console.log('data, ', data);
+        logToWebPage(`I have got the task data from task owner, `, data);
+        options.computeTaskBuffer = options.computeTaskBuffer || {};
+        options.computeTaskBuffer[taskCid] = options.computeTaskBuffer[taskCid] || {};
+        if(options.computeTaskBuffer[taskCid].data){
+          logToWebPage(`Error, executor has got the data already, why a new data come up again?`, {data, buffer: options.computeTaskBuffer});
+          break;
+        }
+
+        options.computeTaskBuffer[taskCid].data = data;
+        if(options.computeTaskBuffer[taskCid].code && options.computeTaskBuffer[taskCid].data){
+          logToWebPage(`Executor has got both data and code, it can start execution`, options.computeTaskBuffer[taskCid])
+          const result = executeComputeUsingEval(options.computeTaskBuffer[taskCid]);
+          delete options.computeTaskBuffer[taskCid];
+          logToWebPage( `Execution result:`, result);
+        }
         break;
       }
       default:{

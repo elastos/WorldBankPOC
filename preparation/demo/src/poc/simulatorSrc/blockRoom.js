@@ -139,81 +139,87 @@ const handleProcessedTxs = (options, totalGas, totalCredit, totalCreditForOnline
     console.log("for upload Lamdba, we do not need to do anything. Just have a record there that in which block height, the CID of this ladba has been recorded. In case of some future search")
   });
   
-  computeTaskTxsCid.map((cid)=>{
-    ipfs.dag.get(cid).then(tx=>{
-      const {userName, depositAmt, executorRequirement} = tx.value;
-      if(userName == userInfo.userName){
-        console.log("I am the node myself, I cannot do execution compute task on myself, skip");
-        return;
+  computeTaskTxsCid.map(async (cid)=>{
+    const tx = await ipfs.dag.get(cid);
+    const {userName, depositAmt, executorRequirement, lambdaCid} = tx.value;
+    if(userName == userInfo.userName){
+      console.log("I am the task owner myself, I cannot do execution compute task on myself, skip");
+      return;
+    }
+    const lambda = (await ipfs.dag.get(lambdaCid)).value;
+    if(lambda.ownerName == userInfo.userName){
+      console.log("I am the lambda owner myself, I cannot do execution compute task because I wrote the code, skip");
+      return;
+    }
+
+    if(depositAmt < 0){
+      console.log(`amt has to be greater than 0, otherwise he is stealing money from you: ${tx.value.depositAmt}. computTask abort now`);
+      logToWebPage(`amt has to be greater than 0, otherwise he is stealing money from you: ${tx.value.depositAmt}. computTask abort now`);
+      return;
+    }
+    const myCurrentGasBalance = options.block.gasMap[options.userInfo.userName];
+    
+    if ( myCurrentGasBalance < depositAmt){
+      logToWebPage("I do not have enough gas as escrow to start this compute task. I have to quit this competition. Sorry. ")
+      return;
+    }
+    const myCurrentCreditBalance = options.block.creditMap[options.userInfo.userName];
+    if ( myCurrentCreditBalance < executorRequirement.credit){
+      logToWebPage(`My credit balance is ${myCurrentCreditBalance} which is lower than the task client required ${executorRequirement.credit}. I have to quit this competition. Sorry. `);
+      return;
+    }
+    const {blockCid} = options;
+    //console.log("received a RA task",tx.value, blockCid, cid);
+    const vrfMsg = sha256.update(blockCid).update(cid).hex();
+    const p = expectNumberOfExecutorGroupToBeVoted / totalCreditForOnlineNodes;
+    console.log("VRFing.... this takes some time, please be patient..., ", userInfo, vrfMsg);
+    const { proof, value } = ecvrf.vrf(Buffer.from(userInfo.publicKey, 'hex'), Buffer.from(userInfo.privateKey, 'hex'), Buffer.from(vrfMsg, 'hex'));
+    console.log("VRF{ proof, value }", { proof:proof.toString('hex'), value: value.toString('hex') });
+    console.log("Now running VRF sortition...it also needs some time... please be patient...", userCreditBalance, p);
+    const j = sortition.getVotes(value, new Big(userCreditBalance), new Big(p));
+    if(j.gt(0)){
+      console.log("I am lucky!!!", j.toFixed());
+      logToWebPage(`I am lucky!! J is ${j.toFixed()}. However I should not tell anyone about my win. Do not want to get hacker noticed. I just join the secure p2p chat group for winner's only`);
+      if (! options.computeTaskGroup){
+        options.computeTaskGroup = {};
       }
-      if(depositAmt < 0){
-        console.log(`amt has to be greater than 0, otherwise he is stealing money from you: ${tx.value.depositAmt}. computTask abort now`);
-        logToWebPage(`amt has to be greater than 0, otherwise he is stealing money from you: ${tx.value.depositAmt}. computTask abort now`);
-        return;
-      }
-      const myCurrentGasBalance = options.block.gasMap[options.userInfo.userName];
+      if(! options.computeTaskGroup[cid])
+        options.computeTaskGroup[cid] = [];
+      options.computeTaskGroup[cid].push({
+        ipfsPeerId: userInfo.ipfsPeerId,
+        userName: userInfo.userName,
+        j: j.toFixed(),
+        proof:proof.toString('hex'),
+        value:value.toString('hex'),
+        blockHeightWhenVRF: options.block.blockHeight
+      });
       
-      if ( myCurrentGasBalance < depositAmt){
-        logToWebPage("I do not have enough gas as escrow to start this compute task. I have to quit this competition. Sorry. ")
-        return;
-      }
-      const myCurrentCreditBalance = options.block.creditMap[options.userInfo.userName];
-      if ( myCurrentCreditBalance < executorRequirement.credit){
-        logToWebPage(`My credit balance is ${myCurrentCreditBalance} which is lower than the task client required ${executorRequirement.credit}. I have to quit this competition. Sorry. `);
-        return;
-      }
-      const {blockCid} = options;
-      //console.log("received a RA task",tx.value, blockCid, cid);
-      const vrfMsg = sha256.update(blockCid).update(cid).hex();
-      const p = expectNumberOfExecutorGroupToBeVoted / totalCreditForOnlineNodes;
-      console.log("VRFing.... this takes some time, please be patient..., ", userInfo, vrfMsg);
-      const { proof, value } = ecvrf.vrf(Buffer.from(userInfo.publicKey, 'hex'), Buffer.from(userInfo.privateKey, 'hex'), Buffer.from(vrfMsg, 'hex'));
-      console.log("VRF{ proof, value }", { proof:proof.toString('hex'), value: value.toString('hex') });
-      console.log("Now running VRF sortition...it also needs some time... please be patient...", userCreditBalance, p);
-      const j = sortition.getVotes(value, new Big(userCreditBalance), new Big(p));
-      if(j.gt(0)){
-        console.log("I am lucky!!!", j.toFixed());
-        logToWebPage(`I am lucky!! J is ${j.toFixed()}. However I should not tell anyone about my win. Do not want to get hacker noticed. I just join the secure p2p chat group for winner's only`);
-        if (! options.computeTaskGroup){
-          options.computeTaskGroup = {};
-        }
-        if(! options.computeTaskGroup[cid])
-          options.computeTaskGroup[cid] = [];
-        options.computeTaskGroup[cid].push({
-          ipfsPeerId: userInfo.ipfsPeerId,
-          userName: userInfo.userName,
-          j: j.toFixed(),
-          proof:proof.toString('hex'),
-          value:value.toString('hex'),
-          blockHeightWhenVRF: options.block.blockHeight
-        });
-        
-        const applicationJoinSecGroup = {
-          type:'computeTaskWinnerApplication',
-          ipfsPeerId: userInfo.ipfsPeerId,//peerId for myself
-          userName: options.userInfo.userName,
-          publicKey: options.userInfo.publicKey,
-          taskCid: cid,
-          proof:proof.toString('hex'),
-          value: value.toString('hex'),
-          j: j.toFixed(),
-          blockHeightWhenVRF: options.block.blockHeight
-        };
+      const applicationJoinSecGroup = {
+        type:'computeTaskWinnerApplication',
+        ipfsPeerId: userInfo.ipfsPeerId,//peerId for myself
+        userName: options.userInfo.userName,
+        publicKey: options.userInfo.publicKey,
+        taskCid: cid,
+        proof:proof.toString('hex'),
+        value: value.toString('hex'),
+        j: j.toFixed(),
+        blockHeightWhenVRF: options.block.blockHeight
+      };
+    
+      window.rooms.townHall.broadcast(JSON.stringify(applicationJoinSecGroup));
+      logToWebPage(`I am asking to join the secure chatting group by sending everyone in this group my application`, applicationJoinSecGroup);
       
-        window.rooms.townHall.broadcast(JSON.stringify(applicationJoinSecGroup));
-        logToWebPage(`I am asking to join the secure chatting group by sending everyone in this group my application`, applicationJoinSecGroup);
-        
-      }else{
-        // updateLog('req_ra_send', {
-        //   name : userInfo.userName,
-        //   j: parseInt(j.toFixed()),
-        //   cid,
-        // })
-  
-        console.log("bad luck, try next", j.toFixed());
-        logToWebPage(`bad luck, try next time`);
-      }
-    })
+    }else{
+      // updateLog('req_ra_send', {
+      //   name : userInfo.userName,
+      //   j: parseInt(j.toFixed()),
+      //   cid,
+      // })
+
+      console.log("bad luck, try next", j.toFixed());
+      logToWebPage(`bad luck, try next time`);
+    }
+    
   });
 }
 
