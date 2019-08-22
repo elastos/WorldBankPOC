@@ -37,158 +37,72 @@
           background-color: #ccc;
         }
         
-        /* Style the tab content */
-        .tabcontent {
-          display: none;
-          padding: 6px 12px;
-          border: 1px solid #ccc;
-          border-top: none;
-        }
+ 
       </style>
   </head>
   <body>
     <div class="tab">
       <button  class="tablinks" >
-        <span id='userName'></span>
+        <span id='userName'>
+          
+        </span>
       </button>
-      <button>
-          @Room#<span id='roomPostfix'></span>
-      </button>
+      
       <button>
         <a href='/poc/forceManualGenerateNewBlock' target='_blank'>
           <span>Block#</span><span id='blockheight'></span>
         </a>
       </button>
-
-    </div>
-      <table>
-          <thead>
-            <tr>
-              <th>Prop</th>
-              <th>Value</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>
-                Public key
-              </td>
-              <td>
-                <span id='pubkey'></span>
-              </td>
-            </tr>
-
-            <tr>
-              <td>
-                My current IPFS PeerId
-              </td>
-              <td>
-                <span id='ipfsPeerId'></span>
-              </td>
-            </tr>
-            <tr>
-              <td>
-                Total gas
-              </td>
-              <td>
-                <span id='totalgas'></span>LEO. (was <span id='totalgas_was'></span>)
-              </td>
-            </tr>
-            <tr>
-              <td>
-                total credit for all users
-              </td>
-              <td>
-                <span id='totalcredit'></span> points. (was <span id='totalcredit_was'></span>)
-              </td>
-            </tr>
-            <tr>
-              <td>
-                total credit for active online users only
-              </td>
-              <td>
-                <span id='totalcredit_onlineonly'></span> points. (was <span id='totalcredit_onlineonly_was'></span>)
-              </td>
-            </tr>
-            
-            <tr>
-              <td>
-                My current gas balance
-              </td>
-              <td>
-                <span id='gasbalance'></span>LEO. was(<span id='gasbalance_was'></span>)
-              </td>
-            </tr>
-            <tr>
-              <td>
-                My current credit balance
-              </td>
-              <td>
-                <span id='creditbalance'></span> Points. (was <span id='creditbalance_was'></span>)
-              </td>
-            </tr>
-            
-
-          </tbody>
-        </table>
-        
-    <div class="tab">
-      <button class="tablinks" onclick="clickTab(event, 'actiontab')">Action</button>
-      <button id="defaultOpen"  class="tablinks" onclick="clickTab(event, 'logtab')">Logs</button>
-      <button class='tablinks'>
-        
+      <button>
+          $<span id='gasbalance'></span>. (was <span id='gasbalance_was'></span>)
+      </button>
+      <button>
+          <span id='creditbalance'></span> Pts. (was <span id='creditbalance_was'></span>)
+      </button>
+      <button>
+          Online credits total: <span id='totalcredit_onlineonly'></span> Pts. (was <span id='totalcredit_onlineonly_was'></span>)
+      </button>
+      <button>
+          Total credits: <span id='totalcredit'></span> Pts. (was <span id='totalcredit_was'></span>)
+      </button>
+      <button>
+        Total gas:<span id='totalgas'></span>LEO. (was <span id='totalgas_was'></span>)
+      </button>
+      <button>
+        @Room#<span id='roomPostfix'></span>
       </button>
     </div>
-    <div id="statustab" class="tabcontent">
-
-      </div>
-      
-      <div id="actiontab" class="tabcontent">
-        <h1>Actions</h1>
         
-        <p>
-          <button id='btn1'>Task: transfer 15 Gas to user #0</button>
-          <button id='btn2'>Task: new node join waiting for RA</button>
-          <button id='btn3'>Set Proof of Trust (to be hacked?)</button>
-          <button id='btn4'>Post a Lambda (eg. docker with AI training algorithm)</button>
-          <button id='btn5'>Train AI model with my own secure data</button>
-        </p>
-        <h2>Please modify the JSON below</h2>
-        <p>
-          <div id="jsoneditor" style="width: 400px; height: 400px;"></div>
-        </p>
+    <div>
         
-        <p>
-          <button id='sendAction'>Send Action to PubSub Room</button>
-        </p>
-      </div>
+      <p>
+        <button id='btn1'>Task: transfer 15 Gas to user #0</button>
+        <button id='btn2'>Task: new node join waiting for RA</button>
+        <button id='btn3'>Set Proof of Trust (to be hacked?)</button>
+        <button id='btn4'>Post a Lambda (eg. docker with AI training algorithm)</button>
+        <button id='btn5'>Train AI model with my own secure data</button>
+      </p>
+      <h2>Please modify the JSON below</h2>
+      <p>
+        <div id="jsoneditor" style="width: 400px; height: 400px;"></div>
+      </p>
       
-      <div id="logtab" class="tabcontent">
-        <h1>Logs</h1>
-        <ul id='log' width='400px' height='400px'></ul>
-      </div>
+      <p>
+        <button id='sendAction'>Send Action to PubSub Room</button>
+      </p>
+    </div>
+    
+    <div>
+      <h1>Logs</h1>
+      <ul id='log' width='400px' height='400px'></ul>
+    </div>
     
   </body>
   <script src="js/ipfsPubSub.js"></script>
   <script src="js/simulator.js"></script>
   <script src="dist/jsoneditor.min.js"></script>
 
-  <script>
-      function clickTab(evt, cityName) {
-        var i, tabcontent, tablinks;
-        tabcontent = document.getElementsByClassName("tabcontent");
-        for (i = 0; i < tabcontent.length; i++) {
-          tabcontent[i].style.display = "none";
-        }
-        tablinks = document.getElementsByClassName("tablinks");
-        for (i = 0; i < tablinks.length; i++) {
-          tablinks[i].className = tablinks[i].className.replace(" active", "");
-        }
-        document.getElementById(cityName).style.display = "block";
-        evt.currentTarget.className += " active";
-      }
-      document.getElementById("defaultOpen").click();
-      </script>
+  
 </html>
 
 
