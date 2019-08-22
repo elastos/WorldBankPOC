@@ -126,12 +126,25 @@ module.exports = (ipfs, room, options) => {
       case 'reqTaskParams':{
         console.log('reqTaskParams, messageObj', messageObj);
         const {taskCid,executor} = messageObj;
+        const task = options.block.pendingTasks[taskCid];
+        //console.log('task,', task);
+        if(chooseExecutorAndMonitors(task).userName != executor.userName){
+          logToWebPage(`Executor validate fail`, {executor, task});
+          break;
+        }
+        const resTaskParams = {
+          type:'resTaskParams',
+          params:['Hello', " World!"]
+        };
+        room.sendTo(message.from, JSON.stringify(resTaskParams));
+        logToWebPage(`Sending response for Task Params back to executor.`, resTaskParams);
+        break;
       }
       case 'reqLambdaParams':{
-        console.log('reqLambdaParams, messageObj', messageObj);
+        //console.log('reqLambdaParams, messageObj', messageObj);
         const {taskCid,executor} = messageObj;
         const task = options.block.pendingTasks[taskCid];
-        console.log('task,', task);
+        //console.log('task,', task);
         if(chooseExecutorAndMonitors(task).userName != executor.userName){
           logToWebPage(`Executor validate fail`, {executor, task});
           break;
@@ -147,6 +160,13 @@ module.exports = (ipfs, room, options) => {
       case 'resLambdaParams':{
         const {code} = messageObj;
         console.log('code, ', code);
+        logToWebPage(`I have got the lambda code from lambda owner, `, code);
+        break;
+      }
+      case 'resTaskParams':{
+        const {params} = messageObj;
+        console.log('data, ', params);
+        logToWebPage(`I have got the task params from task owner, `, params);
         break;
       }
       default:{

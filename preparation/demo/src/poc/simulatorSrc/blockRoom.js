@@ -141,8 +141,8 @@ const handleProcessedTxs = (options, totalGas, totalCredit, totalCreditForOnline
   
   computeTaskTxsCid.map((cid)=>{
     ipfs.dag.get(cid).then(tx=>{
-      const {ipfsPeerId, depositAmt, executorRequirement} = tx.value;
-      if(ipfsPeerId == userInfo.ipfsPeerId){
+      const {userName, depositAmt, executorRequirement} = tx.value;
+      if(userName == userInfo.userName){
         console.log("I am the node myself, I cannot do execution compute task on myself, skip");
         return;
       }
