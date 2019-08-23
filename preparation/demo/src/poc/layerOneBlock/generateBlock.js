@@ -84,7 +84,11 @@ const runSettlementBeforeNewBlock = (ipfs, globalState)=>{
         break;
       }
       case 'computeTaskDone':{
-        await settleComputeTask(ipfs, globalState, taskCid);
+        if ( await settleComputeTask(ipfs, globalState, taskCid)){
+          delete globalState.escrowGasMap[taskCid];
+          delete globalState.pendingTasks[taskCid];
+        }
+        console.log('case computeTaskDone, gasMap,', globalState.gasMap);
         break;
       }
     }//switch
@@ -177,6 +181,8 @@ const runCreditNormalization = (creditMapInput, maxCredit)=>{
 };
 
 const settleComputeTask = async (ipfs, globalState, taskCid)=>{
+  console.log("gasMap before settleComputeTask,", globalState.gasMap);
+  
   const taskInPending = globalState.pendingTasks[taskCid];
   const {followUps} = taskInPending;
   const executor = chooseExecutorAndMonitors(taskInPending);
@@ -213,7 +219,8 @@ const settleComputeTask = async (ipfs, globalState, taskCid)=>{
 
     })
   }
-  delete globalState.escrowGasMap[taskCid];
-  delete globalState.pendingTasks[taskCid];
+  console.log("gasMap after settleComputeTask,", globalState.gasMap);
+  
+  return true;
 }
 exports.runCreditNormalization = runCreditNormalization;

@@ -19,7 +19,7 @@ export default (ipfs, room, options)=>{
           ipfs_id : m.from
         });
         break;
-      case "computeTaskWinnerApplication":
+      //case "computeTaskWinnerApplication":
         //console.log('layerOne townhall, record the highest J value.', messageObj);
   //       "type": "computeTaskWinnerApplication",
   // "ipfsPeerId": "QmcRcLKdqpydWjKYxgDGSUZ5Qyh4NqNxikLFG3KJ6yLQoj",
@@ -30,8 +30,8 @@ export default (ipfs, room, options)=>{
   // "value": "5eb4b325b16db6969967eb58081272d8ca3d4f986ea5efdf29180de0a86cca73",
   // "j": "1",
   // "blockHeightWhenVRF": 2
-        globalState.pendingTasks[messageObj.taskCid].followUps.push(messageObj);
-        break;
+        //globalState.pendingTasks[messageObj.taskCid].followUps.push(messageObj);
+        //break;
       default:
         return console.log("townHallMessageHandler received unknown type message object,", messageObj );
     }

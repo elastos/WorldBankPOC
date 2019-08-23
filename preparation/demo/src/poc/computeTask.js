@@ -43,13 +43,15 @@ exports.executeCompute = async (options, taskCid, executor)=>{
   const reqTaskParams = {
     type:'reqTaskParams',
     taskCid,
-    executor
+    executor,
+    blockHeight:options.block.blockHeight
   };  
 
   const reqLambdaParams = {
     type:'reqLambdaParams',
     taskCid,
-    executor
+    executor,
+    blockHeight:options.block.blockHeight
   };
   window.rooms.townHall.sendTo(taskOwnerPeerId, JSON.stringify(reqTaskParams));
   logToWebPage(`Sending request for task data to taskOwner: ${taskOwner}  PeerId:${taskOwnerPeerId}`, reqTaskParams)

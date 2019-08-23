@@ -44,13 +44,13 @@ const handleProcessedTxs = (options, totalGas, totalCredit, totalCreditForOnline
   const remoteAttestationDoneTxsCid = [];
   const uploadLambdaTxsCid = [];
   const computeTaskTxsCid = [];
-
+  const computeTaskWinnerApplicationCid = [];
   block.processedTxs.forEach((tx)=>{
     if(tx.txType == 'newNodeJoinNeedRa')  newNodeJoinNeedRaTxsCid.push(tx.cid);
     if(tx.txType == 'remoteAttestationDone')  remoteAttestationDoneTxsCid.push(tx.cid);
     if(tx.txType == 'uploadLambda')  uploadLambdaTxsCid.push(tx.cid);
     if(tx.txType == 'computeTask')  computeTaskTxsCid.push(tx.cid);
-    
+    if(tx.txType == 'computeTaskWinnerApplication') computeTaskWinnerApplicationCid.push(tx.cid);
   });
   
   const userCreditBalance = block.creditMap[userInfo.userName];
@@ -208,19 +208,7 @@ const handleProcessedTxs = (options, totalGas, totalCredit, totalCreditForOnline
     
       //window.rooms.townHall.broadcast(JSON.stringify(applicationJoinSecGroup));
       window.rooms.taskRoom.broadcast(JSON.stringify(applicationJoinSecGroup));
-      const applicationJoinSecGroupInTownhall = {
-        type:'computeTaskWinnerApplication',
-        ipfsPeerId: userInfo.ipfsPeerId,//peerId for myself
-        userName: options.userInfo.userName,
-        publicKey: options.userInfo.publicKey,
-        taskCid: cid,
-        proof:proof.toString('hex'),
-        value: value.toString('hex'),
-        j: j.toFixed(),
-        blockHeightWhenVRF: options.block.blockHeight
-      };
-      window.rooms.townHall.broadcast(JSON.stringify(applicationJoinSecGroupInTownhall));
-      
+    
       logToWebPage(`I am asking to join the secure chatting group by sending everyone in this group my application`, applicationJoinSecGroup);
       
     }else{
@@ -235,6 +223,10 @@ const handleProcessedTxs = (options, totalGas, totalCredit, totalCreditForOnline
     }
     
   });
+
+  computeTaskWinnerApplicationCid.map(async (cid)=>{
+    
+  })
 }
 
 const handlePendingTasks =  (options, totalGas, totalCredit, totalCreditForOnlineNodes)=>{
