@@ -73,14 +73,15 @@ const F = {
           el.find('.js_geo').html(d.location.join(' - '));
           el.find('.js_ipfs').html(d.ipfs_id);
 
-          if(d.peerId !== C.user.name){
-            el.find('.js_me').hide();
-            el.find('.js_other').show();
-          }
-          else{
-            el.find('.js_me').show();
-            el.find('.js_other').hide();
-          }
+          // if(d.peerId !== C.user.name){
+          //   el.find('.js_me').hide();
+          //   el.find('.js_other').show();
+          // }
+          // else{
+          //   el.find('.js_me').show();
+          //   el.find('.js_other').hide();
+          // }
+          el.find('.js_me').show();
         }, 100);
       }
     });
@@ -262,10 +263,11 @@ const F = {
 
 window.poc = {
   createRaTask(){
+    const d = $('#js_node_detail').data('json');
     const json = {
-      userName : C.user.name,
+      userName : d.name,
       depositAmt : 10,
-      ipfsPeerId : C.user.ipfs_id,
+      ipfsPeerId : d.ipfs_id,
       txType : 'newNodeJoinNeedRa',
     };
 

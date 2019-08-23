@@ -151,10 +151,16 @@ const EChart = class {
 
 
   tooltipFormatter(d){
+    let h = 'status: '+(d.status || 'free');
+    if(d.status === 'req_ra'){
+      h += '<br/> VRF: '+d.pd.vrf;
+    }
+    if(d.status === 'req_ra_send'){
+      h += '<br/> J: '+d.pd.j;
+    }
     return `
-      ${d.hacked ? 'Hacked <br/>' : ''}
-      ${d.creditScore < 1 ? 'Untrusted <br/>' : ''}
-      ${d.hacked || d.creditScore < 1 ? '<div style="height:1px; background:#cdcdcd;"></div>' : ''}
+      ${h}
+      <div style="height:1px; background:#cdcdcd;"></div>
       peerId: ${d.peerId} <br/>
       score: ${d.creditScore} <br/>
       gas: ${d.gas} <br/>
@@ -225,7 +231,6 @@ const EChart = class {
       rs.push(tmp);
     });
 
-    console.log(rs);
     return rs;
   }
 
@@ -305,7 +310,12 @@ const EChart = class {
       return `${name} [credit-${pd.credit}]`;
     }
 
-    return name;
+    let r = name;
+    if(this.user.name === name){
+      r = 'ME'
+    }
+
+    return r+' ('+(status||'free')+')';
   }
 };
 
