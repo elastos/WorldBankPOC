@@ -178,14 +178,16 @@ const EChart = class {
 
           tar = {
             ori : item.name,
-            tar : this.ori
+            tar : this.ori,
+            label : 'req ra'
           };
           
         }
         else{
           tar = {
             ori : this.ori,
-            tar : item.name
+            tar : item.name,
+            label : 'res ra'
           };
         }
 
@@ -217,7 +219,8 @@ const EChart = class {
           curveness : 0.1
         },
         symbol : ['arrow', 'arrow'],
-        symbolSize : [15, 15]
+        symbolSize : [15, 15],
+        label : n.label
       }
       rs.push(tmp);
     });
@@ -244,7 +247,7 @@ const EChart = class {
         rs.color = '#f58220';
       }
       else{
-        rs.color = 'gray';
+        rs.color = '#ccc';
       }
     }
     else if(status === 'req_ra'){
