@@ -82,6 +82,7 @@ const F = {
         ra1[opts.cid] = [];
         ra[opts.cid].push(log);
         ra1[opts.cid].push(opts);
+        d1['current'] = opts.cid;
         break;
       
       case 'req_ra_send':
@@ -97,13 +98,19 @@ const F = {
         break;
       
       case 'req_ra':
-        log = `${opts.name} send resRemoteAttestation in townHall. vrf is ${opts.vrf}. proofOfVrf is ${JSON.stringify(opts.proofOfVrf)}. proofOfTrust is ${JSON.stringify(opts.proofOfTrust)}`;
+        if(opts.vrf && opts.vrf !== 'No'){
+          log = `${opts.name} got req remoteAttestation in townHall. vrf is ${opts.vrf}. proofOfVrf is ${JSON.stringify(opts.proofOfVrf)}. proofOfTrust is ${JSON.stringify(opts.proofOfTrust)}`;
+        }
+        else{
+          log = `${opts.name} got req remoteAttestation in townHall. vrf is ${opts.vrf}.`;
+        }
+        
         ra[opts.cid].push(log);
         ra1[opts.cid].push(opts);
         break;
       
       case 'res_ra':
-        log = `${opts.name} broadcase remoteAttestationDone in townHall. potResult is ${opts.potResult}`;
+        log = `${opts.name} broadcast remoteAttestationDone in townHall. potResult is ${opts.potResult}`;
         ra[opts.cid].push(log);
         ra1[opts.cid].push(opts);
         break;

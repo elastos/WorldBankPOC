@@ -26,6 +26,8 @@ const C = {
   pot_log : {}
 };
 
+let options = null;
+
 let myIpfs = null;
 let myChart = null;
 let myData = null;
@@ -88,12 +90,14 @@ const F = {
     await myIpfs.start();
     window.myIpfs = myIpfs;
 
+    options = this.buildHandlerOption();
     F.initBlockRoom();
     F.initTaskRoom();
     F.initTownHall();
     window.rooms = {
       taskRoom, blockRoom, townHall
     };
+    options.rooms = window.rooms;
 
     myChart.render();
 
@@ -126,7 +130,6 @@ const F = {
     // })).handler;
   },
   initBlockRoom(){
-    let options = this.buildHandlerOption();
     let message_hander = ()=>{};
     blockRoom = myIpfs.registerRoom(C.blockRoom, {
       join(peer){
@@ -186,7 +189,7 @@ const F = {
       }
     });
 
-    const tmp_cb = townHallHandler(myIpfs.node, townHall, this.buildHandlerOption());
+    const tmp_cb = townHallHandler(myIpfs.node, townHall, options);
     message_hander = (_.find(tmp_cb, (item)=>{
       return item.message === 'message';
     })).handler;
@@ -216,11 +219,10 @@ const F = {
 
 
   buildHandlerOption(){
+    window.ipfs = myIpfs.node;
     return {
       ipfs : myIpfs.node,
-      rooms : {
-        taskRoom, townHall, blockRoom
-      },
+      rooms : {},
       userInfo : {
         userName : C.user.name,
         randRoomPostfix : C.r,
@@ -240,7 +242,7 @@ const F = {
       const d = rs.data;
 
       if(d && d.remote_attestation){
-        myData.setWorkStatus(d.remote_attestation[_.last(_.keys(d.remote_attestation))], ()=>{
+        myData.setWorkStatus(d.remote_attestation[d['current']], ()=>{
           const list = myData.getAllListForChart();
           myChart.render(list);
         });

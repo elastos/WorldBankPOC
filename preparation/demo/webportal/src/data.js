@@ -26,6 +26,11 @@ const Data = class {
     if(!list || list.length === this.work_status.length) return false;
     this.work_status = list;
 
+    if(list.length === 1 && list[0].type === 'new_ra'){
+      // new task, reset all status;
+      this.resetWorkStatus();
+    }
+
     console.log('work status => ', this.work_status);
     
     _.each(this.work_status, (item)=>{
@@ -37,6 +42,15 @@ const Data = class {
     });
 
     cb && cb();
+  }
+
+  resetWorkStatus(){
+    _.each(this.peer_map, (val, k)=>{
+      delete this.peer_map[k].status;
+      delete this.peer_map[k].pd;
+    });
+
+    console.log('------ reset work status ------');
   }
 
   removePeerById(id){

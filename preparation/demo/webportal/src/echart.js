@@ -169,7 +169,7 @@ const EChart = class {
       if(item.status === 'new_ra'){
         this.ori = item.name;
       }
-      if(item.status === 'req_ra' || item.status === 'res_ra'){
+      if((item.status === 'req_ra' && item.pd.vrf !== 'No') || item.status === 'res_ra'){
         if(item.name === this.ori) return true;
 
         let tar = {}; 
@@ -258,6 +258,11 @@ const EChart = class {
       else{
         rs.symbol = 'rect';
         rs.color = '#ff0';
+      }
+
+      if(pd.vrf === 'No'){
+        rs.symbol = 'rect';
+        rs.color = '#f00';
       }
       
     }

@@ -129,7 +129,7 @@ const handleProcessedTxs = (options, totalGas, totalCredit, totalCreditForOnline
   });
   
   remoteAttestationDoneTxsCid.map((cid)=>{
-    ipfs.dag.get(cid).then(tx=>{
+    options.ipfs.dag.get(cid).then(tx=>{
       console.log("received a RADone task, not implemented yet",tx.value);
       //logToWebPage(`Blockroom Received a RA Done Message `, tx);
     })
