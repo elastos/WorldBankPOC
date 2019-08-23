@@ -1,4 +1,5 @@
 import {tryParseJson, logToWebPage, updateLog} from './utils';
+import _ from 'lodash';
 const {utils, ecvrf, sortition} = require('vrf.js');
 import {sha256} from 'js-sha256';
 import Big from 'big.js';
@@ -125,38 +126,66 @@ module.exports = (ipfs, room, options) => {
       }
       case 'reqTaskParams':{
         console.log('reqTaskParams, messageObj', messageObj);
-        const {taskCid,executor} = messageObj;
-        const task = options.block.pendingTasks[taskCid];
-        //console.log('task,', task);
-        if(chooseExecutorAndMonitors(task).userName != executor.userName){
-          logToWebPage(`Executor validate fail`, {executor, task});
-          break;
+        
+        const mayDelayExecuteDueToBlockDelay = (messageObj)=>{
+          const {taskCid,executor, blockHeight} = messageObj;
+          if(blockHeight <= options.block.blockHeight){
+            //this node is slower than the executor who send me the request. I have to wait till I have such a block to continue;
+            
+            const task = options.block.pendingTasks[taskCid];
+            
+            const calculateExecutor = chooseExecutorAndMonitors(task);
+            if(! calculateExecutor){
+              logToWebPage(`Cannot find executor`, {task, blockHeight:options.block.blockHeight});
+              return;
+            }
+            if(chooseExecutorAndMonitors(task).userName != executor.userName){
+              logToWebPage(`Executor validate fail`, {executor, task});
+              return;
+            }
+            const resTaskParams = {
+              type:'resTaskParams',
+              data:['Hello', " World!"],
+              taskCid
+            };
+            room.sendTo(message.from, JSON.stringify(resTaskParams));
+            logToWebPage(`Sending response for Task data back to executor.`, resTaskParams);
+          }else{
+            _.delay(mayDelayExecuteDueToBlockDelay, 1000, messageObj);
+          }
         }
-        const resTaskParams = {
-          type:'resTaskParams',
-          data:['Hello', " World!"],
-          taskCid
-        };
-        room.sendTo(message.from, JSON.stringify(resTaskParams));
-        logToWebPage(`Sending response for Task data back to executor.`, resTaskParams);
+        mayDelayExecuteDueToBlockDelay(messageObj)
         break;
       }
       case 'reqLambdaParams':{
         //console.log('reqLambdaParams, messageObj', messageObj);
-        const {taskCid,executor} = messageObj;
-        const task = options.block.pendingTasks[taskCid];
-        console.log('task,', task);
-        if(chooseExecutorAndMonitors(task).userName != executor.userName){
-          logToWebPage(`Executor validate fail`, {executor, task});
-          break;
+        const mayDelayExecuteDueToBlockDelay = (messageObj)=>{
+          const {taskCid,executor, blockHeight} = messageObj;
+          if(blockHeight <= options.block.blockHeight){
+            const {taskCid,executor} = messageObj;
+            const task = options.block.pendingTasks[taskCid];
+            console.log('task,', task);
+            const calculateExecutor = chooseExecutorAndMonitors(task);
+            if(! calculateExecutor){
+              logToWebPage(`Cannot find executor`, {task , blockHeight:options.block.blockHeight});
+              return;
+            }
+            if(chooseExecutorAndMonitors(task).userName != executor.userName){
+              logToWebPage(`Executor validate fail`, {executor, task});
+              return;
+            }
+            const resLambdaParams = {
+              type:'resLambdaParams',
+              code:'args[0] + args[1]',
+              taskCid
+            };
+            room.sendTo(message.from, JSON.stringify(resLambdaParams));
+            logToWebPage(`Sending response for Lambda Params back to executor.`, resLambdaParams);
+          }else{
+            _.delay(mayDelayExecuteDueToBlockDelay, 1000, messageObj);
+          }
         }
-        const resLambdaParams = {
-          type:'resLambdaParams',
-          code:'args[0] + args[1]',
-          taskCid
-        };
-        room.sendTo(message.from, JSON.stringify(resLambdaParams));
-        logToWebPage(`Sending response for Lambda Params back to executor.`, resLambdaParams);
+        mayDelayExecuteDueToBlockDelay(messageObj);
         break;
       }
       case 'resLambdaParams':{
