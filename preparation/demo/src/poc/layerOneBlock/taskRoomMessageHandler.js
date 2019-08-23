@@ -34,6 +34,23 @@ export default (ipfs, room, options)=>{
         
         break;
       }
+      case "computeTaskWinnerApplication":
+          //console.log('layerOne townhall, record the highest J value.', messageObj);
+    //       "type": "computeTaskWinnerApplication",
+    // "ipfsPeerId": "QmcRcLKdqpydWjKYxgDGSUZ5Qyh4NqNxikLFG3KJ6yLQoj",
+    // "userName": "user #16",
+    // "publicKey": "bae714c4e682fa0d36dd11fd73a3113817ec521df3f337757f78ad7392f061d9",
+    // "taskCid": "bafyreihjakj2lrb5blk7jsve4kookxhjvwiawfc2aaptogoskfahbvehie",
+    // "proof": "025eb4b325b16db6969967eb58081272d8ca3d4f986ea5efdf29180de0a86cca733763a4a1814b9b975b0bf1e25faede8665d3d95598ba55b7b10680b23801fdd367943070e67f96729957ba4348339ec2",
+    // "value": "5eb4b325b16db6969967eb58081272d8ca3d4f986ea5efdf29180de0a86cca73",
+    // "j": "1",
+    // "blockHeightWhenVRF": 2
+        processResult = await computeTaskWinnerApplication(ipfs, room, options, messageObj, m.from);//
+        break;
+      case 'computeTaskDone':{
+        processResult = true;
+        break;
+      }
       default:
         console.log("taskRoom Unhandled message, ", messageObj);
     }
@@ -46,6 +63,19 @@ export default (ipfs, room, options)=>{
     }
   }
 };
+const computeTaskWinnerApplication = async (ipfs, room, options, messageObj, from)=>{
+  
+  const {globalState} = options;
+  const {userName, taskCid} = messageObj;
+  const taskObj = (await ipfs.dag.get(taskCid)).value;
+  const {depositAmt} = taskObj;
+  console.log('inside computeTaskWinnerApplication', {userName, depositAmt, taskCid, depositAmt});
+  if (! takeEscrow(globalState, userName, depositAmt, taskCid))
+    return false;
+  
+  globalState.pendingTasks[taskCid].followUps.push(messageObj);
+  return true;
+}
 
 const gasTransferProcess = async (ipfs, room, options, cid)=>{
   const {globalState} = options;

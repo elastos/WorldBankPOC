@@ -145,7 +145,7 @@ module.exports = (ipfs, room, options) => {
         //console.log('reqLambdaParams, messageObj', messageObj);
         const {taskCid,executor} = messageObj;
         const task = options.block.pendingTasks[taskCid];
-        //console.log('task,', task);
+        console.log('task,', task);
         if(chooseExecutorAndMonitors(task).userName != executor.userName){
           logToWebPage(`Executor validate fail`, {executor, task});
           break;
@@ -171,11 +171,9 @@ module.exports = (ipfs, room, options) => {
         }
 
         options.computeTaskBuffer[taskCid].code = code;
-        if(options.computeTaskBuffer[taskCid].code && options.computeTaskBuffer[taskCid].data){
-          logToWebPage(`Executor has got both data and code, it can start execution`, options.computeTaskBuffer[taskCid])
-          const result = executeComputeUsingEval(options.computeTaskBuffer[taskCid]);
-          delete options.computeTaskBuffer[taskCid];
-          logToWebPage( `Execution result:`, result);
+        const result = executeIfParamsAreReady(options.computeTaskBuffer, taskCid);
+        if(result){
+          sendComputeTaskDone(options, taskCid);
         }
         break;
       }
@@ -191,11 +189,9 @@ module.exports = (ipfs, room, options) => {
         }
 
         options.computeTaskBuffer[taskCid].data = data;
-        if(options.computeTaskBuffer[taskCid].code && options.computeTaskBuffer[taskCid].data){
-          logToWebPage(`Executor has got both data and code, it can start execution`, options.computeTaskBuffer[taskCid])
-          const result = executeComputeUsingEval(options.computeTaskBuffer[taskCid]);
-          delete options.computeTaskBuffer[taskCid];
-          logToWebPage( `Execution result:`, result);
+        const result = executeIfParamsAreReady(options.computeTaskBuffer, taskCid);
+        if(result){
+          sendComputeTaskDone(options, taskCid);
         }
         break;
       }
@@ -205,7 +201,7 @@ module.exports = (ipfs, room, options) => {
     }//switch
     
   };
-    
+
   messageHandlers.push({
     message: 'message',
     handler: (m)=>directMessageHandler(m)
@@ -214,3 +210,27 @@ module.exports = (ipfs, room, options) => {
   return messageHandlers;
 
 };
+
+
+const executeIfParamsAreReady = (computeTaskBuffer, taskCid)=>{
+  if(computeTaskBuffer[taskCid].code && computeTaskBuffer[taskCid].data){
+    logToWebPage(`Executor has got both data and code, it can start execution`, computeTaskBuffer[taskCid])
+    const result = executeComputeUsingEval(computeTaskBuffer[taskCid]);
+    delete computeTaskBuffer[taskCid];
+    logToWebPage( `Execution result:`, result);
+    return result;
+  }
+  return null;
+}
+
+const sendComputeTaskDone = (options, taskCid)=>{
+  const {userInfo} = options;
+  const computeTaskDoneObj = {
+    txType:'computeTaskDone',
+    userName: userInfo.userName,
+    taskCid
+    
+  }
+  window.rooms.taskRoom.broadcast(JSON.stringify(computeTaskDoneObj));
+
+}

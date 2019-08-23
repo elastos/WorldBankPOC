@@ -79,7 +79,12 @@ const runSettlementBeforeNewBlock = (ipfs, globalState)=>{
           globalState.processedTxs.push(taskCid);
         else if(result == 'timeUp'){
           chooseExecutorAndMonitors(pendingTasks[taskCid]);
+          globalState.pendingTasks[taskCid].type = 'computeTaskDone';
         }
+        break;
+      }
+      case 'computeTaskDone':{
+        await settleComputeTask(ipfs, globalState, taskCid);
         break;
       }
     }//switch
@@ -171,4 +176,44 @@ const runCreditNormalization = (creditMapInput, maxCredit)=>{
   return creditMap;
 };
 
+const settleComputeTask = async (ipfs, globalState, taskCid)=>{
+  const taskInPending = globalState.pendingTasks[taskCid];
+  const {followUps} = taskInPending;
+  const executor = chooseExecutorAndMonitors(taskInPending);
+  console.log('in settleComputeTask executor', executor)
+  let totalRewardGasRemaining = globalState.escrowGasMap[taskCid];
+  const taskObj = (await ipfs.dag.get(taskCid)).value;
+  const lambdaObj = (await ipfs.dag.get(taskObj.lambdaCid)).value;
+
+  const {ownerName, amt} = lambdaObj;
+  console.log('in settleComputeTask ownerName', ownerName);
+  console.log('in settleComputeTask amt', amt);
+  globalState.gasMap[ownerName] += amt;
+  totalRewardGasRemaining -= amt;
+  const rewardToExecutor = totalRewardGasRemaining / 2;
+  console.log('in settleComputeTask rewardToExecutor', rewardToExecutor)
+  
+  globalState.gasMap[executor.userName] += rewardToExecutor;
+  
+  totalRewardGasRemaining -= rewardToExecutor;
+
+  if(followUps.length == 1){
+    //there is no monitor
+    console.log("ERROR: We should always have followups as monitors");
+  }else{
+    const rewardToEachMonitor = totalRewardGasRemaining / (followUps.length - 1);
+    console.log('in settleComputeTask rewardToEachMonitor', rewardToEachMonitor)
+  
+    followUps.forEach((f)=>{
+    const followUpUserName = f.userName;
+    console.log('in settleComputeTask followUpUserName', followUpUserName);
+  
+    if(followUpUserName != executor.userName)
+      globalState.gasMap[followUpUserName] += rewardToEachMonitor;
+
+    })
+  }
+  delete globalState.escrowGasMap[taskCid];
+  delete globalState.pendingTasks[taskCid];
+}
 exports.runCreditNormalization = runCreditNormalization;
