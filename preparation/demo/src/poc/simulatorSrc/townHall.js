@@ -39,7 +39,14 @@ module.exports = (ipfs, room, options) => {
 
       case "reqRemoteAttestation":{//Now I am new node, sending back poT after validate the remote attestation is real
         const { j, proof, value, taskCid, publicKey, userName, blockHeightWhenVRF} = messageObj;
-        const blockCid = options.blockHistory[blockHeightWhenVRF];
+
+        let blockCid = messageObj.bblockCid;
+        try{
+          blockCid = options.blockHistory[blockHeightWhenVRF];
+        }catch(e){
+          console.error(e);
+        }
+ 
         const validateReturn = await validateVrf({ipfs, j, proof, value, blockCid, taskCid, publicKey, userName});
 
         if(! validateReturn.result){

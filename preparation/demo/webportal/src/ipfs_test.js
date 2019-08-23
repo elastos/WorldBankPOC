@@ -240,7 +240,7 @@ const F = {
       const d = rs.data;
 
       if(d && d.remote_attestation){
-        myData.setWorkStatus(d.remote_attestation[_.first(_.keys(d.remote_attestation))], ()=>{
+        myData.setWorkStatus(d.remote_attestation[_.last(_.keys(d.remote_attestation))], ()=>{
           const list = myData.getAllListForChart();
           myChart.render(list);
         });
