@@ -56,7 +56,7 @@ const handleProcessedTxs = (options, totalGas, totalCredit, totalCreditForOnline
   const userCreditBalance = block.creditMap[userInfo.userName];
   
   newNodeJoinNeedRaTxsCid.map((cid)=>{
-    ipfs.dag.get(cid).then(tx=>{
+    options.ipfs.dag.get(cid).then(tx=>{
       if(tx.value.ipfsPeerId == userInfo.ipfsPeerId){
         console.log("I am the node myself, I cannot do remote attestation on myself, skip");
         return;
