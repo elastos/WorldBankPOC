@@ -1,8 +1,5 @@
 import {tryParseJson, logToWebPage, updateLog} from './utils';
 import _ from 'lodash';
-const {utils, ecvrf, sortition} = require('vrf.js');
-import {sha256} from 'js-sha256';
-import Big from 'big.js';
 import {validateVrf, validatePot, verifyOthersRemoteAttestationVrfAndProof}  from '../remoteAttestation';
 import {chooseExecutorAndMonitors, executeComputeUsingEval} from '../computeTask';
 
@@ -92,13 +89,7 @@ module.exports = (ipfs, room, options) => {
           break;
         }
         //logToWebPage(`VRF Validation passed`);
-        if (options.computeTaskGroup && options.computeTaskGroup[messageObj.taskCid]){
-          
-          options.computeTaskGroup[messageObj.taskCid].push({j, proof, value, taskCid, publicKey, userName, blockHeightWhenVRF});
-        }else{
-          //do nothing. since I am not lucky enough to get involved in this task, I do not bother to know who is in , unless I am a hacker
-        }
-        //logToWebPage('current options.computeTaskGroup', options.computeTaskGroup);
+        
         break;
       }
       case "remoteAttestationDone":{

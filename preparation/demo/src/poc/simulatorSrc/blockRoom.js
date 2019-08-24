@@ -206,20 +206,6 @@ const handleProcessedTxs = (options, totalGas, totalCredit, totalCreditForOnline
     if(j.gt(0)){
       console.log("I am lucky!!!", j.toFixed());
       logToWebPage(`I am lucky!! J is ${j.toFixed()}. However I should not tell anyone about my win. Do not want to get hacker noticed. I just join the secure p2p chat group for winner's only`);
-      if (! options.computeTaskGroup){
-        options.computeTaskGroup = {};
-      }
-      if(! options.computeTaskGroup[cid])
-        options.computeTaskGroup[cid] = [];
-      options.computeTaskGroup[cid].push({
-        ipfsPeerId: userInfo.ipfsPeerId,
-        userName: userInfo.userName,
-        j: j.toFixed(),
-        proof:proof.toString('hex'),
-        value:value.toString('hex'),
-        blockHeightWhenVRF: options.block.blockHeight
-      });
-      
       const applicationJoinSecGroup = {
         txType:'computeTaskWinnerApplication',
         ipfsPeerId: userInfo.ipfsPeerId,//peerId for myself
@@ -256,22 +242,22 @@ const handleProcessedTxs = (options, totalGas, totalCredit, totalCreditForOnline
 }
 
 const handlePendingTasks =  (options, totalGas, totalCredit, totalCreditForOnlineNodes)=>{
-  if(options.computeTaskGroup){
-    const computeTaskCids = Object.keys(options.block.pendingTasks).filter((k)=>options.block.pendingTasks[k].type == 'computeTask');
-    computeTaskCids.forEach(async c=>{
-      const task = options.block.pendingTasks[c];
-      if(eligibilityCheck(options.block.blockHeight, task) == 'timeUp'){
-        const executor = chooseExecutorAndMonitors(task);
-        console.log("executor is,", executor.userName);
-        if(options.userInfo.userName == executor.userName){
-          logToWebPage("I am the executor. I am going to run taskCid:", c);
-          executeCompute(options, c, executor);
-        }else{
-          logToWebPage(`I am the monitor, the executor is ${executor.userName}`);
-        }
+  
+  const computeTaskCids = Object.keys(options.block.pendingTasks).filter((k)=>options.block.pendingTasks[k].type == 'computeTask');
+  computeTaskCids.forEach(async c=>{
+    const task = options.block.pendingTasks[c];
+    if(eligibilityCheck(options.block.blockHeight, task) == 'timeUp'){
+      const executor = chooseExecutorAndMonitors(task);
+      console.log("executor is,", executor.userName);
+      if(options.userInfo.userName == executor.userName){
+        logToWebPage("I am the executor. I am going to run taskCid:", c);
+        executeCompute(options, c, executor);
+      }else{
+        logToWebPage(`I am the monitor, the executor is ${executor.userName}`);
       }
-    })
-  }
+    }
+  })
+
 }
 
 const verifyBlockIntegrity = (options)=>{
