@@ -1,6 +1,8 @@
 import {minComputeGroupMembersToStartCompute, minBlockDelayRequiredBeforeComputeStart, maxBlockDelayRequiredBeforeComputeStart} from './constValue';
 import { logToWebPage } from './simulatorSrc/utils';
 
+
+
 exports.eligibilityCheck = (currentBlockHeight, task)=>{
   const {startBlockHeight, initiator, followUps} = task;
   if(currentBlockHeight  - startBlockHeight < minBlockDelayRequiredBeforeComputeStart){
@@ -53,14 +55,77 @@ exports.executeCompute = async (options, taskCid, executor)=>{
     executor,
     blockHeight:options.block.blockHeight
   };
-  window.rooms.townHall.sendTo(taskOwnerPeerId, JSON.stringify(reqTaskParams));
+  window.rooms.townHall.rpcRequest(taskOwnerPeerId, JSON.stringify(reqTaskParams), (res, err)=>{
+    if(err){
+      logToWebPage(`I have got the task data from task owner but it is an error, `, err);
+      return console.log(`I have got the task data from task owner but it is an error, `, err);
+    }
+    const {data, taskCid} = res;
+    console.log('data, ', data);
+    logToWebPage(`I have got the task data from task owner, `, data);
+    options.computeTaskBuffer = options.computeTaskBuffer || {};
+    options.computeTaskBuffer[taskCid] = options.computeTaskBuffer[taskCid] || {};
+    if(options.computeTaskBuffer[taskCid].data){
+      logToWebPage(`Error, executor has got the data already, why a new data come up again?`, {data, buffer: options.computeTaskBuffer});
+      return;
+    }
+
+    options.computeTaskBuffer[taskCid].data = data;
+    const result = executeIfParamsAreReady(options.computeTaskBuffer, taskCid);
+    if(result){
+      sendComputeTaskDone(options, taskCid);
+    }
+  });
   logToWebPage(`Sending request for task data to taskOwner: ${taskOwner}  PeerId:${taskOwnerPeerId}`, reqTaskParams)
-  window.rooms.townHall.sendTo(lambdaOwnerPeerId, JSON.stringify(reqLambdaParams));
+  window.rooms.townHall.rpcRequest(lambdaOwnerPeerId, JSON.stringify(reqLambdaParams), (res, err)=>{
+    if(err){
+      logToWebPage(`I have got the task lambda from task owner but it is an error, `, err);
+      return console.log(`I have got the task lambda from task owner but it is an error, `, err);
+    }
+    const {code, taskCid} = res;
+    console.log('code, ', code);
+    logToWebPage(`I have got the lambda code from lambda owner, `, code);
+    options.computeTaskBuffer = options.computeTaskBuffer || {};
+    options.computeTaskBuffer[taskCid] = options.computeTaskBuffer[taskCid] || {};
+    if(options.computeTaskBuffer[taskCid].code){
+      logToWebPage(`Error, executor has got the code already, why a new code come up again?`, {code, buffer: options.computeTaskBuffer});
+      return
+    }
+
+    options.computeTaskBuffer[taskCid].code = code;
+    const result = executeIfParamsAreReady(options.computeTaskBuffer, taskCid);
+    if(result){
+      sendComputeTaskDone(options, taskCid);
+    }
+    return
+  });
   logToWebPage(`Sending request for lambda function code to lambda Owner: ${lambdaOwner} PeerId:${lambdaOwnerPeerId}`, reqLambdaParams);
-  return "Hello World!";
+  return;
 }
 
-exports.chooseExecutorAndMonitors = (task)=>{
+const executeIfParamsAreReady = (computeTaskBuffer, taskCid)=>{
+  if(computeTaskBuffer[taskCid].code && computeTaskBuffer[taskCid].data){
+    logToWebPage(`Executor has got both data and code, it can start execution`, computeTaskBuffer[taskCid])
+    const result = executeComputeUsingEval(computeTaskBuffer[taskCid]);
+    delete computeTaskBuffer[taskCid];
+    logToWebPage( `Execution result:`, result);
+    return result;
+  }
+  return null;
+}
+
+const sendComputeTaskDone = (options, taskCid)=>{
+  const {userInfo} = options;
+  const computeTaskDoneObj = {
+    txType:'computeTaskDone',
+    userName: userInfo.userName,
+    taskCid
+    
+  }
+  window.rooms.taskRoom.broadcast(JSON.stringify(computeTaskDoneObj));
+
+}
+const chooseExecutorAndMonitors = (task)=>{
   let executor;
   let maxJ = 0;
   for(var i =0; i < task.followUps.length; i ++){
@@ -71,9 +136,11 @@ exports.chooseExecutorAndMonitors = (task)=>{
   }
   return executor;
 }
+exports.chooseExecutorAndMonitors = chooseExecutorAndMonitors;
 
-exports.executeComputeUsingEval = ({code, data})=>{
+const executeComputeUsingEval = ({code, data})=>{
   const args = data;
   return eval(code);
 }
+exports.executeComputeUsingEval = executeComputeUsingEval;
 

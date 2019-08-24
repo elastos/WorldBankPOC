@@ -131,7 +131,7 @@ module.exports = (ipfs, room, options) => {
               data:['Hello', " World!"],
               taskCid
             };
-            room.sendTo(message.from, JSON.stringify(resTaskParams));
+            room.rpcResponse(message.from, JSON.stringify(resTaskParams), message.guid);
             logToWebPage(`Sending response for Task data back to executor.`, resTaskParams);
           }else{
             _.delay(mayDelayExecuteDueToBlockDelay, 1000, messageObj);
@@ -162,7 +162,7 @@ module.exports = (ipfs, room, options) => {
               code:'args[0] + args[1]',
               taskCid
             };
-            room.sendTo(message.from, JSON.stringify(resLambdaParams));
+            room.rpcResponse(message.from, JSON.stringify(resLambdaParams), message.guid);
             logToWebPage(`Sending response for Lambda Params back to executor.`, resLambdaParams);
           }else{
             _.delay(mayDelayExecuteDueToBlockDelay, 1000, messageObj);
@@ -171,42 +171,7 @@ module.exports = (ipfs, room, options) => {
         mayDelayExecuteDueToBlockDelay(messageObj);
         break;
       }
-      case 'resLambdaParams':{
-        const {code, taskCid} = messageObj;
-        console.log('code, ', code);
-        logToWebPage(`I have got the lambda code from lambda owner, `, code);
-        options.computeTaskBuffer = options.computeTaskBuffer || {};
-        options.computeTaskBuffer[taskCid] = options.computeTaskBuffer[taskCid] || {};
-        if(options.computeTaskBuffer[taskCid].code){
-          logToWebPage(`Error, executor has got the code already, why a new code come up again?`, {code, buffer: options.computeTaskBuffer});
-          break;
-        }
 
-        options.computeTaskBuffer[taskCid].code = code;
-        const result = executeIfParamsAreReady(options.computeTaskBuffer, taskCid);
-        if(result){
-          sendComputeTaskDone(options, taskCid);
-        }
-        break;
-      }
-      case 'resTaskParams':{
-        const {data, taskCid} = messageObj;
-        console.log('data, ', data);
-        logToWebPage(`I have got the task data from task owner, `, data);
-        options.computeTaskBuffer = options.computeTaskBuffer || {};
-        options.computeTaskBuffer[taskCid] = options.computeTaskBuffer[taskCid] || {};
-        if(options.computeTaskBuffer[taskCid].data){
-          logToWebPage(`Error, executor has got the data already, why a new data come up again?`, {data, buffer: options.computeTaskBuffer});
-          break;
-        }
-
-        options.computeTaskBuffer[taskCid].data = data;
-        const result = executeIfParamsAreReady(options.computeTaskBuffer, taskCid);
-        if(result){
-          sendComputeTaskDone(options, taskCid);
-        }
-        break;
-      }
       default:{
         return console.log("townHallMessageHandler received unknown type message object,", messageObj );
       } 
@@ -269,7 +234,7 @@ module.exports = (ipfs, room, options) => {
               data:['Hello', " World!"],
               taskCid
             };
-            room.sendTo(message.from, JSON.stringify(resTaskParams));
+            room.rpcResponse(message.from, JSON.stringify(resTaskParams), message.guid);
             logToWebPage(`Sending response for Task data back to executor.`, resTaskParams);
           }else{
             _.delay(mayDelayExecuteDueToBlockDelay, 1000, messageObj);
@@ -300,7 +265,7 @@ module.exports = (ipfs, room, options) => {
               code:'args[0] + args[1]',
               taskCid
             };
-            room.sendTo(message.from, JSON.stringify(resLambdaParams));
+            room.rpcResponse(message.from, JSON.stringify(resLambdaParams), message.guid);
             logToWebPage(`Sending response for Lambda Params back to executor.`, resLambdaParams);
           }else{
             _.delay(mayDelayExecuteDueToBlockDelay, 1000, messageObj);
@@ -309,42 +274,8 @@ module.exports = (ipfs, room, options) => {
         mayDelayExecuteDueToBlockDelay(messageObj);
         break;
       }
-      case 'resLambdaParams':{
-        const {code, taskCid} = messageObj;
-        console.log('code, ', code);
-        logToWebPage(`I have got the lambda code from lambda owner, `, code);
-        options.computeTaskBuffer = options.computeTaskBuffer || {};
-        options.computeTaskBuffer[taskCid] = options.computeTaskBuffer[taskCid] || {};
-        if(options.computeTaskBuffer[taskCid].code){
-          logToWebPage(`Error, executor has got the code already, why a new code come up again?`, {code, buffer: options.computeTaskBuffer});
-          break;
-        }
+        
 
-        options.computeTaskBuffer[taskCid].code = code;
-        const result = executeIfParamsAreReady(options.computeTaskBuffer, taskCid);
-        if(result){
-          sendComputeTaskDone(options, taskCid);
-        }
-        break;
-      }
-      case 'resTaskParams':{
-        const {data, taskCid} = messageObj;
-        console.log('data, ', data);
-        logToWebPage(`I have got the task data from task owner, `, data);
-        options.computeTaskBuffer = options.computeTaskBuffer || {};
-        options.computeTaskBuffer[taskCid] = options.computeTaskBuffer[taskCid] || {};
-        if(options.computeTaskBuffer[taskCid].data){
-          logToWebPage(`Error, executor has got the data already, why a new data come up again?`, {data, buffer: options.computeTaskBuffer});
-          break;
-        }
-
-        options.computeTaskBuffer[taskCid].data = data;
-        const result = executeIfParamsAreReady(options.computeTaskBuffer, taskCid);
-        if(result){
-          sendComputeTaskDone(options, taskCid);
-        }
-        break;
-      }
       default:{
         return console.log("townHallMessageHandler received unknown type message object,", messageObj );
       } 
@@ -367,25 +298,3 @@ module.exports = (ipfs, room, options) => {
 };
 
 
-const executeIfParamsAreReady = (computeTaskBuffer, taskCid)=>{
-  if(computeTaskBuffer[taskCid].code && computeTaskBuffer[taskCid].data){
-    logToWebPage(`Executor has got both data and code, it can start execution`, computeTaskBuffer[taskCid])
-    const result = executeComputeUsingEval(computeTaskBuffer[taskCid]);
-    delete computeTaskBuffer[taskCid];
-    logToWebPage( `Execution result:`, result);
-    return result;
-  }
-  return null;
-}
-
-const sendComputeTaskDone = (options, taskCid)=>{
-  const {userInfo} = options;
-  const computeTaskDoneObj = {
-    txType:'computeTaskDone',
-    userName: userInfo.userName,
-    taskCid
-    
-  }
-  window.rooms.taskRoom.broadcast(JSON.stringify(computeTaskDoneObj));
-
-}
