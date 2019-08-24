@@ -81,7 +81,7 @@
     "http-status": "^1.0.1",
     "inquirer": "^6.5.1",
     "ipfs": "^0.37.0",
-    "ipfs-pubsub-room": "github:kevingzhang/ipfs-pubsub-room",
+    "ipfs-pubsub-room": "github:kevingzhang/ipfs-pubsub-room#rpcDirect",
     "joi": "^10.4.1",
     "js-sha256": "^0.9.0",
     "jwt-simple": "0.5.3",

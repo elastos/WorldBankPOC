@@ -238,8 +238,13 @@ module.exports = (ipfs, room, options) => {
   };
 
   messageHandlers.push({
-    message: 'message',
+    message: 'rpcDirect',
     handler: (m)=>directMessageHandler(m)
+  });
+  
+  messageHandlers.push({
+    message: 'message',
+    handler: (m)=>console.log('still receive townhall message,', m)
   });
   
   return messageHandlers;

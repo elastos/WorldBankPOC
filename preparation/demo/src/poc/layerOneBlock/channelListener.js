@@ -74,6 +74,7 @@ exports.channelListener = (ipfs, randRoomPostfix, presetUsers)=>{
   townHall.on('peer left', townHallJoinLeftHandler.left(ipfs, townHall, options));
   townHall.on('subscribed', (m) => console.log("...... subscribe task room....", m));
   townHall.on('message', townHallMessageHandler(ipfs, rooms.townHall, options));
+  townHall.on('rpcDirect', townHallMessageHandler(ipfs, rooms.townHall, options));
 
   const blockRoom = Room(ipfs, 'blockRoom' + randRoomPostfix, {pollInterval:333});
   blockRoom.on('peer joined', (peer)=>peer);//console.log(console.log('peer ' + peer + ' joined task room')));
