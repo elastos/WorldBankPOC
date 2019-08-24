@@ -8,7 +8,19 @@ exports.join = (ipfs, room, options)=>{
     const reqObj = {
       type:'reqUserInfo'
     }
-    room.sendTo(peer, JSON.stringify(reqObj));
+    //room.sendTo(peer, JSON.stringify(reqObj));
+    room.rpcRequest(peer, JSON.stringify(reqObj), (res, err)=>{
+      console.log("finally I got the rpcResponse like this,", res, err);
+      const {userInfo} = res;
+      const {globalState} = options;
+      globalState.trustedPeerToUserInfo[peer] = userInfo;
+      console.log("trustedPeerToUserInfo, ", globalState.trustedPeerToUserInfo);
+
+      log('user_online', {
+        name : userInfo.userName,
+        ipfs_id :peer
+      });
+    })
   }
 };
 

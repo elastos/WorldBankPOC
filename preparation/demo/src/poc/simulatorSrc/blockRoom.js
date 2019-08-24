@@ -5,7 +5,7 @@ import {sha256} from 'js-sha256';
 import {expectNumberOfRemoteAttestatorsToBeVoted, minimalNewNodeJoinRaDeposit, expectNumberOfExecutorGroupToBeVoted} from '../constValue';
 const Big = require('big.js');
 import {eligibilityCheck, executeCompute, chooseExecutorAndMonitors} from '../computeTask';
-
+import {validatePot} from '../remoteAttestation';
 
 
 const processNewBlock = async (options)=>{
@@ -106,7 +106,33 @@ const handleProcessedTxs = (options, totalGas, totalCredit, totalCreditForOnline
           proof: proof.toString('hex')
         });
 
-        window.rooms.townHall.sendTo(tx.value.ipfsPeerId, JSON.stringify(raReqObj));
+        window.rooms.townHall.rpcRequest(tx.value.ipfsPeerId, JSON.stringify(raReqObj), async (res, err)=>{
+          if(err){
+            logToWebPage(`I am a Remote Attestator, I received new node's error response :, err is `, err);
+            return console.log(`I am a Remote Attestator, I received new node's error response :, err is `, err);
+          }
+          logToWebPage(`I am a Remote Attestator, I received new node's reply :, payload is `, res);
+          const {proofOfVrf, proofOfTrust} = res;
+          const potResult = validatePot(proofOfTrust);
+          logToWebPage(`Proof of trust verify result: ${potResult}`);
+          const cid = await ipfs.dag.put({potResult,proofOfTrust,proofOfVrf});
+          const remoteAttestationDoneMsg = {
+            txType:'remoteAttestationDone',
+            cid: cid.toBaseEncodedString()
+          }
+          options.rooms.taskRoom.broadcast(JSON.stringify(remoteAttestationDoneMsg))
+          logToWebPage(`Broadcast in taskRoom about the Proof of trust verify result: ${potResult}`);
+
+          const {userInfo} = options;
+          updateLog('res_ra', {
+            name : userInfo.userName,
+            from : tx.value.ipfsPeerId,
+            cid : proofOfVrf.taskCid,
+            potResult
+          });
+          
+          
+        });
         logToWebPage(`Sending townhall request to the new node: ${tx.value.ipfsPeerId}  for RA:`, raReqObj);
 
         

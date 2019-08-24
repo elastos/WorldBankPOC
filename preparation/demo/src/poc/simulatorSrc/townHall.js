@@ -19,11 +19,14 @@ module.exports = (ipfs, room, options) => {
   messageHandlers.push({message:'subscribed', handler: (m) => {console.log("...... subscribe....", m)}});
 
 
-  const directMessageHandler = async (message) => {
-    //console.log('In townhall got message from ' + message.from + ': ' + message.data.toString());
+  const rpcHandler = async (message) => {
+    console.log('In townhall got RPC message from ' + message.from + ': ', message);
+    if(! message.guid || ! message.verb)
+      return console.log("twonHall RPC handler got a message not standard RPC,", message);
     const messageObj = tryParseJson(message.data.toString());
     if(! messageObj)
       return console.log("townHallMessageHandler received non-parsable message, ", messageString);
+    
     switch(messageObj.type){
       case "reqUserInfo":{
         const {userInfo} = options;
@@ -33,8 +36,8 @@ module.exports = (ipfs, room, options) => {
           type:'resUserInfo',
           userInfo:{userName, publicKey}
         }
-        room.sendTo(message.from, JSON.stringify(resMessage));
-        //logToWebPage(`send back reqUserInfo to townhall manager`, resMessage);
+        room.rpcResponse(message.from, JSON.stringify(resMessage), message.guid);
+        logToWebPage(`send back reqUserInfo to townhall manager using RPC response`, {resMessage, guid: message.guid});
         break;
       }
 
@@ -65,7 +68,7 @@ module.exports = (ipfs, room, options) => {
           proofOfTrust
         }
 
-        room.sendTo(message.from, JSON.stringify(resRemoteAttestationObj));
+        room.rpcResponse(message.from, JSON.stringify(resRemoteAttestationObj), message.guid);
 
         updateLog('req_ra', {
           name : userName,
@@ -78,32 +81,144 @@ module.exports = (ipfs, room, options) => {
         logToWebPage(`send back resRemoteAttestation to the remote attestator ${message.from}, payload is `, resRemoteAttestationObj);
         break;
       }
-
-      case "resRemoteAttestation":{//now, I am the remote attestator, validate new node
-        logToWebPage(`I am a Remote Attestator, I received new node${message.from} 's reply :, payload is `, messageObj);
-        const newNodePeerId = message.from;
-        const {proofOfVrf, proofOfTrust} = messageObj;
-        const potResult = validatePot(proofOfTrust);
-        logToWebPage(`Proof of trust verify result: ${potResult}`);
-        const cid = await ipfs.dag.put({potResult,proofOfTrust,proofOfVrf});
-        const remoteAttestationDoneMsg = {
-          txType:'remoteAttestationDone',
-          cid: cid.toBaseEncodedString()
+      case 'computeTaskWinnerApplication':{
+        if(messageObj.userName == options.userInfo.userName){
+          //myself
+          break;
         }
-        options.rooms.taskRoom.broadcast(JSON.stringify(remoteAttestationDoneMsg))
-        logToWebPage(`Broadcast in taskRoom about the Proof of trust verify result: ${potResult}`);
-
-        const {userInfo} = options;
-        updateLog('res_ra', {
-          name : userInfo.userName,
-          from : message.from,
-          cid : proofOfVrf.taskCid,
-          potResult
-        });
+        const { j, proof, value, taskCid, publicKey, userName, blockHeightWhenVRF} = messageObj;
+        const blockCid = options.blockHistory[blockHeightWhenVRF];
+        const validateReturn = await validateVrf({ipfs, j, proof, value, blockCid, taskCid, publicKey, userName});
+        if(! validateReturn.result){
+          logToWebPage(`VRF Validation failed, reason is `, validateReturn.reason);
+          break;
+        }
+        //logToWebPage(`VRF Validation passed`);
+        if (options.computeTaskGroup && options.computeTaskGroup[messageObj.taskCid]){
+          
+          options.computeTaskGroup[messageObj.taskCid].push({j, proof, value, taskCid, publicKey, userName, blockHeightWhenVRF});
+        }else{
+          //do nothing. since I am not lucky enough to get involved in this task, I do not bother to know who is in , unless I am a hacker
+        }
+        //logToWebPage('current options.computeTaskGroup', options.computeTaskGroup);
+        break;
+      }
+      case "remoteAttestationDone":{
         
         break;
       }
+      case 'reqTaskParams':{
+        console.log('reqTaskParams, messageObj', messageObj);
+        
+        const mayDelayExecuteDueToBlockDelay = (messageObj)=>{
+          const {taskCid,executor, blockHeight} = messageObj;
+          if(blockHeight <= options.block.blockHeight){
+            //this node is slower than the executor who send me the request. I have to wait till I have such a block to continue;
+            
+            const task = options.block.pendingTasks[taskCid];
+            
+            const calculateExecutor = chooseExecutorAndMonitors(task);
+            if(! calculateExecutor){
+              logToWebPage(`Cannot find executor`, {task, blockHeight:options.block.blockHeight});
+              return;
+            }
+            if(chooseExecutorAndMonitors(task).userName != executor.userName){
+              logToWebPage(`Executor validate fail`, {executor, task});
+              return;
+            }
+            const resTaskParams = {
+              type:'resTaskParams',
+              data:['Hello', " World!"],
+              taskCid
+            };
+            room.sendTo(message.from, JSON.stringify(resTaskParams));
+            logToWebPage(`Sending response for Task data back to executor.`, resTaskParams);
+          }else{
+            _.delay(mayDelayExecuteDueToBlockDelay, 1000, messageObj);
+          }
+        }
+        mayDelayExecuteDueToBlockDelay(messageObj)
+        break;
+      }
+      case 'reqLambdaParams':{
+        //console.log('reqLambdaParams, messageObj', messageObj);
+        const mayDelayExecuteDueToBlockDelay = (messageObj)=>{
+          const {taskCid,executor, blockHeight} = messageObj;
+          if(blockHeight <= options.block.blockHeight){
+            const {taskCid,executor} = messageObj;
+            const task = options.block.pendingTasks[taskCid];
+            console.log('task,', task);
+            const calculateExecutor = chooseExecutorAndMonitors(task);
+            if(! calculateExecutor){
+              logToWebPage(`Cannot find executor`, {task , blockHeight:options.block.blockHeight});
+              return;
+            }
+            if(chooseExecutorAndMonitors(task).userName != executor.userName){
+              logToWebPage(`Executor validate fail`, {executor, task});
+              return;
+            }
+            const resLambdaParams = {
+              type:'resLambdaParams',
+              code:'args[0] + args[1]',
+              taskCid
+            };
+            room.sendTo(message.from, JSON.stringify(resLambdaParams));
+            logToWebPage(`Sending response for Lambda Params back to executor.`, resLambdaParams);
+          }else{
+            _.delay(mayDelayExecuteDueToBlockDelay, 1000, messageObj);
+          }
+        }
+        mayDelayExecuteDueToBlockDelay(messageObj);
+        break;
+      }
+      case 'resLambdaParams':{
+        const {code, taskCid} = messageObj;
+        console.log('code, ', code);
+        logToWebPage(`I have got the lambda code from lambda owner, `, code);
+        options.computeTaskBuffer = options.computeTaskBuffer || {};
+        options.computeTaskBuffer[taskCid] = options.computeTaskBuffer[taskCid] || {};
+        if(options.computeTaskBuffer[taskCid].code){
+          logToWebPage(`Error, executor has got the code already, why a new code come up again?`, {code, buffer: options.computeTaskBuffer});
+          break;
+        }
 
+        options.computeTaskBuffer[taskCid].code = code;
+        const result = executeIfParamsAreReady(options.computeTaskBuffer, taskCid);
+        if(result){
+          sendComputeTaskDone(options, taskCid);
+        }
+        break;
+      }
+      case 'resTaskParams':{
+        const {data, taskCid} = messageObj;
+        console.log('data, ', data);
+        logToWebPage(`I have got the task data from task owner, `, data);
+        options.computeTaskBuffer = options.computeTaskBuffer || {};
+        options.computeTaskBuffer[taskCid] = options.computeTaskBuffer[taskCid] || {};
+        if(options.computeTaskBuffer[taskCid].data){
+          logToWebPage(`Error, executor has got the data already, why a new data come up again?`, {data, buffer: options.computeTaskBuffer});
+          break;
+        }
+
+        options.computeTaskBuffer[taskCid].data = data;
+        const result = executeIfParamsAreReady(options.computeTaskBuffer, taskCid);
+        if(result){
+          sendComputeTaskDone(options, taskCid);
+        }
+        break;
+      }
+      default:{
+        return console.log("townHallMessageHandler received unknown type message object,", messageObj );
+      } 
+    }//switch
+    
+  };
+  const directMessageHandler = async (message) => {
+    console.log('In townhall got direct message from ' + message.from + ': ' + message.data.toString());
+    const messageObj = tryParseJson(message.data.toString());
+    if(! messageObj)
+      return console.log("townHallMessageHandler received non-parsable message, ", messageString);
+    switch(messageObj.type){
       case 'computeTaskWinnerApplication':{
         if(messageObj.userName == options.userInfo.userName){
           //myself
@@ -239,12 +354,12 @@ module.exports = (ipfs, room, options) => {
 
   messageHandlers.push({
     message: 'rpcDirect',
-    handler: (m)=>directMessageHandler(m)
+    handler: (m)=>rpcHandler(m)
   });
   
   messageHandlers.push({
     message: 'message',
-    handler: (m)=>console.log('still receive townhall message,', m)
+    handler: (m)=>directMessageHandler(m)
   });
   
   return messageHandlers;
