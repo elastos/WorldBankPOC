@@ -1,16 +1,14 @@
 import {getUrlVars, logToWebPage} from './utils.js';
 
-exports.main = ({userInfo})=>{
+exports.main = ({userInfo, ipfs, rooms})=>{
   const {userName, publicKey, privateKey, randRoomPostfix} = userInfo;
   document.getElementById('roomPostfix').innerText = randRoomPostfix;
   document.getElementById('userName').innerText = userName;
   
-  const ipfs = window.ipfs;
-  const pubsubRooms = window.rooms;
-
+  
   logToWebPage(`VRF Public Key: ${publicKey}`);
   
-  logToWebPage(`IPFS PeerID: ${pubsubRooms.townHall.getMyPeerId()}`);
+  logToWebPage(`IPFS PeerID: ${rooms.townHall.getMyPeerId()}`);
   var container = document.getElementById("jsoneditor");
   var editor = new JSONEditor(container, {});
 
@@ -27,7 +25,7 @@ exports.main = ({userInfo})=>{
       txType:"newNodeJoinNeedRa",
       userName,
       depositAmt:10,
-      ipfsPeerId:pubsubRooms.taskRoom.getMyPeerId(),
+      ipfsPeerId:rooms.taskRoom.getMyPeerId(),
 
     })
   };
@@ -86,7 +84,7 @@ exports.main = ({userInfo})=>{
       let promiseCid;
       switch(txType){
         case "gasTransfer":{
-          channelRoom = pubsubRooms.taskRoom;
+          channelRoom = rooms.taskRoom;
           const {fromPeerId, toPeerId, amt} = jsonObj;
           promiseCid = ipfs.dag.put({
             fromPeerId, toPeerId, amt
@@ -100,7 +98,7 @@ exports.main = ({userInfo})=>{
         case "newNodeJoinNeedRa":
         case 'uploadLambda':
         case "computeTask":
-          channelRoom = pubsubRooms.taskRoom;
+          channelRoom = rooms.taskRoom;
           promiseCid = ipfs.dag.put(jsonObj);
           break;
         default:

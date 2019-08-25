@@ -192,7 +192,7 @@ const F = {
 
     const tmp_cb = townHallHandler(myIpfs.node, townHall, options);
     message_hander = (_.find(tmp_cb, (item)=>{
-      return item.message === 'message';
+      return item.message === 'rpcDirect';
     })).handler;
   },
 
