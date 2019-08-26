@@ -11,6 +11,9 @@ exports.join = (ipfs, room, options)=>{
     //room.sendTo(peer, JSON.stringify(reqObj));
     room.rpcRequest(peer, JSON.stringify(reqObj), (res, err)=>{
       console.log("finally I got the rpcResponse like this,", res, err);
+      if(err){
+        return console.log('rpcRequest reqUserInfo received error', err);
+      }
       const {userInfo} = res;
       const {globalState} = options;
       globalState.trustedPeerToUserInfo[peer] = userInfo;
