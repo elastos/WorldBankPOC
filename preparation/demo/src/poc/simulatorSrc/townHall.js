@@ -30,7 +30,12 @@ module.exports = (ipfs, room, {block, blockCid, blockHistory, userInfo}) => {
           type:'resUserInfo',
           userInfo:{userName, publicKey}
         }
-        room.rpcResponse(message.from, JSON.stringify(resMessage), message.guid);
+        room.rpcResponseWithNewRequest(message.from, JSON.stringify(resMessage), message.guid, (res, err)=>{
+          if(err)
+            console.log("rpcResponseWithNewRequest err,",err);
+          else
+            console.log('rpcResponseWithNewRequest received', res);
+        });
         logToWebPage(`send back reqUserInfo to townhall manager using RPC response`, {resMessage, guid: message.guid});
         break;
       }

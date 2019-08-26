@@ -9,8 +9,8 @@ exports.join = (ipfs, room, options)=>{
       type:'reqUserInfo'
     }
     //room.sendTo(peer, JSON.stringify(reqObj));
-    room.rpcRequest(peer, JSON.stringify(reqObj), (res, err)=>{
-      console.log("finally I got the rpcResponse like this,", res, err);
+    room.rpcRequest(peer, JSON.stringify(reqObj), (res, err, withNewRequestGuid)=>{
+      console.log("finally I got the rpcResponse like this,", res, err, withNewRequestGuid);
       if(err){
         return console.log('reqUserInfo response error', err);
       }
@@ -23,6 +23,10 @@ exports.join = (ipfs, room, options)=>{
         name : userInfo.userName,
         ipfs_id :peer
       });
+      if(withNewRequestGuid){
+        const r = {name:'Hello World'};
+        room.rpcResponse(peer, JSON.stringify(r), withNewRequestGuid);
+      }
     })
   }
 };
