@@ -9,16 +9,13 @@ exports.subscribed = (m)=>console.log(`Subscribed ${m}`);
 
 
 exports.rpcDirect = (room)=>(message) => {
-  o('log', 'In townhall got RPC message from ' + message.from + ': ', message);
+  //o('log', 'In townhall got RPC message from ' + message.from + ': ', message);
   if(! message.guid || ! message.verb)
     return console.log("twonHall RPC handler got a message not standard RPC,", message);
   const messageObj = tryParseJson(message.data.toString());
-  o('log','messageObj', messageObj);
   if(! messageObj)
     return console.log("townHallMessageHandler received non-parsable message, ", messageString);
   
-  o('log', `handling message type`, messageObj);
-    
   const handlerFunction = rpcDirectHandler[messageObj.type];
   if(typeof handlerFunction == 'function'){
     handlerFunction({message, room});

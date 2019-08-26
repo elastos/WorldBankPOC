@@ -5,10 +5,8 @@ import 'babel-polyfill';
 chai.use(chaiAsPromised);
 
 import ipfsInit from '../app/ipfsInit';
-console.clear();
 
-
-describe('IPFS', ()=>{
+describe.skip('IPFS', ()=>{
   describe('ipfs init', ()=>{
     it('ipfs init with option default to local',async ()=>{
       const ipfs = await ipfsInit('local');

@@ -2,6 +2,7 @@ import IPFS  from 'ipfs';
 import Room from 'ipfs-pubsub-room';
 import {o} from './utilities';
 import townHallHandler from './townHallHandler.js';
+import blockRoomHandler from './blockRoomHandler';
 
 exports.ipfsInit = async (swarmUrlOption)=>{
   console.log('swarmUrlOption:|', swarmUrlOption, '|');
@@ -30,35 +31,21 @@ exports.ipfsInit = async (swarmUrlOption)=>{
     o('log', 'IPFS on init:', error);
   });
   return ipfs;
-    // const userName = getUrlVars().u;
-    // const randRoomPostfix = getUrlVars().r || "";
-    // const publicKey = getUrlVars().pub || "";
-    // const privateKey = getUrlVars().pri || "";
-    // const ipfsPeerId = ipfs._peerInfo.id.toB58String();
-    // const userInfo = {userName, randRoomPostfix, publicKey, privateKey, ipfsPeerId}
-    
-    // console.log("randRoomPostfix", randRoomPostfix);
-    // const rooms = {};
-    
-    // const options = {ipfs, rooms, userInfo};
-    // rooms.taskRoom = roomMessageHandler(ipfs, 'taskRoom' + randRoomPostfix, options, taskRoom);
-    // rooms.townHall = roomMessageHandler(ipfs, 'townHall' + randRoomPostfix, Object.assign({},options), townHall);
-    // rooms.blockRoom = roomMessageHandler(ipfs, 'blockRoom' + randRoomPostfix, options, blockRoom);
-    // window.rooms = rooms;
-    
-    // main({userInfo, ipfs, rooms});
-  
-    
 }
 
 exports.pubsubInit = async (ipfs, roomNamePostfix)=>{
+
   const townHall = Room(ipfs, "townHall" + roomNamePostfix);
   townHall.on('peer joined', townHallHandler.peerJoined);
   townHall.on('peer left', townHallHandler.peerLeft);
   townHall.on('subscribed', townHallHandler.subscribed);
   townHall.on('rpcDirect', townHallHandler.rpcDirect(townHall));
-  //const taskRoom = Room(ipfs, 'taskRoom' + roomNamePostfix);
-  //const blockRoom = Room(ipfs, 'blockRoom' + roomNamePostfix);
+
+  const taskRoom = Room(ipfs, 'taskRoom' + roomNamePostfix);
+  taskRoom.on('subscribed', m=>o('log', 'subscribed', m));
+  
+  const blockRoom = Room(ipfs, 'blockRoom' + roomNamePostfix);
+  blockRoom.on('message', blockRoomHandler.messageHandler(ipfs))
   return {townHall}
 
 }
