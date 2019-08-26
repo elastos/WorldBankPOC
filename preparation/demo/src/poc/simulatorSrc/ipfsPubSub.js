@@ -53,11 +53,11 @@ function init(){
     
     const options = {ipfs, rooms, userInfo};
     rooms.taskRoom = roomMessageHandler(ipfs, 'taskRoom' + randRoomPostfix, options, taskRoom);
-    rooms.townHall = roomMessageHandler(ipfs, 'townHall' + randRoomPostfix, options, townHall);
+    rooms.townHall = roomMessageHandler(ipfs, 'townHall' + randRoomPostfix, Object.assign({},options), townHall);
     rooms.blockRoom = roomMessageHandler(ipfs, 'blockRoom' + randRoomPostfix, options, blockRoom);
     window.rooms = rooms;
     
-    main({userInfo});
+    main({userInfo, ipfs, rooms});
   
     
   });

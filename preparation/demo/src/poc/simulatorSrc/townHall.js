@@ -1,13 +1,10 @@
 import {tryParseJson, logToWebPage, updateLog} from './utils';
 import _ from 'lodash';
-const {utils, ecvrf, sortition} = require('vrf.js');
-import {sha256} from 'js-sha256';
-import Big from 'big.js';
 import {validateVrf, validatePot, verifyOthersRemoteAttestationVrfAndProof}  from '../remoteAttestation';
 import {chooseExecutorAndMonitors, executeComputeUsingEval} from '../computeTask';
 
 
-module.exports = (ipfs, room, options) => {
+module.exports = (ipfs, room, {block, blockCid, blockHistory, userInfo}) => {
   const messageHandlers = [];
   
   const peerJoinedHandler = (peer)=>console.log('peer ' + peer + ' joined');
@@ -27,7 +24,6 @@ module.exports = (ipfs, room, options) => {
     
     switch(messageObj.type){
       case "reqUserInfo":{
-        const {userInfo} = options;
         const {userName, publicKey} = userInfo;
 
         const resMessage = {
@@ -41,9 +37,7 @@ module.exports = (ipfs, room, options) => {
 
       case "reqRemoteAttestation":{//Now I am new node, sending back poT after validate the remote attestation is real
         const { j, proof, value, taskCid, publicKey, userName, blockHeightWhenVRF} = messageObj;
-        const blockCid = options.blockHistory[blockHeightWhenVRF] || options.blockCid;
-        
-        const validateReturn = await validateVrf({ipfs, j, proof, value, blockCid, taskCid, publicKey, userName});
+        const validateReturn = await validateVrf({ipfs, j, proof, value, blockCid:blockHistory[blockHeightWhenVRF], taskCid, publicKey, userName});
 
         if(! validateReturn.result){
           logToWebPage(`VRF Validation failed, reason is `, validateReturn.reason);
@@ -80,25 +74,18 @@ module.exports = (ipfs, room, options) => {
         break;
       }
       case 'computeTaskWinnerApplication':{
-        if(messageObj.userName == options.userInfo.userName){
+        if(messageObj.userName == userInfo.userName){
           //myself
           break;
         }
         const { j, proof, value, taskCid, publicKey, userName, blockHeightWhenVRF} = messageObj;
-        const blockCid = options.blockHistory[blockHeightWhenVRF];
-        const validateReturn = await validateVrf({ipfs, j, proof, value, blockCid, taskCid, publicKey, userName});
+        const validateReturn = await validateVrf({ipfs, j, proof, value, blockCid: blockHistory[blockHeightWhenVRF], taskCid, publicKey, userName});
         if(! validateReturn.result){
           logToWebPage(`VRF Validation failed, reason is `, validateReturn.reason);
           break;
         }
         //logToWebPage(`VRF Validation passed`);
-        if (options.computeTaskGroup && options.computeTaskGroup[messageObj.taskCid]){
-          
-          options.computeTaskGroup[messageObj.taskCid].push({j, proof, value, taskCid, publicKey, userName, blockHeightWhenVRF});
-        }else{
-          //do nothing. since I am not lucky enough to get involved in this task, I do not bother to know who is in , unless I am a hacker
-        }
-        //logToWebPage('current options.computeTaskGroup', options.computeTaskGroup);
+        
         break;
       }
       case "remoteAttestationDone":{
@@ -110,14 +97,14 @@ module.exports = (ipfs, room, options) => {
         
         const mayDelayExecuteDueToBlockDelay = (messageObj)=>{
           const {taskCid,executor, blockHeight} = messageObj;
-          if(blockHeight <= options.block.blockHeight){
+          if(blockHeight <= block.blockHeight){
             //this node is slower than the executor who send me the request. I have to wait till I have such a block to continue;
             
-            const task = options.block.pendingTasks[taskCid];
+            const task = block.pendingTasks[taskCid];
             
             const calculateExecutor = chooseExecutorAndMonitors(task);
             if(! calculateExecutor){
-              logToWebPage(`Cannot find executor`, {task, blockHeight:options.block.blockHeight});
+              logToWebPage(`Cannot find executor`, {task, blockHeight:block.blockHeight});
               return;
             }
             if(chooseExecutorAndMonitors(task).userName != executor.userName){
@@ -142,13 +129,13 @@ module.exports = (ipfs, room, options) => {
         //console.log('reqLambdaParams, messageObj', messageObj);
         const mayDelayExecuteDueToBlockDelay = (messageObj)=>{
           const {taskCid,executor, blockHeight} = messageObj;
-          if(blockHeight <= options.block.blockHeight){
+          if(blockHeight <= block.blockHeight){
             const {taskCid,executor} = messageObj;
-            const task = options.block.pendingTasks[taskCid];
+            const task = block.pendingTasks[taskCid];
             console.log('task,', task);
             const calculateExecutor = chooseExecutorAndMonitors(task);
             if(! calculateExecutor){
-              logToWebPage(`Cannot find executor`, {task , blockHeight:options.block.blockHeight});
+              logToWebPage(`Cannot find executor`, {task , blockHeight:block.blockHeight});
               return;
             }
             if(chooseExecutorAndMonitors(task).userName != executor.userName){
