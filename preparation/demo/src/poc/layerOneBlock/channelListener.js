@@ -69,7 +69,7 @@ exports.channelListener = (ipfs, randRoomPostfix, presetUsers)=>{
 
   
   const townHall = Room(ipfs, 'townHall' + randRoomPostfix, {pollInterval:250});
-  townHall.on('peer joined', townHallJoinLeftHandler.join(ipfs, townHall, options));
+  townHall.on('peer joined', townHallJoinLeftHandler.join(ipfs, townHall, options, presetUsers));
   townHall.on('peer left', townHallJoinLeftHandler.left(ipfs, townHall, options));
   townHall.on('subscribed', (m) => console.log("...... subscribe task room....", m));
   

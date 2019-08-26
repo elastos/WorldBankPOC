@@ -44,7 +44,7 @@ inquirer.prompt([
       name:'roomPostfixUserInput',
       message:'In order to prevent conflicts between different testing users, please input a random pubsub room postfix. Leave it blank will auto generate a random number as the default',
       default: ()=>{
-        return Math.round(Math.random()*1000).toString();
+        return '';//Math.round(Math.random()*1000).toString();
       }
     }
   ]

@@ -4,38 +4,26 @@ import colors from 'colors';
 import yargs from 'yargs';
 
 import pkg from '../package.json';
-import utilities from './utilities';
-import ipfsInit from './ipfsInit';
+import {o, done} from './utilities';
+import {ipfsInit, pubsubInit} from './ipfsInit';
+
 const OPTIONS = {};
 
 const startApp = async ()=>{ 
-  
-  utilities.title('Starting Trusted Computing Node Simulator');
-  utilities.o('log', 'options:', OPTIONS);
 
-  const ipfs = await ipfsInit(OPTIONS.swarm);
+  o('log', 'options:', OPTIONS);
 
-  // if (utilities.dirExists(OPTIONS.directory)) {
 
-  //   utilities.o('log', 'Hello.'.green);
-  //   utilities.o(
-  //     'log',
-  //     OPTIONS.directory,
-  //     OPTIONS.foo,
-  //     OPTIONS.baz,
-  //     OPTIONS.other
-  //   );
-  //   utilities.o('log', 'Goodbye.'.red);
-
-  // } else {
-
-  //   utilities.o('log', `Chosen directory does not exist: ${OPTIONS.directory}`.red.bold);
-  //   utilities.o('log', 'Double check your path and try again'.toUpperCase().rainbow);
-
-  // }
-
-  utilities.done({text:'Ctrl - C to exit'});
-  
+  ipfsInit(OPTIONS.swarm)
+  .then((ipfs)=>{
+    return pubsubInit(ipfs, OPTIONS.randRoomPostfix);
+  })
+  .then(({townHall, taskRoom, blockRoom})=>{
+    console.log('pubsubInit done');
+  })
+  .catch(err=>{
+    console.log('error in promises,', err);
+  });
 }
 
 const getOptions = ()=>{
@@ -54,6 +42,14 @@ const getOptions = ()=>{
       description:'Local, default or an IPFS swarm URL',
       type:'string',
       default:'/dns4/ws-star.discovery.libp2p.io/tcp/443/wss/p2p-websocket-star',
+    })
+    .options('randRoomPostfix', {
+      alias:[
+        'r',
+      ],
+      description:'Specify a random string as pub sub room name postfix.',
+      type:'string',
+      default:''
     })
     .option('hacked', {
       alias: [
@@ -91,6 +87,7 @@ const getOptions = ()=>{
 
   OPTIONS.user = argv.user;
   OPTIONS.swarm = argv.swarm;
+  OPTIONS.randRoomPostfix = argv.randRoomPostfix;
   OPTIONS.hacked = argv.hacked;
   OPTIONS.leader = argv.leader;
   OPTIONS.port = argv.port;

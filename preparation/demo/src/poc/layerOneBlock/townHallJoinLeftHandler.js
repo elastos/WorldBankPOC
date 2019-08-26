@@ -2,7 +2,7 @@ import {tryParseJson} from '../constValue';
 
 import {log} from '../PotLog';
 
-exports.join = (ipfs, room, options)=>{
+exports.join = (ipfs, room, options, presetUsers)=>{
   return (peer)=>{
     //console.log("someone Joined townhall, asking its userinfo now ", peer);
     const reqObj = {
@@ -14,18 +14,33 @@ exports.join = (ipfs, room, options)=>{
       if(err){
         return console.log('reqUserInfo response error', err);
       }
-      const {userInfo} = res;
-      const {globalState} = options;
-      globalState.trustedPeerToUserInfo[peer] = userInfo;
-      //console.log("trustedPeerToUserInfo, ", globalState.trustedPeerToUserInfo);
-
-      log('user_online', {
-        name : userInfo.userName,
-        ipfs_id :peer
-      });
-      if(withNewRequestGuid){
-        const r = {name:'Hello World'};
-        room.rpcResponse(peer, JSON.stringify(r), withNewRequestGuid);
+      const {userInfo, type} = res;
+      console.log('userInfo, type', userInfo, type);
+      if(userInfo){
+        const {globalState} = options;
+        globalState.trustedPeerToUserInfo[peer] = userInfo;
+        //console.log("trustedPeerToUserInfo, ", globalState.trustedPeerToUserInfo);
+  
+        log('user_online', {
+          name : userInfo.userName,
+          ipfs_id :peer
+        });
+      }else if(type == 'requestRandomUserInfo'){
+        console.log('requestRandomUserInfo')
+        if(withNewRequestGuid){
+          //console.log('presUsers, options.trust')
+          const firstOffLineUser = presetUsers.find((u)=>{
+            
+            return ! options.trustedPeerToUserInfo || ! options.trustedPeerToUserInfo[u.userName] 
+          })
+          const r = {userInfo:firstOffLineUser};
+          room.rpcResponse(peer, JSON.stringify(r), withNewRequestGuid);
+          console.log('random userinfo send back');
+        }else{
+          console.error("peer ask for requestRandomUserInfo but did not send me the callback function 'withNewRequestGuid'");
+        }
+      }else{
+        console.error('did not got userInfo, peer did not ask randomuserINfo either, do not know how to handle')
       }
     })
   }
