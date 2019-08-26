@@ -75,3 +75,7 @@ sitemap.xml.gz*~
 ####################
 
 node_modules
+
+# IPFS Storage #
+#################
+ipfs-leo

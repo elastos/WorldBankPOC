@@ -5,12 +5,15 @@ import yargs from 'yargs';
 
 import pkg from '../package.json';
 import utilities from './utilities';
-
+import ipfsInit from './ipfsInit';
 const OPTIONS = {};
 
-const startApp = ()=>{ 
+const startApp = async ()=>{ 
   
   utilities.title('Starting Trusted Computing Node Simulator');
+  utilities.o('log', 'options:', OPTIONS);
+
+  const ipfs = await ipfsInit(OPTIONS.swarm);
 
   // if (utilities.dirExists(OPTIONS.directory)) {
 
@@ -31,8 +34,8 @@ const startApp = ()=>{
 
   // }
 
-  utilities.exitGraceful();
-
+  utilities.done({text:'Ctrl - C to exit'});
+  
 }
 
 const getOptions = ()=>{
@@ -44,6 +47,14 @@ const getOptions = ()=>{
       'hacked',
       'leader'
     ])
+    .option('swarm', {
+      alias:[
+        's',
+      ],
+      description:'Local, default or an IPFS swarm URL',
+      type:'string',
+      default:'/dns4/ws-star.discovery.libp2p.io/tcp/443/wss/p2p-websocket-star',
+    })
     .option('hacked', {
       alias: [
         'h',
@@ -64,7 +75,7 @@ const getOptions = ()=>{
       ],
       description: 'Web monitor port number',
       type: 'number',
-      default: 3,
+      default: 2999,
     })
     .option('user', {
       alias: [
@@ -79,6 +90,7 @@ const getOptions = ()=>{
     .argv;
 
   OPTIONS.user = argv.user;
+  OPTIONS.swarm = argv.swarm;
   OPTIONS.hacked = argv.hacked;
   OPTIONS.leader = argv.leader;
   OPTIONS.port = argv.port;
