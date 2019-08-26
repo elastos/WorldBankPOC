@@ -35,7 +35,7 @@ We proposed to build a PoC on top of existing Elastos blockchain as a layer-2 so
 
 Layer 1 (Elastos mainchain sidechain and smart contract) provide immutable ledger and smart contract logic. 
 
-Layer 2 (Trusted computing enhanced peer 2 peer network) provide RoT (Roof of Trust), remote attestation, PoT (proof of Trust) consensus and local attestation on high performance PC to execute digital capsule. 
+Layer 2 (Trusted computing enhanced peer 2 peer network) provide remote attestation, PoT (proof of Trust) consensus and local attestation on high performance PC to execute digital capsule. 
 
 In the future, we will extend the layer 3 on top of the trusted peer to peer network, providing new PoET (proof of Elapsed Time) consensus and trusted smart contract runtime. 
 
