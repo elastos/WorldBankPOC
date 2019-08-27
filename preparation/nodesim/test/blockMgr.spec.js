@@ -50,5 +50,21 @@ describe('blockMgr', ()=>{
       expect(block9).to.be.undefined;
       
     })  
+
+    it('register registerNewBlockEventHandler function should get called when new block pushed', async ()=>{
+      global.shouldBeRemovedIfEventHandlerIsCalled = "whatever";
+      
+      const placeHolder = {placeholder:'nothing'};
+      const placeHolderCid = (await ipfs.dag.put(placeHolder)).toBaseEncodedString();
+      blockMgr.registerNewBlockEventHandler(({height, cid})=>{
+        expect(height).to.be.equal(10);
+        expect(cid).to.be.equal(placeHolderCid);
+        delete global.shouldBeRemovedIfEventHandlerIsCalled;
+      })
+      blockMgr.pushNewBlock(10, placeHolderCid);
+      expect(global.shouldBeRemovedIfEventHandlerIsCalled).to.be.undefined;
+    })
+
+
   });
 });
