@@ -25,11 +25,13 @@ const startApp = async ()=>{
   ipfsInit(OPTIONS.swarm)
   .then((ipfs)=>{
     const blockMgr = new BlockMgr(ipfs)
-    console.log('bockMgr initialized');
-    global.blockMgr = blockMgr;
     const totalGasAndCredit = new TotalGasAndCredit();
-    global.totalGasAndCredit = totalGasAndCredit;
+    blockMgr.registerNewBlockEventHandler(totalGasAndCredit.updateOnNewBlock);
+    
     global.ipfs = ipfs;
+    global.blockMgr = blockMgr;
+    global.totalGasAndCredit = totalGasAndCredit;
+    
     return pubsubInit(ipfs, OPTIONS.randRoomPostfix);
   })
   .then(({townHall, taskRoom, blockRoom})=>{
