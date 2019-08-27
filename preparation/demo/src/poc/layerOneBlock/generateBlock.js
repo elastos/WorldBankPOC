@@ -39,7 +39,8 @@ exports.generateBlock = async ({ipfs, globalState, blockRoom})=>{
   globalState.blockCid = newBlockCid.toBaseEncodedString();
   const broadcastObj = {
     txType:'newBlock',
-    cid:newBlockCid.toBaseEncodedString()
+    cid:newBlockCid.toBaseEncodedString(),
+    height:newBlock.blockHeight
   }
   // console.log("before blockRoom broadcast, the obj,", broadcastObj)
   blockRoom.broadcast(JSON.stringify(broadcastObj))

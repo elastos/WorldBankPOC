@@ -1,5 +1,7 @@
 import {o} from './utilities';
 import _ from 'lodash';
+import events from 'events';
+
 
 export default class BlockMgr{
   constructor(ipfs, timeoutSeconds = 600000/* after 10 minutes, the block content will be removed to save memory. Cid will be left for future retrieve */){
@@ -7,6 +9,8 @@ export default class BlockMgr{
     this._timeoutSeconds = timeoutSeconds;
     this._blockHistory = {};
     this._maxHeight = 0;
+    this._newBlockEvent = new events.EventEmitter();
+
   }
   pushNewBlock(height, cid){
     if(this._blockHistory[height]){
@@ -19,6 +23,7 @@ export default class BlockMgr{
     }else{
       this._blockHistory[height] = {cid};
       if(height > this._maxHeight) this._maxHeight = height;
+      this._newBlockEvent.emit('newBlock', {height, cid});
     }
   }
   getBlockCidByHeight(height){
@@ -44,5 +49,9 @@ export default class BlockMgr{
 
   }
 
-  getMaxHeight (){return this._maxHeight};
+  getMaxHeight (){return this._maxHeight}
+
+  registerNewBlockEventHandler(handler){
+    this._newBlockEvent.on('newBlock', handler);
+  }
 }

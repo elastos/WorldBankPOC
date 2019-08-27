@@ -6,7 +6,7 @@ import yargs from 'yargs';
 import pkg from '../package.json';
 import {o, done} from './utilities';
 import {ipfsInit, pubsubInit} from './ipfsInit';
-
+import BlockMgr from '../app/blockMgr';
 const OPTIONS = {};
 
 const startApp = async ()=>{ 
@@ -16,10 +16,17 @@ const startApp = async ()=>{
 
   ipfsInit(OPTIONS.swarm)
   .then((ipfs)=>{
+    const blockMgr = new BlockMgr(ipfs)
+    console.log('bockMgr initialized');
+    global.blockMgr = blockMgr;
+    global.ipfs = ipfs;
     return pubsubInit(ipfs, OPTIONS.randRoomPostfix);
   })
   .then(({townHall, taskRoom, blockRoom})=>{
     console.log('pubsubInit done');
+    global.blockMgr.registerNewBlockEventHandler(({height, cid})=>{
+      o('log', 'receive new block,', {height, cid});
+    })
   })
   .catch(err=>{
     console.log('error in promises,', err);
