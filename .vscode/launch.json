@@ -8,7 +8,7 @@
       "type": "node",
       "request": "launch",
       "name": "Mocha Tests",
-      "program": "${workspaceFolder}/preparation/nodesim/node_modules/mocha/bin/_mocha",
+      "program": "${workspaceFolder}/preparation/nodesim/node_modules/mocha/bin/mocha",
       "args": [
         "-u",
         "tdd",
@@ -17,15 +17,15 @@
         "999999",
         "--colors",
         "--exit",
-        "--require",
-        "@babel/register",
+        "--require", "@babel/register",
+        "--require", "reify",
         "${workspaceFolder}/preparation/nodesim/test"
       ],
       "runtimeArgs": [
         "--nolazy"
       ],
       "sourceMaps": true,
-    
+      "port":9229,
       "internalConsoleOptions": "openOnSessionStart"
     },
     {

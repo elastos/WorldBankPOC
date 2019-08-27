@@ -1,5 +1,6 @@
 import chai, { expect, should } from 'chai';
-should();
+import {describe, it, before} from 'mocha';
+
 import chaiAsPromised from "chai-as-promised";
 import 'babel-polyfill';
 chai.use(chaiAsPromised);

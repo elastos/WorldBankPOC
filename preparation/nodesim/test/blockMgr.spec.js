@@ -1,6 +1,7 @@
+import {describe, it, before} from 'mocha';
 import BlockMgr from '../shared/blockMgr';
 import {ipfsInit} from '../nodes/ipfsInit';
-
+var assert = require('assert');
 import chai, { expect, should } from 'chai';
 should();
 import chaiAsPromised from "chai-as-promised";

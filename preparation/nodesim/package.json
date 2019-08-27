@@ -6,7 +6,7 @@
   "license": "Apache 2.0",
   "scripts": {
     "start": "node --require @babel/register ./nodes -s local",
-    "test": "mocha --timeout 15000 --exit --require @babel/register",
+    "test": "mocha --timeout 15000 --exit --require @babel/register --require reify",
     "layerone": "node --require @babel/register ./layerOne"
   },
   "repository": {
@@ -39,6 +39,7 @@
   "devDependencies": {
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
-    "mocha": "^6.2.0"
+    "mocha": "^6.2.0",
+    "reify": "^0.20.12"
   }
 }
