@@ -11,7 +11,7 @@ describe('blockMgr', ()=>{
   describe('blockMgr clear', async ()=>{
     
     before(async ()=>{
-      const ipfs = await ipfsInit( 'local');
+      const ipfs = global.ipfs? global.ipfs : await ipfsInit( 'local');
       const blockMgr = new BlockMgr(ipfs)
       console.log('bockMgr initialized');
       global.ipfs = ipfs;

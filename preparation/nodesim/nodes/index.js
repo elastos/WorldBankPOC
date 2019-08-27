@@ -14,6 +14,7 @@ import pkg from '../package.json';
 import {o, done} from '../shared/utilities';
 import {ipfsInit, pubsubInit} from './ipfsInit';
 import BlockMgr from '../shared/blockMgr';
+import TotalGasAndCredit from '../shared/totalGasAndCredit';
 const OPTIONS = {};
 
 const startApp = async ()=>{ 
@@ -26,6 +27,8 @@ const startApp = async ()=>{
     const blockMgr = new BlockMgr(ipfs)
     console.log('bockMgr initialized');
     global.blockMgr = blockMgr;
+    const totalGasAndCredit = new TotalGasAndCredit();
+    global.totalGasAndCredit = totalGasAndCredit;
     global.ipfs = ipfs;
     return pubsubInit(ipfs, OPTIONS.randRoomPostfix);
   })
