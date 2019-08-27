@@ -1,4 +1,4 @@
-import {tryParseJson, o} from './utilities';
+import {tryParseJson, o} from '../shared/utilities';
 import _ from 'lodash';
 //import {validateVrf, validatePot, verifyOthersRemoteAttestationVrfAndProof}  from '../remoteAttestation';
 //import {chooseExecutorAndMonitors, executeComputeUsingEval} from '../computeTask';

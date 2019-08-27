@@ -11,9 +11,9 @@ import colors from 'colors';
 import yargs from 'yargs';
 
 import pkg from '../package.json';
-import {o, done} from './utilities';
+import {o, done} from '../shared/utilities';
 import {ipfsInit, pubsubInit} from './ipfsInit';
-import BlockMgr from './blockMgr';
+import BlockMgr from '../shared/blockMgr';
 const OPTIONS = {};
 
 const startApp = async ()=>{ 

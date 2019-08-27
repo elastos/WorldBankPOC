@@ -1,6 +1,6 @@
 import IPFS  from 'ipfs';
 import Room from 'ipfs-pubsub-room';
-import {o} from './utilities';
+import {o} from '../shared/utilities';
 import townHallHandler from './townHallHandler';
 import blockRoomHandler from './blockRoomHandler';
 

@@ -1,4 +1,4 @@
-import {o} from './utilities';
+import {o} from '../shared/utilities';
 import _ from 'lodash';
 import events from 'events';
 

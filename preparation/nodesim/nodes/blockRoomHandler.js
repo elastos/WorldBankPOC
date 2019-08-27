@@ -1,4 +1,4 @@
-import {o, tryParseJson} from './utilities';
+import {o, tryParseJson} from '../shared/utilities';
 
 exports.messageHandler = (ipfs)=>async (message)=>{
   const blockObj = tryParseJson(message.data);
