@@ -1,0 +1,96 @@
+<html>
+<head>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+</head>
+<body>
+  <div class="container">
+    <h1>Two kind of token: LEO and Credit</h1>
+    <h2>LEO can be trade at exchange with other token or fiat, but Credit cannot</h2>
+    <p>LEO is a utility token. People can buy and sell LEO at exchange. </p>  
+    <p>Client pay LEO as gas fee</p>
+    <p>Miners (or workers) earn part of gas fee if he win the VRF competation and run the task under remote attestation</p>
+    <p>Remote Attestators earn part of gas fee as doing the remote attestation work</p>
+    <p>Phishing cop earn part of gas fee for the work of monitoring remote attestators underground.</p>
+      
+    <h2>Credit cannot be trade. It can only be earned by doing trusted work over the time</h2>
+      <p>
+        For new node (sometime we call a peer ) there is zero credit score in its account. first, it has to pay some LEO token as gas fee to ask other "credited" node to verify it integrity and gain the initial credit score (usually pretty low)
+
+      </p>
+      <p>Once a node get the initial credit score, it will start mining. Mining means doing works. Works including
+        <ul>
+          <li>Computing tasks from Client</li>
+          <li>Doing remote attestation while other node win the lottery to do the computing tasks</li>
+          <li>Being selectd as underground phishing cop, do the monitoring</li>
+          <li>Doing remote attestation for other new join node</li>
+        </ul>
+        All above tasks can let the node earn either LEO or Credit. 
+    
+
+      </p>
+    <h2>Relationship between LEO and Credit</h2>
+    <p>
+      Credit is kind of voting power, or kind of reputation. Credit is an indirect way to earn LEO, or in another word, higher credit allow node have higher chance or eaiser making LEO.
+
+    </p>
+    <p>
+      From another direction, LEO cannot directly convert to Credit. You cannot buy Credit using LEO. 
+    
+      The only way to earn LEO need 
+      <ul>
+        <li>Stay in the trusted network for a long period of time</li>
+        <li>During this period of time, doing many successful tasks to build up credit score</li>
+        <li>Keep high level of security to pass others remote attestation most of time to avoid pentaly which reduce credit score sharply</li>
+      </ul>
+      This rule eliminate the possibility that rich people can buy credit using large amount of LEO in short period of time so that he can control the network and gain more LEO back.
+
+    </p>
+    <p>
+
+    </p>
+    <h2>Circulation of Credit</h2>
+    <p>
+      Total amount of credit is a fixed number. There won't be inflation or deflation. However, by successfully complete work the nodes are supposed to earn Credit. Where do those Credit comes from?
+    </p>
+    <p>I designed a Reserve pool. The whole system can borrow Credit from Reserve without interest. That means when node doing work and earn 10 Credit, the 10 Credit actually borrowed from Reserve.</p>
+    <p>Of course, this node do not need to "return" Credit back to Reserve, because it deserve to earn this 10 Credit. But who will return those 10 Credit back to the Reserve, otherwise Reserve will be a black hole.</p>
+    <p>Actually, evenyone who owns Credits will pay back to Reserve the 10 Credits.  </p>
+    <p>At the end of every billing circle. We can set it to 1 week, or many blocks we get a billing circile. The 10 credits will be shared among all credit owners weighted by how many Credit Scores it owns. </p>
+    <pre><code> [The amount of return] = [The amount Reserve owes] * [Your scredit score] / [Total amount of Credit Score owned by nodes]</code></pre>
+  </p>
+    <p>this means the more Creidt you own, the more you return back to Reserve. This can help reduce the "Rich and richer" effect</p>
+    <p>So after a billing circle, The Reserve will get back the Credit it owed by all nodes. And start a new billing circle</p>
+    <p>In our real implementation, we may do this kind of "return" game in every block. so that there won't be the concept of Billing Circle. Every block is a billing circle.</p>
+    
+    <h2>LEO Penalty</h2>
+    <p>In most cases, before you start doing a job (which can earn LEO) you will need to deposit some LEO first. This deposit will be forfeited if during Remote Attestation, the conesnsus finally decide this node either cheating or cannot provide enough Proof of Trust (PoT). Credit will be lost as well as LEO. </p>
+    
+    <h2>Credit Penalty</h2>
+    <h3>Credit Decay</h3>
+    <p>Based on our "return" to Reserve rule. No matter how many Credit you have, as long as you stop doing job to earn Credit. Your blanace of Credit will reduce over the time. Eventually too low to maintain a meaningful balance</p>
+    <p>For those nodes stop response for a while and very low Credit balance. its credit will be recycled. As long as the balance is zero, this node is out of the Trusted Network</p>
+    <p>For example, All intial Credit issued to any new join node is 10. If this node do not do anything over a period of time (say 1 month), its balance may reduced to 5. After 6 months, its balance could be as low as 0.9. At this point, there is no reason to keep such a low balance node in Trusted Netowrk. We just recycle its balance 0.9 back to the Reserve and remove this node from our state.</p>
+    <h3>Bad Proof of Trust (PoT)</h3>
+    <p>Remote attestation can run consensus to determine if you deserve your claimed Trust level. If you do not, some of your credit score will be forfeited (return back to Reserve). How many penalty is depending on what kind of task you are working on. Generally speaking, the higher value task request higher credit level and pay more  LEO too. Of course, if you failed in such a task, your penalty will be higher too.</p>
+    <h3>Missing during VRF</h3>
+    <p>If a nodes off line or not response, it won't get chance to earn LEO or Credit. However Credit will decay while others earn new Credit, it is actually losing money </p>
+    
+    
+    <h1>Work flow</h1>
+    <h2>Client pay LEO for computational task</h2>
+    <p>Client have a trusted computation tasks and want it to be processed in Trusted Network by trusted nodes. Client need to submit a tx with 
+    <ul>
+      <li>Encrypted Code hash (where to download the code)</li>
+      <li>Encrypted Data hash (where to download the data)</li>
+      <li>Gas fee in LEO deposit to Reserve account with Tx ID shown here to be verifed by miner</li>
+      <li>Trust requirement, such as it can only be handled by what level of trusted</li>
+    </ul>  
+    Once the task is submitted to the network, only those credit level higher than requirement can join the VRF conmpetition to win the chance to earn the gas LEO
+
+    </p>
+    
+    <h2>Total amount of credit is a fixed number. It won't increase not decrease</h2>
+    <h2></h2>
+  </div>
+</body>
+</html>
