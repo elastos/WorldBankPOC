@@ -23,13 +23,13 @@ exports.ipfsInit = async (swarmUrlOption)=>{
     }
   });
   console.log('IPFS node is ready');
-  ipfs.on('error', error=>{
-    o('log', 'IPFS on error:', error);
-  });
+  // ipfs.on('error', error=>{
+  //   o('log', 'IPFS on error:', error);
+  // });
 
-  ipfs.on('init', error=>{
-    o('log', 'IPFS on init:', error);
-  });
+  // ipfs.on('init', error=>{
+  //   o('log', 'IPFS on init:', error);
+  // });
   return ipfs;
 }
 

@@ -6,7 +6,7 @@
   "license": "Apache 2.0",
   "scripts": {
     "start": "node --require @babel/register ./nodes -s local",
-    "test": "mocha --timeout 15000  --require @babel/register",
+    "test": "mocha --timeout 15000 --exit --require @babel/register",
     "layerone": "node --require @babel/register ./layerOne"
   },
   "repository": {

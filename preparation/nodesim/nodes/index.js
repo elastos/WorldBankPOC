@@ -5,9 +5,9 @@
 //     './app'
 //   ]
 // });
-require('@babel/register')();
+//require('@babel/register')();
 
-import colors from 'colors';
+//import colors from 'colors';
 import yargs from 'yargs';
 
 import pkg from '../package.json';
