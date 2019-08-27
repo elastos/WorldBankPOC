@@ -1,5 +1,5 @@
-import BlockMgr from '../app/blockMgr';
-import {ipfsInit} from '../app/ipfsInit';
+import BlockMgr from '../nodes/blockMgr';
+import {ipfsInit} from '../nodes/ipfsInit';
 
 import chai, { expect, should } from 'chai';
 should();

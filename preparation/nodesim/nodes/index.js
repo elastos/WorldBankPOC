@@ -1,12 +1,19 @@
 #!/usr/bin/env node
 
+// require('@babel/register')({
+//   only: [
+//     './app'
+//   ]
+// });
+require('@babel/register')();
+
 import colors from 'colors';
 import yargs from 'yargs';
 
 import pkg from '../package.json';
 import {o, done} from './utilities';
 import {ipfsInit, pubsubInit} from './ipfsInit';
-import BlockMgr from '../app/blockMgr';
+import BlockMgr from './blockMgr';
 const OPTIONS = {};
 
 const startApp = async ()=>{ 

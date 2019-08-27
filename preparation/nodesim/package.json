@@ -5,14 +5,14 @@
   "author": "Kevin G Zhang",
   "license": "Apache 2.0",
   "scripts": {
-    "start": "node . -s local",
+    "start": "node --require @babel/register ./nodes -s local",
     "test": "mocha --timeout 15000  --require @babel/register"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/elastos/WorldBankPOC"
   },
-  "main": "app/bridge",
+  
   "dependencies": {
     "@babel/cli": "^7.2.3",
     "@babel/core": "^7.2.2",

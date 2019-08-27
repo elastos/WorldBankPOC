@@ -4,7 +4,7 @@ import chaiAsPromised from "chai-as-promised";
 import 'babel-polyfill';
 chai.use(chaiAsPromised);
 
-import ipfsInit from '../app/ipfsInit';
+import ipfsInit from '../nodes/ipfsInit';
 
 describe.skip('IPFS', ()=>{
   describe('ipfs init', ()=>{

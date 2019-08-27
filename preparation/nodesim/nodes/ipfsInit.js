@@ -1,7 +1,7 @@
 import IPFS  from 'ipfs';
 import Room from 'ipfs-pubsub-room';
 import {o} from './utilities';
-import townHallHandler from './townHallHandler.js';
+import townHallHandler from './townHallHandler';
 import blockRoomHandler from './blockRoomHandler';
 
 exports.ipfsInit = async (swarmUrlOption)=>{
