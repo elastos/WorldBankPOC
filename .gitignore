@@ -48,6 +48,7 @@ jspm_packages
 
 #ipfs file storage
 ipfs-storage-no-git
+ipfs-leo
 #compiled js file
 preparation/demo/webportal/dist
 preparation/demo/src/poc/simulator/js/
