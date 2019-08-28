@@ -3,6 +3,7 @@ import {expectNumberOfRemoteAttestatorsToBeVoted, minimalNewNodeJoinRaDeposit, e
 import Big from 'big.js';
 import {sha256} from 'js-sha256';
 const {ecvrf, sortition} = require('vrf.js');
+import {validatePot} from '../shared/remoteAttestation';
 const updateLog = ()=>{};//Hi Jacky, just place holder here.
 
 exports.handleProccessedTxs = async ({height : eventTriggeredBlockHeight, cid:eventTriggeredBlockCid})=>{
@@ -42,6 +43,30 @@ exports.handleProccessedTxs = async ({height : eventTriggeredBlockHeight, cid:ev
     const tx = (await global.ipfs.dag.get(txCid)).value;
     const userInfo = global.userInfo;
     const reqRaObj = handleNewNodeJoinNeedRaTxs({block, blockCid: eventTriggeredBlockCid, totalCreditForOnlineNodes, tx, txCid, userInfo});
+    const handleRaResponse = async (res, err)=>{
+      if(err){
+        o('log', `I am a Remote Attestator, I received new node's error response :, err is `, err);
+        return console.log(`I am a Remote Attestator, I received new node's error response :, err is `, err);
+      }
+      o('log',`I am a Remote Attestator, I received new node's reply :, payload is `, res);
+      const {proofOfVrf, proofOfTrust} = res;
+      const potResult = validatePot(proofOfTrust);
+      o('log', `Proof of trust verify result: ${potResult}`);
+      const cid = await global.ipfs.dag.put({potResult,proofOfTrust,proofOfVrf});
+      const remoteAttestationDoneMsg = {
+        txType:'remoteAttestationDone',
+        cid: txCid
+      }
+      global.broadcastEvent.emit('taskRoom', JSON.stringify(remoteAttestationDoneMsg));
+      o('log', `Broadcast in taskRoom about the Proof of trust verify result: ${potResult}`);
+    
+      updateLog('res_ra', {
+        name : userInfo.userName,
+        from : tx.ipfsPeerId,
+        cid : proofOfVrf.taskCid,
+        potResult
+      });
+    }
     if(reqRaObj){
         global.rpcEvent.emit('rpcRequest', {
           sendToPeerId:tx.ipfsPeerId, 
@@ -200,32 +225,6 @@ const handleNewNodeJoinNeedRaTxs = ({block, blockCid, totalCreditForOnlineNodes,
     console.log("bad luck, try next", j.toFixed());
     return null;
   }
-      
+
 }
 exports.handleNewNodeJoinNeedRaTxs = handleNewNodeJoinNeedRaTxs;
-const handleRaResponse = async (res, err)=>{
-  if(err){
-    o('log', `I am a Remote Attestator, I received new node's error response :, err is `, err);
-    return console.log(`I am a Remote Attestator, I received new node's error response :, err is `, err);
-  }
-  o('log',`I am a Remote Attestator, I received new node's reply :, payload is `, res);
-  const {proofOfVrf, proofOfTrust} = res;
-  const potResult = validatePot(proofOfTrust);
-  o('log', `Proof of trust verify result: ${potResult}`);
-  const cid = await ipfs.dag.put({potResult,proofOfTrust,proofOfVrf});
-  const remoteAttestationDoneMsg = {
-    txType:'remoteAttestationDone',
-    cid: txCid.toBaseEncodedString()
-  }
-  options.rooms.taskRoom.broadcast(JSON.stringify(remoteAttestationDoneMsg))
-  o('log', `Broadcast in taskRoom about the Proof of trust verify result: ${potResult}`);
-
-  const {userInfo} = options;
-  updateLog('res_ra', {
-    name : userInfo.userName,
-    from : tx.ipfsPeerId,
-    cid : proofOfVrf.taskCid,
-    potResult
-  });
-}
-exports.handleRaResponse = handleRaResponse;

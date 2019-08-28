@@ -37,7 +37,8 @@ const startApp = async ()=>{
     global.blockMgr = blockMgr;
     global.totalGasAndCredit = totalGasAndCredit;
     global.rpcEvent = new events.EventEmitter();
-    return pubsubInit(ipfs, OPTIONS.randRoomPostfix, global.rpcEvent);
+    global.broadcastEvent = new events.EventEmitter();
+    return pubsubInit(ipfs, OPTIONS.randRoomPostfix, global.rpcEvent, global.broadcastEvent);
   })
   .then(({townHall, taskRoom, blockRoom})=>{
     console.log('pubsubInit done');

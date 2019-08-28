@@ -33,7 +33,7 @@ exports.ipfsInit = async (swarmUrlOption)=>{
   return ipfs;
 }
 
-exports.pubsubInit = async (ipfs, roomNamePostfix, rpcEvent)=>{
+exports.pubsubInit = async (ipfs, roomNamePostfix, rpcEvent, boradcastEvent)=>{
 
   const townHall = Room(ipfs, "townHall" + roomNamePostfix);
   townHall.on('peer joined', townHallHandler.peerJoined);
@@ -50,6 +50,12 @@ exports.pubsubInit = async (ipfs, roomNamePostfix, rpcEvent)=>{
   rpcEvent.on("rpcRequest", townHallHandler.rpcRequest(townHall));
   rpcEvent.on("rpcResponseWithNewRequest", townHallHandler.rpcResponseWithNewRequest(townHall));
   rpcEvent.on("rpcResponse", townHallHandler.rpcResponse(townHall));
+
+  broadcastEvent.on('taskRoom', (m)=>{
+    taskRoom.broadcast(m);
+  })
+
+  broadcastEvent.on('blockRoom', (m)=>blockRoom.broadcast(m));
   
   return {townHall}
 
