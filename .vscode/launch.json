@@ -32,8 +32,8 @@
       "type": "node",
       "request": "launch",
       "name": "Launch Program",
-      "program":"${workspaceFolder}/preparation/nodesim/nodes/index.js",
-      "outFiles": [ "${workspaceRoot}/preparation/nodesim/.compiled/**/*.js" ],
+      "program":"${workspaceFolder}/preparation/nodesim/nodes/register.js",
+      //"outFiles": [ "${workspaceRoot}/preparation/nodesim/.compiled/**/*.js" ],
       
       "args":[
          "-s", "local"

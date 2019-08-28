@@ -31,9 +31,9 @@ const createGenesysBlock = (ipfs, presetUsers)=>{
   const locs = createRandomGeoLocation(presetUsers.length);
   for(let i = 0; i < presetUsers.length; i ++){
     const u = presetUsers[i];
-    block.gasMap[u.name] = i < 10? i * 10 : 50;
+    block.gasMap[u.name] = i > 10? i : 50;
     totalGas += block.gasMap[u.name];
-    block.creditMap[u.name] = i < 10? i: 5; //
+    block.creditMap[u.name] = i > 10? i: 5; //
     totalCredit += block.creditMap[u.name];
     block.peerProfile[u.name] = {
       loc : locs[i]

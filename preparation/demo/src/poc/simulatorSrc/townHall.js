@@ -41,8 +41,8 @@ module.exports = (ipfs, room, {block, blockCid, blockHistory, userInfo}) => {
       }
 
       case "reqRemoteAttestation":{//Now I am new node, sending back poT after validate the remote attestation is real
-        const { j, proof, value, taskCid, publicKey, userName, blockHeightWhenVRF} = messageObj;
-        const validateReturn = await validateVrf({ipfs, j, proof, value, blockCid:blockHistory[blockHeightWhenVRF], taskCid, publicKey, userName});
+        const { j, proof, value, taskCid, publicKey, userName, blockCid, blockHeightWhenVRF} = messageObj;
+        const validateReturn = await validateVrf({ipfs, j, proof, value, blockCid, taskCid, publicKey, userName});
 
         if(! validateReturn.result){
           logToWebPage(`VRF Validation failed, reason is `, validateReturn.reason);

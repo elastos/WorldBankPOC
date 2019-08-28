@@ -26,6 +26,24 @@ exports.rpcDirect = (room)=>(message) => {
   }
 }
 
+exports.rpcResponseWithNewRequest = (room)=>(args)=>{
+  const {sendToPeerId, message, guid, responseCallBack} = args;
+  room.rpcResponseWithNewRequest(sendToPeerId, message, guid, responseCallBack);
+}
+exports.rpcRequest = (room)=>(args)=>{
+  const {sendToPeerId, message, responseCallBack} = args;
+  // sendToPeerId:tx.ipfsPeerId, 
+  // message:JSON.stringify(raReqObj), 
+  // responseCallBack:handleRaResponse
+  room.rpcRequest(sendToPeerId, message, responseCallBack);
+
+}
+
+exports.rpcResponse =  (room)=>(args)=>{
+  const {sendToPeerId, message, guid} = args;
+  room.rpcResponse(sendToPeerId, message, guid);
+}
+
 const rpcDirectHandler = {
   reqUserInfo: ({message, room})=>{
     const resMessage = {
@@ -173,20 +191,3 @@ const rpcDirectHandler = {
   // }
 }
 
-exports.rpcResponseWithNewRequest = (room)=>(args)=>{
-  const {sendToPeerId, message, guid, responseCallBack} = args;
-  room.rpcResponseWithNewRequest(sendToPeerId, message, guid, responseCallBack);
-}
-exports.rpcRequest = (room)=>(args)=>{
-  const {sendToPeerId, message, responseCallBack} = args;
-  // sendToPeerId:tx.ipfsPeerId, 
-  // message:JSON.stringify(raReqObj), 
-  // responseCallBack:handleRaResponse
-  room.rpcRequest(sendToPeerId, message, responseCallBack);
-
-}
-
-exports.rpcResponse =  (room)=>(args)=>{
-  const {sendToPeerId, message, guid} = args;
-  room.rpcResponse(sendToPeerId, message, guid);
-}

@@ -45,10 +45,10 @@ exports.handleProccessedTxs = async ({height : eventTriggeredBlockHeight, cid:ev
     if(reqRaObj){
         global.rpcEvent.emit('rpcRequest', {
           sendToPeerId:tx.ipfsPeerId, 
-          message:JSON.stringify(raReqObj), 
+          message:JSON.stringify(reqRaObj), 
           responseCallBack:handleRaResponse
         });
-        o('log', `Sending townhall request to the new node: ${tx.ipfsPeerId}  for RA:`, raReqObj);
+        o('log', `Sending townhall request to the new node: ${tx.ipfsPeerId}  for RA:`, reqRaObj);
       }
   });
   
@@ -177,7 +177,8 @@ const handleNewNodeJoinNeedRaTxs = ({block, blockCid, totalCreditForOnlineNodes,
       blockHeightWhenVRF: block.blockHeight,
       taskCid:txCid,
       publicKey:userInfo.publicKey,
-      userName:userInfo.userName
+      userName:userInfo.userName,
+      blockCid
     }
 
     updateLog('req_ra_send', {
@@ -204,7 +205,7 @@ const handleNewNodeJoinNeedRaTxs = ({block, blockCid, totalCreditForOnlineNodes,
 exports.handleNewNodeJoinNeedRaTxs = handleNewNodeJoinNeedRaTxs;
 const handleRaResponse = async (res, err)=>{
   if(err){
-    logToWebPage(`I am a Remote Attestator, I received new node's error response :, err is `, err);
+    o('log', `I am a Remote Attestator, I received new node's error response :, err is `, err);
     return console.log(`I am a Remote Attestator, I received new node's error response :, err is `, err);
   }
   o('log',`I am a Remote Attestator, I received new node's reply :, payload is `, res);
