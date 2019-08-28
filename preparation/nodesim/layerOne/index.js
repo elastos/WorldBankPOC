@@ -5,6 +5,7 @@ const _ = require( 'lodash');
 
 const {channelListener} = require('./channelListener');
 const {generateBlock} = require('./generateBlock');
+import PeerUserCache from './onlinePeerUser';
 const {utils} = require('vrf.js');
 import inquirer from 'inquirer';
 
@@ -66,9 +67,10 @@ inquirer.prompt([
 const main = (randRoomPostfix, blockGenerationInterval, swarmUrl)=>{
   ipfsStart(swarmUrl)
   .then((ipfs)=>{
-    app.set('swarmUrl', swarmUrl);
-    app.set('ipfs', ipfs);
-    app.set('randRoomPostfix', randRoomPostfix);
+    global.onlinePeerUserCache = new PeerUserCache();
+    global.swarmUrl = swarmUrl;
+    global.ipfs = ipfs;
+    global.randRoomPostfix = randRoomPostfix;
     console.log("Generating 20 preset users, please wait a few seconds...");
     let presetUsers = [];
     for(let i = 0; i < 20; i ++){
@@ -82,12 +84,12 @@ const main = (randRoomPostfix, blockGenerationInterval, swarmUrl)=>{
     }
     //
     console.log("presetUsers,", presetUsers);
-    app.set('presetUsers', presetUsers);
-    return channelListener(app.get('ipfs'), randRoomPostfix, presetUsers);
+    global.presetUsers = presetUsers;
+    return channelListener(global.ipfs, randRoomPostfix, presetUsers);
   })
   .then(({ipfs, globalState, pubsubRooms})=>{
-    app.set('pubsubRooms', pubsubRooms);
-    app.set('globalState', globalState);
+    global.pubsubRooms = pubsubRooms;
+    global.globalState = globalState;
     const {blockRoom} = pubsubRooms;
     const firstBlockDelay = 1000 * 10;
     if(blockGenerationInterval > 0){
