@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+  <head>
+      <!-- when using the mode "code", it's important to specify charset utf-8 -->
+      <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+  
+      <link href="css/jsoneditor.min.css" rel="stylesheet" type="text/css">
+      <script src="dist/jsoneditor.min.js"></script>
+      <script src="js/ipfsPubSub.js"></script>
+  </head>
+  <body>
+    <h1>Generate Transaction Task and Publish to PubSub in Browser</h1>
+    <h2>Preload canned task from template</h2>
+    <p><button id='btn1'>Task: transfer Gas</button></p>
+    <p><button id='btn2'>Task: new node join waiting for RA</button></p>
+    <p><button id='btn3'>Task: Daniel create a computation task</button></p>
+    <p><button id='btn4'>Townhall Message: Server to log current global state</button></p>
+    <h2>Please modify the JSON below</h2>
+    <p>
+      <div id="jsoneditor" style="width: 400px; height: 400px;"></div>
+    </p>
+    <h2>Once complete editing, click button blow to copy to form</h2>
+    <p><button id='showjson'>Copy JSON Object to The Form</button></p>
+    <h2>Please review the JSON before commit</h2>
+    <p>
+      <form action="/poc/publish2room" method="post">
+        <textarea id="jsontext" name="jsontext" style="width: 400px; height: 400px; border:1px solid #eee; display:block" name="message">
+          You can use the JSON editor above and generate a JSON object then click "Copy JSON Object to the Form" button. Or, simple edit plain text here. When done, select room and submit
+        </textarea>
+        <br>
+      
+        <input type="submit">
+      </form>
+    </p>
+    <script src="js/taskGen.js"></script>
+  </body>
+</html>
+

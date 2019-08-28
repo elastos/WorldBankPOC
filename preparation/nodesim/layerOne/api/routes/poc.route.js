@@ -31,7 +31,7 @@ router
     const users = req.app.get('presetUsers');
     let loopUserLink = users.reduce((accumulator, u)=>{
 
-      return accumulator + "<a href='/simulator?u=" + u.name + "&&s=" + req.app.get('swarmUrl') + "&&r=" +  req.app.get('randRoomPostfix') + "&&pub=" + u.pub + "&&pri=" + u.pri + "'  target='_blank'>Simulator for " + u.name + "</a></br>";
+      return accumulator + "<a href='/web?u=" + u.name + "&&s=" + req.app.get('swarmUrl') + "&&r=" +  req.app.get('randRoomPostfix') + "&&pub=" + u.pub + "&&pri=" + u.pri + "'  target='_blank'>Simulator for " + u.name + "</a></br>";
     }, "");
     
     const template = "<html><head></head><body>" 
@@ -93,7 +93,7 @@ router
     const rooms = req.app.get('pubsubRooms');
     const {blockRoom} = rooms;
     const newBlock = await generateBlock({ipfs, globalState, blockRoom})
-    const htmlDoc = '<html><head><link href="/simulator/css/jsoneditor.min.css" rel="stylesheet" type="text/css"><script src="/simulator/dist/jsoneditor.min.js"></script></head>'
+    const htmlDoc = '<html><head><link href="/web/css/jsoneditor.min.css" rel="stylesheet" type="text/css"><script src="/web/dist/jsoneditor.min.js"></script></head>'
      + '<body><h1>Block Height:' + newBlock.blockHeight + '</h1><p>Refresh this page to generate next block</p><div id="jsoneditor"></div><script>var container = document.getElementById("jsoneditor");var editor = new JSONEditor(container, {});editor.set('
      + JSON.stringify(newBlock)
     + ')</script></body></html>';

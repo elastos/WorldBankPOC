@@ -7,7 +7,8 @@
         }
       }
     ]
-  ],
-  "sourceMaps": true,
-  "retainLines": true
+  ]
 }
+// {
+//   "presets": ["env"]
+// }

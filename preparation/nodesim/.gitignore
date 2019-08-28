@@ -82,4 +82,6 @@ ipfs-leo
 # reify cach #
 #################
 .reify-cache
-.compiled
+# compiled web js #
+#################
+./web/js
