@@ -11,7 +11,7 @@ import 'babel-polyfill';
 import { isIterable } from 'core-js';
 chai.use(chaiAsPromised);
 
-describe('totalGasAndCredit', ()=>{
+describe.skip('totalGasAndCredit', ()=>{
   before(async()=>{
     const ipfs = global.ipfs? global.ipfs : await ipfsInit( 'local');
       const blockMgr = new BlockMgr(ipfs)

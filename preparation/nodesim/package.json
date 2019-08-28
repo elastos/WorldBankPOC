@@ -5,9 +5,11 @@
   "author": "Kevin G Zhang",
   "license": "Apache 2.0",
   "scripts": {
-    "start": "node --inspect --require @babel/register ./nodes -s local",
+    "start": "node --require @babel/register ./nodes -s local",
+    "debug": "node --inspect=127.0.0.1:9239 --require @babel/register ./nodes -s local",
     "test": "mocha --timeout 15000 --exit --require @babel/register --require reify",
     "layer1": "node --inspect --require @babel/register ./layerOne",
+    "debug:layer1": "node --inspect --require @babel/register ./layerOne",
     "compile": "browserify ./webSrc/ipfsPubSub.js -t babelify --plugins [transform-runtime] -o ./web/js/ipfsPubSub.js -d && browserify ./webSrc/simulator.js -t babelify --plugins [transform-runtime] -o ./web/js/simulator.js -d && browserify ./webSrc/taskGen.js -t babelify --plugins [transform-runtime] -o ./web/js/taskGen.js -d"
   },
   "repository": {
@@ -43,6 +45,7 @@
     "@babel/plugin-transform-runtime": "^7.5.5",
     "@babel/preset-env": "^7.5.5",
     "babel-jest": "^24.9.0",
+    "babel-polyfill": "^6.26.0",
     "babelify": "^10.0.0",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",

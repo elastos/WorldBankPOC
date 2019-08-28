@@ -28,14 +28,15 @@ exports.join = (ipfs, room, options, presetUsers)=>{
       }else if(type == 'requestRandomUserInfo'){
         
         if(withNewRequestGuid){
-          
+          const onlineUserNames = Object.values(options.globalState.trustedPeerToUserInfo).map(u=>u.userName);
+          console.log(onlineUserNames, Object.values(options.globalState.trustedPeerToUserInfo));
           const firstOffLineUser = presetUsers.find((u)=>{
-            
-            return ! options.trustedPeerToUserInfo || ! options.trustedPeerToUserInfo[u.userName] 
+            if(onlineUserNames.indexOf(u.name) == -1)  return true;
+            return false;
           })
           const r = {userInfo:firstOffLineUser};
           room.rpcResponse(peer, JSON.stringify(r), withNewRequestGuid);
-          
+          options.globalState.trustedPeerToUserInfo[peer, firstOffLineUser];
         }else{
           console.error("peer ask for requestRandomUserInfo but did not send me the callback function 'withNewRequestGuid'");
         }
