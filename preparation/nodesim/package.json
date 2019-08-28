@@ -7,7 +7,8 @@
   "scripts": {
     "start": "node --require @babel/register ./nodes -s local",
     "test": "mocha --timeout 15000 --exit --require @babel/register --require reify",
-    "layerone": "node --require @babel/register ./layerOne"
+    "layerone": "node --require @babel/register ./layerOne",
+    "compile": "babel ./nodes --out-dir .compiled --source-maps --watch"
   },
   "repository": {
     "type": "git",

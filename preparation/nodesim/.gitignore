@@ -82,3 +82,4 @@ ipfs-leo
 # reify cach #
 #################
 .reify-cache
+.compiled
