@@ -1,11 +1,13 @@
 import { o } from "./utilities";
+import autoBind from 'auto-bind';
 
 export default class TotalGasAndCredit {
   constructor(){
     this._totalGas = 0;
     this._totalCredit = 0;
-    this._totalCreditOnlineOnly = 0;
+    this.totalCreditForOnlineNodes = 0;
     this._lastBlockHeight = 0;
+    autoBind(this);
   }
 
   async updateOnNewBlock({height, cid}){
@@ -23,21 +25,24 @@ export default class TotalGasAndCredit {
     
     //calculate totalCredit for online users
     let totalCreditForOnlineNodes = 0;
-    for( const c in block.trustedPeerToUserInfo){
-      const currUserInfo = trustedPeerToUserInfo[c];
-      totalCreditForOnlineNodes += creditMap[currUserInfo.userName];
+    if(block.trustedPeerToUserInfo){
+      for( const c in block.trustedPeerToUserInfo){
+        const currUserInfo = block.trustedPeerToUserInfo[c];
+        totalCreditForOnlineNodes += block.creditMap[currUserInfo.userName];
+      }
     }
     this._totalGas = totalGas;
     this._totalCredit = totalCredit;
-    this._totalCreditOnlineOnly = totalCreditForOnlineNodes;
+    this.totalCreditForOnlineNodes = totalCreditForOnlineNodes;
     this._lastBlockHeight = height;
+    
   }
 
   getCurrentTotalGasAndCredit(){
     return {
       totalGas: this._totalGas,
       totalCredit: this._totalCredit,
-      totalCreditOnlineOnly: this._totalCreditOnlineOnly,
+      totalCreditForOnlineNodes: this.totalCreditForOnlineNodes,
       height: this._lastBlockHeight
     }
   }

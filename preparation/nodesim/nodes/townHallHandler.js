@@ -32,7 +32,6 @@ const rpcDirectHandler = {
       type:'requestRandomUserInfo',
     };
     room.rpcResponseWithNewRequest(message.from, JSON.stringify(resMessage), message.guid, (res, err)=>{
-      o('log', '2nd round response,', res, err);
       if(err)
         console.log("rpcResponseWithNewRequest err,",err);
       else{
@@ -40,8 +39,13 @@ const rpcDirectHandler = {
         if(! userInfo){
           o('error', 'cannot find userinfo from requestRandomUserInfo response. probably all users are online. No need for more terminal');
         }else{
-          global.userInfo = userInfo;
-          
+
+          global.userInfo = {
+            userName: userInfo.name,
+            publicKey: userInfo.pub,
+            privateKey: userInfo.pri
+          };
+          console.log("User info confirmed:", global.userInfo);
         }
 
       }
@@ -169,4 +173,20 @@ const rpcDirectHandler = {
   // }
 }
 
+exports.rpcResponseWithNewRequest = (room)=>(args)=>{
+  const {sendToPeerId, message, guid, responseCallBack} = args;
+  room.rpcResponseWithNewRequest(sendToPeerId, message, guid, responseCallBack);
+}
+exports.rpcRequest = (room)=>(args)=>{
+  const {sendToPeerId, message, responseCallBack} = args;
+  // sendToPeerId:tx.ipfsPeerId, 
+  // message:JSON.stringify(raReqObj), 
+  // responseCallBack:handleRaResponse
+  room.rpcRequest(sendToPeerId, message, responseCallBack);
 
+}
+
+exports.rpcResponse =  (room)=>(args)=>{
+  const {sendToPeerId, message, guid} = args;
+  room.rpcResponse(sendToPeerId, message, guid);
+}

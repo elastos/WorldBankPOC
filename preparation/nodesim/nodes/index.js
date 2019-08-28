@@ -15,6 +15,8 @@ import {o, done} from '../shared/utilities';
 import {ipfsInit, pubsubInit} from './ipfsInit';
 import BlockMgr from '../shared/blockMgr';
 import TotalGasAndCredit from '../shared/totalGasAndCredit';
+import {handleProccessedTxs} from './handleProcessedTxs';
+import events from 'events';
 const OPTIONS = {};
 
 const startApp = async ()=>{ 
@@ -26,16 +28,20 @@ const startApp = async ()=>{
   .then((ipfs)=>{
     const blockMgr = new BlockMgr(ipfs)
     const totalGasAndCredit = new TotalGasAndCredit();
-    blockMgr.registerNewBlockEventHandler(totalGasAndCredit.updateOnNewBlock);
+    blockMgr.registerNewBlockEventHandler(async (args)=>{
+      await totalGasAndCredit.updateOnNewBlock(args);
+      await handleProccessedTxs(args)
+    });
     
     global.ipfs = ipfs;
     global.blockMgr = blockMgr;
     global.totalGasAndCredit = totalGasAndCredit;
-    
-    return pubsubInit(ipfs, OPTIONS.randRoomPostfix);
+    global.rpcEvent = new events.EventEmitter();
+    return pubsubInit(ipfs, OPTIONS.randRoomPostfix, global.rpcEvent);
   })
   .then(({townHall, taskRoom, blockRoom})=>{
     console.log('pubsubInit done');
+    
     global.blockMgr.registerNewBlockEventHandler(({height, cid})=>{
       o('log', 'receive new block,', {height, cid});
     })

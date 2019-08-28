@@ -25,7 +25,7 @@ describe('totalGasAndCredit', ()=>{
     expect(empty).to.eql({
       totalGas:0,
       totalCredit:0,
-      totalCreditOnlineOnly:0,
+      totalCreditForOnlineNodes:0,
       height:0
     });
 

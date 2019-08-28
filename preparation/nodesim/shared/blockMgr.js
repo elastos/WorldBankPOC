@@ -1,16 +1,17 @@
 import {o} from '../shared/utilities';
 import _ from 'lodash';
 import events from 'events';
-
+import autoBind from 'auto-bind';
 
 export default class BlockMgr{
   constructor(ipfs, timeoutSeconds = 600000/* after 10 minutes, the block content will be removed to save memory. Cid will be left for future retrieve */){
+    
     this._ipfs = ipfs;
     this._timeoutSeconds = timeoutSeconds;
     this._blockHistory = {};
     this._maxHeight = 0;
     this._newBlockEvent = new events.EventEmitter();
-
+    autoBind(this);
   }
   pushNewBlock(height, cid){
     if(this._blockHistory[height]){
@@ -31,9 +32,18 @@ export default class BlockMgr{
   }
 
   async getBlockByHeight  (height){
+    const cid = this.getBlockCidByHeight(height);
+    if(! cid) return undefined;
+    return await this.getBlockByCid(cid, height);
+  }
+
+  getBlockCidByHeight(height){
     if(!this._blockHistory[height] || ! this._blockHistory[height].cid)
       return undefined;
-    const cid = this._blockHistory[height].cid;
+    return this._blockHistory[height].cid;
+  }
+
+  async getBlockByCid(cid, height){
     const blockObj = await this._ipfs.dag.get(cid);
     if( ! blockObj){
       o('error', 'blockCid cannot be found from ipfs.dag', cid);
@@ -46,7 +56,6 @@ export default class BlockMgr{
       }, this._timeoutSeconds, height)
     }
     return blockObj.value;
-
   }
 
   getMaxHeight (){return this._maxHeight}
