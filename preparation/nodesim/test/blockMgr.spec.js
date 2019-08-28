@@ -8,7 +8,7 @@ import chaiAsPromised from "chai-as-promised";
 import 'babel-polyfill';
 chai.use(chaiAsPromised);
 
-describe.skip('blockMgr', ()=>{
+describe('blockMgr', ()=>{
   describe('blockMgr clear', async ()=>{
     
     before(async ()=>{

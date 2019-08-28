@@ -12,7 +12,7 @@ import {ipfsInit, pubsubInit} from '../nodes/ipfsInit';
 
 chai.use(chaiAsPromised);
 
-describe.skip('rpcMessageEvents', ()=>{
+describe('rpcMessageEvents', ()=>{
   describe('events', async ()=>{
     
     before(async ()=>{

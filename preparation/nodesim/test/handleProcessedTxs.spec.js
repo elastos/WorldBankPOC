@@ -6,7 +6,7 @@ import chai, { expect, should } from 'chai';
 import chaiAsPromised from "chai-as-promised";
 import 'babel-polyfill';
 chai.use(chaiAsPromised);
- describe.skip('handleProcessedTxs', ()=>{
+ describe('handleProcessedTxs', ()=>{
    describe('handleNewNodeJoinNeedRaTxs', ()=>{
     
     const block = {
