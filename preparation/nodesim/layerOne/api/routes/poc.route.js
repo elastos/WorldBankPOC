@@ -59,19 +59,6 @@ router
   });
 
 
-router.route('/get_user_by_ipfs').get((req, res)=>{
-  const ipfs_id = req.query.ipfs_id;
-
-  const users = global.presetUsers;
-
-  const tmp = _.find(users, (item)=>item.ipfs_id === ipfs_id);
-  if(tmp){
-    return result(res, 1, tmp);
-  }
-  return result(res, 1, '');
-  
-});
-
 router
   .route('/forceManualGenerateNewBlock')
   .get(async (req, res) => {
@@ -85,50 +72,6 @@ router
      + JSON.stringify(newBlock)
     + ')</script></body></html>';
     res.status(200).send(htmlDoc);
-  });
-
-router
-  .route('/vrf')
-  .get((req, res)=>{
-    tryVrf(req, res);
-  });
-router
-  .route('/publish2room')
-  .post( async (req, res)=>{
-    const pubsubRooms = global.pubsubRooms;
-    const ipfs = global.ipfs;
-    const {jsontext, room} = req.body;
-    try{
-      const jsonObj = JSON.parse(jsontext);
-      const txType = jsonObj.txType;
-      let channelRoom;
-      let cid;
-      const broadcastObj = {txType};
-      switch(txType){
-        case "gasTransfer":{
-          channelRoom = pubsubRooms.taskRoom;
-          const {fromPeerId, toPeerId, amt} = jsonObj;
-          const cid = await ipfs.dag.put({
-            fromPeerId, toPeerId, amt
-          });
-          broadcastObj.cid = cid.toBaseEncodedString();
-          break;
-        }
-  
-        case "blockroom":
-          channelRoom = pubsubRooms.blockRoom;
-          break;
-        default:
-          return res.status(502).send("unsupported pubsub room,", room);
-      }
-      console.log('broadcastObj', broadcastObj);
-      channelRoom.broadcast(JSON.stringify(broadcastObj));
-      return res.status(200).send(JSON.stringify(broadcastObj));
-
-    }
-    catch(e){
-      res.status(502).send(e);
-    }
   });
 
 router.route('/pot_data').get((req, res)=>{
