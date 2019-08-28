@@ -22,11 +22,18 @@ describe('onlinePeerUserCache', ()=>{
     expect(()=>peerUserCache.put(item1.peerId, "whateverUserName")).to.throw('peerId exists. Please remove first');
     expect(()=>peerUserCache.put("whateverPeerId", item2.userName)).to.throw('userName exists. Please remove first');
 
+    expect(peerUserCache.getPeerIdList()).to.eql([item1.peerId, item2.peerId]);
+    expect(peerUserCache.getUserNameList()).to.eql([item1.userName, item2.userName]);
+    
     peerUserCache.removeByUserName(item1.userName);
     peerUserCache.removeByUserName(item1.userName);//show be OK if you try to delete the same thing again
     peerUserCache.removeByPeerId(item1.peerId);//gracefull 
     peerUserCache.removeByPeerId(item2.peerId);
     peerUserCache.removeByUserName(item2.userNme);
+
+    expect(peerUserCache.getPeerIdList()).to.eql([]);
+    expect(peerUserCache.getUserNameList()).to.eql([]);
+    
 
     expect(peerUserCache.getByUserName(item1.userName)).to.be.undefined;
     expect(peerUserCache.getByUserName(item2.userName)).to.be.undefined;
@@ -38,6 +45,8 @@ describe('onlinePeerUserCache', ()=>{
     expect(peerUserCache.getByUserName(item2.userName)).to.eql(item2);
     expect(peerUserCache.getByPeerId(item1.peerId)).to.eql(item1);
     expect(peerUserCache.getByPeerId(item2.peerId)).to.eql(item2);
+    expect(peerUserCache.getPeerIdList()).to.eql([item1.peerId, item2.peerId]);
+    expect(peerUserCache.getUserNameList()).to.eql([item1.userName, item2.userName]);
     
     
   })

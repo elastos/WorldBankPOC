@@ -1,5 +1,4 @@
 import {describe, it, before} from 'mocha';
-import TotalGasAndCredit from '../shared/totalGasAndCredit';
 import {handleNewNodeJoinNeedRaTxs} from '../nodes/handleProcessedTxs';
 import _ from 'lodash';
 
@@ -71,9 +70,7 @@ chai.use(chaiAsPromised);
         }
       ],
       previousBlockCid: undefined,
-      trustedPeerToUserInfo: {
-        
-      },
+
       totalCreditForOnlineNodes: 24
     
     };

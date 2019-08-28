@@ -7,8 +7,6 @@ const _ = require('lodash');
 const {tryVrf} = require('../../../shared/tryVrf')
 
 const router = express.Router();
-//console.log("credit", creditScore);
-const {get, log, getData} = require('../../../shared/PotLog');
 
 const result = (res, code, dataOrError, message='')=>{
   const json = {

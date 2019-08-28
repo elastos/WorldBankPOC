@@ -1,10 +1,13 @@
 import {tryParseJson} from '../shared/constValue';
 
-import {log} from '../shared/PotLog';
-
+const log = ()=>{};
 exports.join = (ipfs, room, options, presetUsers)=>{
   return (peer)=>{
     //console.log("someone Joined townhall, asking its userinfo now ", peer);
+    if(peer == ipfs._peerInfo.id.toB58String()){
+      console.log("this is myself. PeerId:", peer);
+      return;
+    }
     const reqObj = {
       type:'reqUserInfo'
     }
@@ -17,26 +20,22 @@ exports.join = (ipfs, room, options, presetUsers)=>{
       const {userInfo, type} = res;
       console.log('userInfo, type', userInfo, type);
       if(userInfo){
-        const {globalState} = options;
-        globalState.trustedPeerToUserInfo[peer] = userInfo;
-        //console.log("trustedPeerToUserInfo, ", globalState.trustedPeerToUserInfo);
-  
+        global.onlinePeerUserCache.put(peer, userInfo.userName, userInfo);
+      
         log('user_online', {
           name : userInfo.userName,
           ipfs_id :peer
         });
+        
       }else if(type == 'requestRandomUserInfo'){
         
         if(withNewRequestGuid){
-          const onlineUserNames = Object.values(options.globalState.trustedPeerToUserInfo).map(u=>u.userName);
-          console.log(onlineUserNames, Object.values(options.globalState.trustedPeerToUserInfo));
           const firstOffLineUser = presetUsers.find((u)=>{
-            if(onlineUserNames.indexOf(u.name) == -1)  return true;
-            return false;
+            return ! global.onlinePeerUserCache.getByUserName(u.name);
+          
           })
-          const r = {userInfo:firstOffLineUser};
-          room.rpcResponse(peer, JSON.stringify(r), withNewRequestGuid);
-          options.globalState.trustedPeerToUserInfo[peer, firstOffLineUser];
+          room.rpcResponse(peer, JSON.stringify({userInfo:firstOffLineUser}), withNewRequestGuid);
+          global.onlinePeerUserCache.put(peer, firstOffLineUser.name);
         }else{
           console.error("peer ask for requestRandomUserInfo but did not send me the callback function 'withNewRequestGuid'");
         }
@@ -50,16 +49,12 @@ exports.join = (ipfs, room, options, presetUsers)=>{
 
 exports.left = (ipfs, room, options)=>{
   return (peer)=>{
-    //console.log("someone left townhall, we will remove this peer from globalState.trustedPeerToUserInfo if it exists there", peer);
-
-    if(options.globalState.trustedPeerToUserInfo[peer]){
-      log('user_offline', {
-        name : options.globalState.trustedPeerToUserInfo[peer].userName,
-        ipfs_id : peer
-      });
-    }
+    const userName = global.onlinePeerUserCache.getByPeerId(peer);
+    global.onlinePeerUserCache.removeByPeerId(peer);
     
-    delete options.globalState.trustedPeerToUserInfo[peer];
-    //console.log("trustedPeerToUserInfo, ", options.globalState.trustedPeerToUserInfo);
+    log('user_offline', {
+      name : userName,
+      ipfs_id : peer
+    });
   }
 };

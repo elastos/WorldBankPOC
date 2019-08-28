@@ -2,8 +2,7 @@ import {tryParseJson, minimalNewNodeJoinRaDeposit, expectNumberOfRemoteAttestato
 import {sha256} from 'js-sha256';
 import { ecvrf, sortition} from 'vrf.js';
 import Big from 'big.js';
-
-import {log} from '../shared/PotLog';
+const log=()=>{};//Jacky, disable for now
 
 export default (ipfs, room, options)=>{
   return async (m)=>{
@@ -180,8 +179,7 @@ const remoteAttestationDoneProcess = async (ipfs, room, options, raDoneCid)=>{
     return false;
   }
   const block = (await ipfs.dag.get(blockCid)).value;
-  const totalCreditForOnlineNodes = block.totalCreditForOnlineNodes;
-  const p = expectNumberOfRemoteAttestatorsToBeVoted / totalCreditForOnlineNodes;
+  const p = expectNumberOfRemoteAttestatorsToBeVoted / block.totalCreditForOnlineNodes;
   const remoteAttestatorCreditBalance = block.creditMap[userName];
   const jVerify = sortition.getVotes(Buffer.from(value, 'hex'), new Big(remoteAttestatorCreditBalance), new Big(p));
   if(jVerify.toFixed() != j){

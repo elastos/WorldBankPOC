@@ -1,7 +1,6 @@
 import {tryParseJson} from '../constValue';
 
-import {log} from '../PotLog';
-
+const log = ()=>{};
 exports.join = (ipfs, room, options, presetUsers)=>{
   return (peer)=>{
     //console.log("someone Joined townhall, asking its userinfo now ", peer);

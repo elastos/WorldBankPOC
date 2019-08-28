@@ -1,22 +1,19 @@
 import {totalCreditToken, minRemoteAttestatorsToPassRaTask, initialCreditIssuedWhenPassRa, awardCreditWhenRaSuccessful, penaltyCreditWhenRaFail, reduceFactualIfRaFail} from '../shared/constValue';
 import _ from 'lodash';
-
+const log=()=>{};//skip for now
 import Big from 'big.js';
-import {log} from '../shared/PotLog';
 import {eligibilityCheck, chooseExecutorAndMonitors} from '../shared/computeTask';
 
 exports.generateBlock = async ({ipfs, globalState, blockRoom})=>{
   runSettlementBeforeNewBlock(ipfs, globalState);
   globalState.creditMap = runCreditNormalization(globalState.creditMap, totalCreditToken);
-  const {gasMap, creditMap, processedTxs, previousBlockHeight, previousBlockCid, trustedPeerToUserInfo, escrowGasMap, pendingTasks} = globalState;
+  const {gasMap, creditMap, processedTxs, previousBlockHeight, previousBlockCid, escrowGasMap, pendingTasks} = globalState;
   
   //calculate totalCredit for online users
-  let totalCreditForOnlineNodes = 0;
-  for( const c in trustedPeerToUserInfo){
-    const currUserInfo = trustedPeerToUserInfo[c];
-    totalCreditForOnlineNodes += creditMap[currUserInfo.userName];
-  }
-
+  const totalCreditForOnlineNodes = global.onlinePeerUserCache.getUserNameList().reduce((acc, u)=>{
+    acc += creditMap[u];
+    return acc;
+  }, 0);
 
   const peerProfile = globalState.peerProfile;
 
@@ -27,7 +24,6 @@ exports.generateBlock = async ({ipfs, globalState, blockRoom})=>{
     processedTxs,
     blockHeight: previousBlockHeight + 1,
     previousBlockCid,
-    trustedPeerToUserInfo,
     totalCreditForOnlineNodes,
     escrowGasMap,
     pendingTasks

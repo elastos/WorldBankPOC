@@ -8,8 +8,8 @@ const _ = require('lodash');
 const {tryVrf} = require('../../poc/tryVrf')
 
 const router = express.Router();
-//console.log("credit", creditScore);
-const {get, log, getData} = require('../../poc/PotLog');
+
+const log = ()=>{};
 
 router
   .route('/')

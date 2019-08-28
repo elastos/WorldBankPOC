@@ -8,11 +8,7 @@ const updateLog = ()=>{};//Hi Jacky, just place holder here.
 
 exports.handleProccessedTxs = async ({height : eventTriggeredBlockHeight, cid:eventTriggeredBlockCid})=>{
    
-  const {totalGas, totalCredit, height, totalCreditForOnlineNodes} = global.totalGasAndCredit.getCurrentTotalGasAndCredit();
-  if(eventTriggeredBlockHeight > height){
-    o('log', 'make sure event handler call totalGasAndCredit before processedTxHandler', {eventTriggeredBlockHeight, height});
-    return;
-  }
+  
   const {userInfo} = global;
   if(! userInfo){
     o('log', 'userInfo is not initialized yet. Probably new block comes before "requestUserInfo" in the townHallJoinHandler. we will skip this block, waiting for next');
@@ -23,8 +19,6 @@ exports.handleProccessedTxs = async ({height : eventTriggeredBlockHeight, cid:ev
   o('assert', ()=>{
     block.height == eventTriggeredBlockHeight
   }, 'receive new block but height is different than the blockRoom broadcasted');
-
-
 
   const newNodeJoinNeedRaTxsCid = [];
   const remoteAttestationDoneTxsCid = [];
@@ -42,7 +36,7 @@ exports.handleProccessedTxs = async ({height : eventTriggeredBlockHeight, cid:ev
   newNodeJoinNeedRaTxsCid.map(async (txCid)=>{
     const tx = (await global.ipfs.dag.get(txCid)).value;
     const userInfo = global.userInfo;
-    const reqRaObj = handleNewNodeJoinNeedRaTxs({block, blockCid: eventTriggeredBlockCid, totalCreditForOnlineNodes, tx, txCid, userInfo});
+    const reqRaObj = handleNewNodeJoinNeedRaTxs({block, blockCid: eventTriggeredBlockCid, totalCreditForOnlineNodes: block.totalCreditForOnlineNodes, tx, txCid, userInfo});
     const handleRaResponse = async (res, err)=>{
       if(err){
         o('log', `I am a Remote Attestator, I received new node's error response :, err is `, err);
@@ -120,7 +114,7 @@ exports.handleProccessedTxs = async ({height : eventTriggeredBlockHeight, cid:ev
   //   const {blockCid} = options;
   //   //console.log("received a RA task",tx.value, blockCid, cid);
   //   const vrfMsg = sha256.update(blockCid).update(cid).hex();
-  //   const p = expectNumberOfExecutorGroupToBeVoted / totalCreditForOnlineNodes;
+  //   const p = expectNumberOfExecutorGroupToBeVoted / block.totalCreditForOnlineNodes;
   //   console.log("VRFing.... this takes some time, please be patient..., ", userInfo, vrfMsg);
   //   const { proof, value } = ecvrf.vrf(Buffer.from(userInfo.publicKey, 'hex'), Buffer.from(userInfo.privateKey, 'hex'), Buffer.from(vrfMsg, 'hex'));
   //   console.log("VRF{ proof, value }", { proof:proof.toString('hex'), value: value.toString('hex') });

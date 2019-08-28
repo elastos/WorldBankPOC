@@ -35,4 +35,10 @@ export default class {
     delete this._peerMap[peerId];
     delete this._userMap[item.userName];
   }
+  getPeerIdList(){
+    return Object.keys(this._peerMap);
+  }
+  getUserNameList(){
+    return Object.keys(this._userMap);
+  }
 }

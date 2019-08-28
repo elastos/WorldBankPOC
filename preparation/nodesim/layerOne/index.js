@@ -83,7 +83,6 @@ const main = (randRoomPostfix, blockGenerationInterval, swarmUrl)=>{
       presetUsers.push(u);
     }
     //
-    console.log("presetUsers,", presetUsers);
     global.presetUsers = presetUsers;
     return channelListener(global.ipfs, randRoomPostfix, presetUsers);
   })

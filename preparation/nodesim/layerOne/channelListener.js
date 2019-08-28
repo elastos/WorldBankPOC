@@ -19,8 +19,7 @@ const createRandomGeoLocation = (n)=>{
 };
 
 
-const createGenesysBlock = (ipfs, presetUsers)=>{
-  console.log("**** Generating Genesis Block **** In our demo, we assume everytime we start the system we will start from the very beginning...")
+const createGenesysBlock = (presetUsers)=>{
   const block = {};
   block.gasMap = {};
   block.creditMap = {};
@@ -31,9 +30,9 @@ const createGenesysBlock = (ipfs, presetUsers)=>{
   const locs = createRandomGeoLocation(presetUsers.length);
   for(let i = 0; i < presetUsers.length; i ++){
     const u = presetUsers[i];
-    block.gasMap[u.name] = i < 10? i * 10 : 50;
+    block.gasMap[u.name] = i > 10? i * 100 : 500;
     totalGas += block.gasMap[u.name];
-    block.creditMap[u.name] = i < 10? i: 5; //
+    block.creditMap[u.name] = i > 10? i*10: 50; //
     totalCredit += block.creditMap[u.name];
     block.peerProfile[u.name] = {
       loc : locs[i]
@@ -44,7 +43,6 @@ const createGenesysBlock = (ipfs, presetUsers)=>{
   block.totalCredit = totalCredit;
   block.processedTxs = [],
   block.latestBlockHeight = 0;
-  block.trustedPeerToUserInfo = {};//trustedPeers mean those node with more than 0 credit. We record a map between this node's IPFS id, and VRF public key(AKA userName mapped public key)
   block.totalCreditForOnlineNodes = 0,
   block.escrowGasMap = {},
   block.pendingTasks = {}
@@ -56,9 +54,8 @@ const createGenesysBlock = (ipfs, presetUsers)=>{
 exports.channelListener = (ipfs, randRoomPostfix, presetUsers)=>{
   
   //We assume every time we start the demo, it starts from genesis block
-  const globalState = createGenesysBlock(ipfs, presetUsers);
+  const globalState = createGenesysBlock(presetUsers);
   globalState.blockHistory = {};
-  console.log('asdfasdfasdfad', globalState);
   const options = {globalState};//default placeholder
   const rooms = {};
   const taskRoom = Room(ipfs, 'taskRoom' + randRoomPostfix, {pollInterval:333});

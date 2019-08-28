@@ -2,7 +2,7 @@ import {minRemoteAttestatorsToPassRaTask, initialCreditIssuedWhenPassRa, awardCr
 import _ from 'lodash';
 import {totalCreditToken} from '../constValue';
 import Big from 'big.js';
-import {log} from '../PotLog';
+const log = ()=>{};
 import {eligibilityCheck, chooseExecutorAndMonitors} from '../computeTask';
 
 exports.generateBlock = async ({ipfs, globalState, blockRoom})=>{

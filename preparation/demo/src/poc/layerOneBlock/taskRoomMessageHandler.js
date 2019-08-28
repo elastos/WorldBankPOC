@@ -3,7 +3,7 @@ import {sha256} from 'js-sha256';
 import { ecvrf, sortition} from 'vrf.js';
 import Big from 'big.js';
 
-import {log} from '../PotLog';
+const log = ()=>{};
 
 export default (ipfs, room, options)=>{
   return async (m)=>{

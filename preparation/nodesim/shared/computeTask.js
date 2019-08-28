@@ -35,10 +35,10 @@ exports.executeCompute = async (options, taskCid, executor)=>{
   const lambdaOwner = lambda.ownerName;
 
   options.executeTaskParams = options.executeTaskParams || {};
-  const taskOwnerPeerId = Object.keys(options.block.trustedPeerToUserInfo).find((k)=>options.block.trustedPeerToUserInfo[k].userName == taskOwner);
-  const lambdaOwnerPeerId = Object.keys(options.block.trustedPeerToUserInfo).find((k)=>options.block.trustedPeerToUserInfo[k].userName == lambdaOwner);
+  const taskOwnerPeerId = global.onlinePeerUserCache.getByUserName(taskOwner);
+  const lambdaOwnerPeerId = global.onlinePeerUserCache.getByUserName(lambdaOwner);
   if(! taskOwnerPeerId || ! lambdaOwnerPeerId){
-    console.log('either task owner or lambda owner is not online. computing cannot start. abort', {taskOwner, taskOwnerPeerId, lambdaOwner, lambdaOwnerPeerId, userList:options.block.trustedPeerToUserInfo, });
+    console.log('either task owner or lambda owner is not online. computing cannot start. abort', {taskOwner, taskOwnerPeerId, lambdaOwner, lambdaOwnerPeerId});
     return "abort!";
   }
   const reqTaskParams = {

@@ -14,7 +14,6 @@ import pkg from '../package.json';
 import {o, done} from '../shared/utilities';
 import {ipfsInit, pubsubInit} from './ipfsInit';
 import BlockMgr from '../shared/blockMgr';
-import TotalGasAndCredit from '../shared/totalGasAndCredit';
 import {handleProccessedTxs} from './handleProcessedTxs';
 import events from 'events';
 const OPTIONS = {};
@@ -27,15 +26,12 @@ const startApp = async ()=>{
   ipfsInit(OPTIONS.swarm)
   .then((ipfs)=>{
     const blockMgr = new BlockMgr(ipfs)
-    const totalGasAndCredit = new TotalGasAndCredit();
     blockMgr.registerNewBlockEventHandler(async (args)=>{
-      await totalGasAndCredit.updateOnNewBlock(args);
       await handleProccessedTxs(args)
     });
     
     global.ipfs = ipfs;
     global.blockMgr = blockMgr;
-    global.totalGasAndCredit = totalGasAndCredit;
     global.rpcEvent = new events.EventEmitter();
     global.broadcastEvent = new events.EventEmitter();
     return pubsubInit(ipfs, OPTIONS.randRoomPostfix, global.rpcEvent, global.broadcastEvent);
