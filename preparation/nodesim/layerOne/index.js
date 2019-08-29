@@ -74,7 +74,6 @@ const main = (randRoomPostfix, blockGenerationInterval, swarmUrl)=>{
     global.ipfs = ipfs;
     global.blockMgr = new BlockMgr(ipfs);
     global.randRoomPostfix = randRoomPostfix;
-    console.log("Generating 20 preset users, please wait a few seconds...");
     let presetUsers = [];
     for(let i = 0; i < 20; i ++){
       const [publicKey, privateKey] = utils.generatePair();
@@ -87,7 +86,7 @@ const main = (randRoomPostfix, blockGenerationInterval, swarmUrl)=>{
     }
     //
     global.presetUsers = presetUsers;
-    return channelListener(global.ipfs, randRoomPostfix, presetUsers);
+    return channelListener(randRoomPostfix, presetUsers);
   })
   .then(({ipfs, globalState, pubsubRooms})=>{
     global.pubsubRooms = pubsubRooms;
@@ -95,15 +94,15 @@ const main = (randRoomPostfix, blockGenerationInterval, swarmUrl)=>{
     const {blockRoom} = pubsubRooms;
     const firstBlockDelay = 1000 * 10;
     if(blockGenerationInterval > 0){
-      const loop = async ({ipfs, globalState, blockRoom})=>{
-        await generateBlock({ipfs, globalState, blockRoom});
-        _.delay(loop, blockGenerationInterval, {ipfs, globalState, blockRoom});
+      const loop = async ({blockRoom})=>{
+        await generateBlock({blockRoom});
+        _.delay(loop, blockGenerationInterval, {blockRoom});
       }
-      _.delay(loop, firstBlockDelay, {ipfs, globalState, blockRoom});
+      _.delay(loop, firstBlockDelay, {blockRoom});
       console.log("Automacial block genreation starts. New block will be generated every" + blockGenerationInterval + ' seconds');
     }
     else{
-      _.delay(generateBlock, firstBlockDelay, {ipfs, globalState, blockRoom});
+      _.delay(generateBlock, firstBlockDelay, {blockRoom});
       console.log("No automatical block generation after the genesis block. You have to manually force generate new block every time!")
     }
 
