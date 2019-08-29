@@ -17,8 +17,6 @@ router.use('/web', express.static(process.cwd() + '/web'));
 router.use('/taskGen', express.static(process.cwd() + '/web/taskGen.html'));
 router.use('/poc', pocRoutes);
 
-//console.log(1, process.cwd()+'/webprotal/');
-
 // set webprotal folder as static
 router.use('/webportal', express.static(process.cwd() + '/webportal'));
 

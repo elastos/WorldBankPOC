@@ -70,6 +70,15 @@ const rpcDirectHandler = {
     });
     //o('log', `send back reqUserInfo to townhall manager using RPC response`, {resMessage, guid: message.guid});
   },
+  simulatorRequestAction:({message, room})=> async ()=>{
+    console.log('from simulator request action,', message);
+    global.rpcEvent.emit('rpcResponse', {
+      sendToPeerId: message.from, 
+      message : JSON.stringify({result:"OK"}), 
+      guid : message.guid});
+
+    console.log("send back to simulatorRequestAction requestor:")
+  },
   reqRemoteAttestation: ({message, room})=> async ()=>{//Now I am new node, sending back poT after validate the remote attestation is real
     const { j, proof, value, taskCid, publicKey, userName, blockHeightWhenVRF} = messageObj;
     const validateReturn = await validateVrf({ipfs, j, proof, value, blockCid:blockHistory[blockHeightWhenVRF], taskCid, publicKey, userName});

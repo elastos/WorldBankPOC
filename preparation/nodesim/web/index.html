@@ -2,7 +2,6 @@
 <html>
   <head>
 
-      <script type="text/javascript" src="/webportal/lib/jquery.js"></script>
       <link href="css/jsoneditor.min.css" rel="stylesheet" type="text/css">
       <link href="css/default.css" rel="stylesheet" type="text/css">
       <style>
@@ -116,17 +115,15 @@
       
       <p>
         <button id='sendAction'>Send Action to PubSub Room</button> Under the Name of <span id='userName'>User Name</span>
-
+        
+      </p>
+      <p>
+        Initiator Response: <span id='initiatorResponse'></span><br/>
+        Initiator Error: <span id = 'initiatorError'></span>
       </p>
     </div>
     
-    <div>
-      <h1>Logs</h1>
-      <ul id='log' width='400px' height='300px'></ul>
-    </div>
-    
   </body>
-  <script src="js/ipfsPubSub.js"></script>
   <script src="js/simulator.js"></script>
   <script src="dist/jsoneditor.min.js"></script>
 

@@ -52,14 +52,9 @@ function init(){
     rooms.townHall = Room(ipfs, 'townHall'+ randRoomPostfix);//roomMessageHandler(ipfs, 'townHall' + randRoomPostfix, options, townHall);
     rooms.blockRoom = Room(ipfs, 'blockRoom'+ randRoomPostfix);//roomMessageHandler(ipfs, 'blockRoom' + randRoomPostfix, options, blockRoom);
     window.rooms = rooms;
-    
-    main({userInfo, ipfs, rooms});
-  
-    
   });
   
 
 };
 
 
-document.addEventListener('DOMContentLoaded', init);

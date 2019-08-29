@@ -2,10 +2,8 @@
 const express = require('express');
 
 const {generateBlock} = require('../../generateBlock.js');
+import {o, tryParseJson} from '../../../shared/utilities';
 const _ = require('lodash');
-
-const {tryVrf} = require('../../../shared/tryVrf')
-
 const router = express.Router();
 
 const result = (res, code, dataOrError, message='')=>{
@@ -70,6 +68,32 @@ router
      + JSON.stringify(newBlock)
     + ')</script></body></html>';
     res.status(200).send(htmlDoc);
+  });
+router
+  .route('/action')
+  .post(async (req, res)=>{
+    console.log('req.body', req.body);
+    const wrapper = req.body;
+    if(! wrapper)
+      return res.status(502).send('cannot parse post json');
+    const {initiatorUserName, action} = wrapper;
+    const onlineUserInfo = global.onlinePeerUserCache.getByUserName(initiatorUserName);
+    if(! onlineUserInfo)
+      return res.status(502).send('cannot find this online user:' + initiatorUserName);
+    const newWrapper = {
+      type:'simulatorRequestAction',
+      action
+    }
+    global.pubsubRooms.townHall.rpcRequest(onlineUserInfo.peerId, JSON.stringify(newWrapper), (result, error)=>{
+      console.log("response from initiator", result, error);
+      if(error){
+        
+        return res.status(503).send('initiator response err:' + error);
+      }
+      else{
+        return res.status(200).send(result);
+      }
+    });
   });
 
 router.route('/pot_data').get((req, res)=>{

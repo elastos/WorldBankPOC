@@ -1,5 +1,5 @@
 
-exports.main = ({userInfo, ipfs, rooms})=>{
+const main = ()=>{
   let userName = 'user #0';
   //document.getElementById('roomPostfix').innerText = randRoomPostfix;
   document.getElementById('userName').innerText = userName;
@@ -12,7 +12,7 @@ exports.main = ({userInfo, ipfs, rooms})=>{
     editor.set({
       txType:"gasTransfer",
       fromPeerId: userName,
-      toPeerId:"user #0",
+      toPeerId:"user #0", 
       amt:15
     })
   }
@@ -20,8 +20,7 @@ exports.main = ({userInfo, ipfs, rooms})=>{
     editor.set({
       txType:"newNodeJoinNeedRa",
       userName,
-      depositAmt:10,
-      ipfsPeerId:
+      depositAmt:10
 
     })
   };
@@ -73,57 +72,46 @@ exports.main = ({userInfo, ipfs, rooms})=>{
     userName = document.getElementById('selectUser').value;
     document.getElementById('userName').innerHTML = userName; 
   }
-  document.getElementById('sendAction').onclick = ()=>{
+  document.getElementById('sendAction').onclick = async ()=>{
     //const userName = document.getElementById('userName').innerHTML;
+    document.getElementById('initiatorResponse').innerHTML = "";
+    document.getElementById('initiatorError').innerHTML = "";
+
     console.log("ready to send action,",JSON.stringify(editor.get(), null, 2));
     const jsonObj = editor.get();
-    const txType = jsonObj.txType;
-    try{
-      let channelRoom;
-      let cid;
-      const broadcastObj = {txType};
-      let promiseCid;
-      switch(txType){
-        case "gasTransfer":{
-          channelRoom = rooms.taskRoom;
-          const {fromPeerId, toPeerId, amt} = jsonObj;
-          promiseCid = ipfs.dag.put({
-            fromPeerId, toPeerId, amt
-          });
-          
-          break;
-        }
-        case "setProofOfTrustForThisNode":
-          window.proofOfTrustTest = jsonObj;
-          return;
-        case "newNodeJoinNeedRa":
-        case 'uploadLambda':
-        case "computeTask":
-          channelRoom = rooms.taskRoom;
-          promiseCid = ipfs.dag.put(jsonObj);
-          break;
-        default:
-          return console.log("unsupported sendAction txType,", txType);
-      }
-      promiseCid.then((cid)=>{
-        broadcastObj.cid = cid.toBaseEncodedString();
-        if(txType == 'uploadLambda'){
-          logToWebPage(`Please record this CID number, you will need it when you submit a compute task using this Lamdba: ${broadcastObj.cid}`)
-        }
-        channelRoom.broadcast(JSON.stringify(broadcastObj));
-        console.log("Sent action: ",JSON.stringify(broadcastObj));
-      }) 
-      .catch((e)=>{
-        throw e;
-      })
+    const warpper = {
+      initiatorUserName: userName,
+      action:jsonObj
+    }
+    const url = 'http://' + window.location.host + '/poc/action';
+    console.log('url:', url);
+    const response = await fetch(url, {
+      method: 'POST', // *GET, POST, PUT, DELETE, etc.
+      mode: 'same-origin', // no-cors, cors, *same-origin
+      cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+      credentials: 'same-origin', // include, *same-origin, omit
+      headers: {
+          'Content-Type': 'application/json',
+          // 'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      redirect: 'follow', // manual, *follow, error
+      referrer: 'no-referrer', // no-referrer, *client
+      body: JSON.stringify(warpper), // body data type must match "Content-Type" header
+    });
+    
+    if(response.ok) {
+      const result = await response.blob()
+    
+      document.getElementById('initiatorResponse').innerHTML = result;
+    }
+    else{
+      document.getElementById('initiatorError').innerHTML = response.blob();
+    }
 
-    }
-    catch(e){
-      console.log("inside sendActionToRoom, excpetion:", e);
-    }
+    
   };
 };
-
+document.addEventListener('DOMContentLoaded', main);
 
 
 
