@@ -5,46 +5,42 @@ import Big from 'big.js';
 import { o } from '../shared/utilities';
 const log=()=>{};//Jacky, disable for now
 
-export default (options)=>{
-  return async (m)=>{
-    const globalState = {...options.globalState};
-    const messageString = m.data.toString();
-    const messageObj = tryParseJson(messageString);
-    //console.log("before process tx cid=", messageObj.cid,  " the globalState.processedTxs is,", globalState.processedTxs);
-    if( typeof messageObj == "undefined") return false;
-    const messageTypeHandlerMap = {
-      gasTransfer:gasTransferProcess,
-      newNodeJoinNeedRa: newNodeJoinNeedRaProcess,
-      remoteAttestationDone: remoteAttestationDoneProcess,
-      uploadLambda: updateLambda,
-      computeTask: computeTask,
-      computeTaskWinnerApplication: computeTaskWinnerApplication,
-      computeTaskDone: undefined
-    };
+export default async (m)=>{
+  const globalState = {...global.globalState};
+  const messageString = m.data.toString();
+  const messageObj = tryParseJson(messageString);
+  //console.log("before process tx cid=", messageObj.cid,  " the globalState.processedTxs is,", globalState.processedTxs);
+  if( typeof messageObj == "undefined") return false;
+  const messageTypeHandlerMap = {
+    gasTransfer:gasTransferProcess,
+    newNodeJoinNeedRa: newNodeJoinNeedRaProcess,
+    remoteAttestationDone: remoteAttestationDoneProcess,
+    uploadLambda: updateLambda,
+    computeTask: computeTask,
+    computeTaskWinnerApplication: computeTaskWinnerApplication,
+    computeTaskDone: undefined
+  };
 
-    const func = messageTypeHandlerMap[messageObj.txType];
-    if(typeof func == 'function'){
-      try{
-        const newGlobalState = await func(globalState, messageObj.cid, m.from);
-        if(! newGlobalState)
-          throw "newGlobalState is null. It should be throw inside func, not here";
-        newGlobalState.processedTxs.push(messageObj);
-        if(newGlobalState)
-          options.globalState = newGlobalState;
-      }
-      catch(e){
-        o('error', "process task failed, tx is dropped, ", {cid:messageObj.cid, e});
-      }
-      
-    }else{
-      o('log', "taskRoom Unhandled message, ", messageObj);
+  const func = messageTypeHandlerMap[messageObj.txType];
+  if(typeof func == 'function'){
+    try{
+      const newGlobalState = await func(globalState, messageObj, m.from);
+      if(! newGlobalState)
+        throw "newGlobalState is null. It should be throw inside func, not here";
+      newGlobalState.processedTxs.push(messageObj);
+      if(newGlobalState)
+        global.globalState = newGlobalState;
+    }
+    catch(e){
+      o('error', "process task failed, tx is dropped, ", {cid:messageObj.cid, e});
     }
     
-    
+  }else{
+    o('log', "taskRoom Unhandled message, ", messageObj);
   }
 };
-const computeTaskWinnerApplication = async (ipfs, room, globalState, messageObj, from)=>{
-  
+const computeTaskWinnerApplication = async ( globalState, messageObj, from)=>{
+  const ipfs = global.ipfs;
   const {userName, taskCid} = messageObj;
   const taskObj = (await ipfs.dag.get(taskCid)).value;
   const {depositAmt} = taskObj;
@@ -56,7 +52,8 @@ const computeTaskWinnerApplication = async (ipfs, room, globalState, messageObj,
   return true;
 }
 
-const gasTransferProcess = async (globalState, cid)=>{
+const gasTransferProcess = async (globalState, messageObj)=>{
+  const {cid} = messageObj;
   if(!cid) return false;
   const tx = await global.ipfs.dag.get(cid)
 
@@ -90,7 +87,8 @@ const gasTransferProcess = async (globalState, cid)=>{
 
 }
 
-const newNodeJoinNeedRaProcess = async (ipfs, room, globalState, cid)=>{
+const newNodeJoinNeedRaProcess = async (globalState, messageObj)=>{
+  const {cid} = messageObj;
   if(!cid) {
     console.log("in newNodeJoinNeedRaProcess, cid is not existing,", cid);
     return false
@@ -98,18 +96,17 @@ const newNodeJoinNeedRaProcess = async (ipfs, room, globalState, cid)=>{
   const tx = await ipfs.dag.get(cid)
 
   if(!tx){ 
-    console.log("in newNodeJoinNeedRaProcess, tx is not existing", tx);
-    return false;
+    throw new Error("in newNodeJoinNeedRaProcess, tx is not existing");
   }
 
   const {userName, depositAmt} = tx.value;
   if (!userName)  return false;
   if (depositAmt < minimalNewNodeJoinRaDeposit){
-    console.log("Please pay more deposit to get your new node verified. Minimal is,", minimalNewNodeJoinRaDeposit);
-    return false;
+    throw new Error("Please pay more deposit to get your new node verified. Minimal is," +  minimalNewNodeJoinRaDeposit);
+    
   }
   if (! takeEscrow(globalState, userName, depositAmt, cid))
-    return false;
+    throw new Error('takeEscrow failed')
   if (!globalState.pendingTasks[cid]) globalState.pendingTasks[cid] = {
     type: 'newNodeJoinNeedRa',
     initiator: userName,
@@ -122,16 +119,18 @@ const newNodeJoinNeedRaProcess = async (ipfs, room, globalState, cid)=>{
     amt : depositAmt,
     cid : cid
   });
-  return true;
+  return globalState;
 }
 
 
 
-const remoteAttestationDoneProcess = async (ipfs, room, globalState, raDoneCid)=>{
+const remoteAttestationDoneProcess = async (globalState, messageObj)=>{
+  const {ipfs} = global;
+  const {raDoneCid} = messageObj.cid;
   const tx = await ipfs.dag.get(raDoneCid);
   if(! tx || ! tx.value){
-    console.log("in remoteAttestationDoneProcess, tx is not existing", tx);
-    return false;
+    throw new Error("in remoteAttestationDoneProcess, tx is not existing" +  tx);
+    
   }
 
   const {potResult,proofOfTrust,proofOfVrf} = tx.value;
@@ -141,7 +140,7 @@ const remoteAttestationDoneProcess = async (ipfs, room, globalState, raDoneCid)=
   //console.log('task,', task);
   const {depositAmt} = task.value;
   if (! takeEscrow(globalState, userName, depositAmt, taskCid)){
-    return false;
+    throw new Error('takeEscrow failed');
   }
   const vrfMsg = sha256.update(blockCid).update(taskCid).hex();
   
@@ -156,19 +155,19 @@ const remoteAttestationDoneProcess = async (ipfs, room, globalState, raDoneCid)=
       cid : taskCid,
       reason
     })
-    return false;
+    throw new Error('remoteAttestationDoneProcess fail, ', reason)
   }
   const block = (await ipfs.dag.get(blockCid)).value;
   const p = expectNumberOfRemoteAttestatorsToBeVoted / block.totalCreditForOnlineNodes;
   const remoteAttestatorCreditBalance = block.creditMap[userName];
   const jVerify = sortition.getVotes(Buffer.from(value, 'hex'), new Big(remoteAttestatorCreditBalance), new Big(p));
   if(jVerify.toFixed() != j){
-    console.log("vrf soritition failed,", jVerify.toFixed());
-    return false;
+    throw new Error("vrf soritition failed");
+    
   }
   if (!globalState.pendingTasks[taskCid]) {
-    console.log("This could caused by a late response RA done message. Because when this message received, the RA done has been processed and removed. We have to drop this RA done because it is too late");
-    return false;
+    throw new Error("This could caused by a late response RA done message. Because when this message received, the RA done has been processed and removed. We have to drop this RA done because it is too late");
+   
   };
   globalState.pendingTasks[taskCid].followUps.push(raDoneCid);
 
@@ -177,7 +176,7 @@ const remoteAttestationDoneProcess = async (ipfs, room, globalState, raDoneCid)=
     name : userName,
     cid : taskCid,
   })
-  return true;
+  return globalState;
 };
 
 const takeEscrow = (globalState, userName, depositAmt, taskCid)=>{

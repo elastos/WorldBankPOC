@@ -53,14 +53,13 @@ const createGenesysBlock = (presetUsers)=>{
 exports.channelListener = (randRoomPostfix, presetUsers)=>{
   const ipfs = global.ipfs;
   //We assume every time we start the demo, it starts from genesis block
-  const globalState = createGenesysBlock(presetUsers);
+  global.globalState = createGenesysBlock(presetUsers);
   const options = {globalState};//default placeholder
-  const rooms = {};
   const taskRoom = Room(ipfs, 'taskRoom' + randRoomPostfix, {pollInterval:333});
   taskRoom.on('peer joined', (peer)=>peer);//console.log(console.log('peer ' + peer + ' joined task room')));
   taskRoom.on('peer left', peer=>peer);//console.log('peer ' + peer + ' left task room'));
   taskRoom.on('subscribed', (m) => console.log("...... subscribe task room....", m));
-  taskRoom.on('message', taskRoomMessageHandler(options));
+  taskRoom.on('message', taskRoomMessageHandler);
 
   
   const townHall = Room(ipfs, 'townHall' + randRoomPostfix, {pollInterval:250});
@@ -73,5 +72,5 @@ exports.channelListener = (randRoomPostfix, presetUsers)=>{
   blockRoom.on('peer left', peer=>peer);//console.log('peer ' + peer + ' left task room'));
   blockRoom.on('subscribed', (m) => console.log("...... subscribe task room....", m));
   
-  return {globalState, pubsubRooms:{taskRoom, townHall, blockRoom}};
+  return {pubsubRooms:{taskRoom, townHall, blockRoom}};
 }

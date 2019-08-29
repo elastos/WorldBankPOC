@@ -88,9 +88,9 @@ const main = (randRoomPostfix, blockGenerationInterval, swarmUrl)=>{
     global.presetUsers = presetUsers;
     return channelListener(randRoomPostfix, presetUsers);
   })
-  .then(({ipfs, globalState, pubsubRooms})=>{
+  .then(({pubsubRooms})=>{
     global.pubsubRooms = pubsubRooms;
-    global.globalState = globalState;
+    
     const firstBlockDelay = 1000 * 10;
     if(blockGenerationInterval > 0){
       const loop = async ()=>{
