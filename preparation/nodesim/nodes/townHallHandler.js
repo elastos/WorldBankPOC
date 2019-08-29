@@ -99,7 +99,7 @@ const rpcDirectHandler = {
   },
   reqRemoteAttestation: ({from, guid, messageObj})=> async ()=>{//Now I am new node, sending back poT after validate the remote attestation is real
     const { j, proof, value, taskCid, publicKey, userName, blockHeightWhenVRF} = messageObj;
-    const validateReturn = await validateVrf({ipfs, j, proof, value, blockCid:blockHistory[blockHeightWhenVRF], taskCid, publicKey, userName});
+    const validateReturn = await validateVrf({ipfs, j, proof, value, blockCid:global.blockMgr.getBlockCidByHeight(blockHeightWhenVRF), taskCid, publicKey, userName});
 
     if(! validateReturn.result){
       o('log', `VRF Validation failed, reason is `, validateReturn.reason);
@@ -143,7 +143,7 @@ const rpcDirectHandler = {
       return o('log', 'I am the winner myself, I cannot take computeTaskWinnerApplication message');
     }
     const { j, proof, value, taskCid, publicKey, userName, blockHeightWhenVRF} = messageObj;
-    const validateReturn = await validateVrf({ipfs, j, proof, value, blockCid: blockHistory[blockHeightWhenVRF], taskCid, publicKey, userName});
+    const validateReturn = await validateVrf({ipfs, j, proof, value, blockCid: global.blockMgr.getBlockCidByHeight(blockHeightWhenVRF), taskCid, publicKey, userName});
     if(! validateReturn.result){
       o('log',`VRF Validation failed, reason is `, validateReturn.reason);
       return;

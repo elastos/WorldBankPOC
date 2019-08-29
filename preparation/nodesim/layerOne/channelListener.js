@@ -1,5 +1,4 @@
 import taskRoomMessageHandler from './taskRoomMessageHandler';
-import blockRoomMessageHandler from './blockRoomMessageHandler';
 import Room from 'ipfs-pubsub-room';
 import townHallJoinLeftHandler from './townHallJoinLeftHandler';
 
@@ -55,7 +54,6 @@ exports.channelListener = (ipfs, randRoomPostfix, presetUsers)=>{
   
   //We assume every time we start the demo, it starts from genesis block
   const globalState = createGenesysBlock(presetUsers);
-  globalState.blockHistory = {};
   const options = {globalState};//default placeholder
   const rooms = {};
   const taskRoom = Room(ipfs, 'taskRoom' + randRoomPostfix, {pollInterval:333});
@@ -74,7 +72,6 @@ exports.channelListener = (ipfs, randRoomPostfix, presetUsers)=>{
   blockRoom.on('peer joined', (peer)=>peer);//console.log(console.log('peer ' + peer + ' joined task room')));
   blockRoom.on('peer left', peer=>peer);//console.log('peer ' + peer + ' left task room'));
   blockRoom.on('subscribed', (m) => console.log("...... subscribe task room....", m));
-  blockRoom.on('message', blockRoomMessageHandler(ipfs, rooms.blockRoom, options));
-
+  
   return {ipfs, globalState, pubsubRooms:{taskRoom, townHall, blockRoom}};
 }

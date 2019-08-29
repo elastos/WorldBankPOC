@@ -15,10 +15,10 @@ exports.generateBlock = async ({ipfs, globalState, blockRoom})=>{
     return acc;
   }, 0);
 
-  const peerProfile = globalState.peerProfile;
+  //const peerProfile = globalState.peerProfile;
 
   const newBlock = {
-    peerProfile,
+    //peerProfile,
     gasMap,
     creditMap,
     processedTxs,
@@ -42,7 +42,7 @@ exports.generateBlock = async ({ipfs, globalState, blockRoom})=>{
   blockRoom.broadcast(JSON.stringify(broadcastObj))
   globalState.previousBlockHeight = globalState.blockHeight;
   globalState.processedTxs = [];
-  globalState.blockHistory[globalState.blockHeight] = globalState.blockCid;
+  global.blockMgr.pushNewBlock(broadcastObj.height, broadcastObj.cid);
   return newBlock;
 }
 

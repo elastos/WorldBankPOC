@@ -7,7 +7,9 @@ const {channelListener} = require('./channelListener');
 const {generateBlock} = require('./generateBlock');
 import PeerUserCache from './onlinePeerUser';
 const {utils} = require('vrf.js');
+
 import inquirer from 'inquirer';
+import BlockMgr from '../shared/blockMgr';
 
 
 // Prompt user to input data in console.
@@ -70,6 +72,7 @@ const main = (randRoomPostfix, blockGenerationInterval, swarmUrl)=>{
     global.onlinePeerUserCache = new PeerUserCache();
     global.swarmUrl = swarmUrl;
     global.ipfs = ipfs;
+    global.blockMgr = new BlockMgr(ipfs);
     global.randRoomPostfix = randRoomPostfix;
     console.log("Generating 20 preset users, please wait a few seconds...");
     let presetUsers = [];
