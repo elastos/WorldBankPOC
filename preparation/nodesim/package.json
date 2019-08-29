@@ -10,7 +10,7 @@
     "test": "mocha --timeout 15000 --exit --require @babel/register --require reify",
     "layer1": "node --require @babel/register ./layerOne",
     "debug:layer1": "node --inspect --require @babel/register ./layerOne",
-    "compile": "browserify ./webSrc/ipfsPubSub.js -t babelify --plugins [transform-runtime] -o ./web/js/ipfsPubSub.js -d && browserify ./webSrc/simulator.js -t babelify --plugins [transform-runtime] -o ./web/js/simulator.js -d && browserify ./webSrc/taskGen.js -t babelify --plugins [transform-runtime] -o ./web/js/taskGen.js -d"
+    "compile": "browserify ./webSrc/ipfsPubSub.js -t babelify --plugins [transform-runtime] -o ./web/js/ipfsPubSub.js -d && browserify ./webSrc/simulator.js -t babelify --plugins [transform-runtime] -o ./web/js/simulator.js -d"
   },
   "repository": {
     "type": "git",

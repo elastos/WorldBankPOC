@@ -2,69 +2,49 @@ import {tryParseJson, minimalNewNodeJoinRaDeposit, expectNumberOfRemoteAttestato
 import {sha256} from 'js-sha256';
 import { ecvrf, sortition} from 'vrf.js';
 import Big from 'big.js';
+import { o } from '../shared/utilities';
 const log=()=>{};//Jacky, disable for now
 
-export default (ipfs, room, options)=>{
+export default (options)=>{
   return async (m)=>{
     const {globalState} = options;
     const messageString = m.data.toString();
-    
     const messageObj = tryParseJson(messageString);
     //console.log("before process tx cid=", messageObj.cid,  " the globalState.processedTxs is,", globalState.processedTxs);
     if( typeof messageObj == "undefined") return false;
-    let processResult;
-    switch(messageObj.txType){
-      case "gasTransfer":
-        processResult = await gasTransferProcess(ipfs, room, options, messageObj.cid);
-        break;
-      case "newNodeJoinNeedRa":
-        processResult = await newNodeJoinNeedRaProcess(ipfs, room, options, messageObj.cid);
-        break;
-      case "remoteAttestationDone":
-        processResult = await remoteAttestationDoneProcess(ipfs, room, options, messageObj.cid, m.from);
-        break;
-      case 'uploadLambda':{
-        processResult = await updateLambda(ipfs, room, options, messageObj.cid, m.from);
-        
-        break;
+    const messageTypeHandlerMap = {
+      gasTransfer:gasTransferProcess,
+      newNodeJoinNeedRa: newNodeJoinNeedRaProcess,
+      remoteAttestationDone: remoteAttestationDoneProcess,
+      uploadLambda: updateLambda,
+      computeTask: computeTask,
+      computeTaskWinnerApplication: computeTaskWinnerApplication,
+      computeTaskDone: undefined
+    };
+
+    const func = messageTypeHandlerMap[messageObj.txType];
+    if(typeof func == 'function'){
+      try{
+        const newGlobalState = await func(options.globalState, messageObj.cid, m.from);
+        if(! newGlobalState)
+          throw "newGlobalState is null. It should be throw inside func, not here";
+        newGlobalState.processedTxs.push(messageObj);
+        if(newGlobalState)
+          options.globalState = newGlobalState;
       }
-      case 'computeTask':{
-        processResult = await computeTask(ipfs, room, options, messageObj.cid, m.from);
-        
-        break;
+      catch(e){
+        o('error', "process task failed, tx is dropped, ", {cid:messageObj.cid, e});
       }
-      case "computeTaskWinnerApplication":
-          //console.log('layerOne townhall, record the highest J value.', messageObj);
-    //       "type": "computeTaskWinnerApplication",
-    // "ipfsPeerId": "QmcRcLKdqpydWjKYxgDGSUZ5Qyh4NqNxikLFG3KJ6yLQoj",
-    // "userName": "user #16",
-    // "publicKey": "bae714c4e682fa0d36dd11fd73a3113817ec521df3f337757f78ad7392f061d9",
-    // "taskCid": "bafyreihjakj2lrb5blk7jsve4kookxhjvwiawfc2aaptogoskfahbvehie",
-    // "proof": "025eb4b325b16db6969967eb58081272d8ca3d4f986ea5efdf29180de0a86cca733763a4a1814b9b975b0bf1e25faede8665d3d95598ba55b7b10680b23801fdd367943070e67f96729957ba4348339ec2",
-    // "value": "5eb4b325b16db6969967eb58081272d8ca3d4f986ea5efdf29180de0a86cca73",
-    // "j": "1",
-    // "blockHeightWhenVRF": 2
-        processResult = await computeTaskWinnerApplication(ipfs, room, options, messageObj, m.from);//
-        break;
-      case 'computeTaskDone':{
-        processResult = true;
-        break;
-      }
-      default:
-        console.log("taskRoom Unhandled message, ", messageObj);
+      
+    }else{
+      o('log', "taskRoom Unhandled message, ", messageObj);
     }
-    if(processResult){
-      globalState.processedTxs.push(messageObj);
-      //console.log("after process tx cid=", messageObj.cid,  " the globalState.processedTxs is,", globalState.processedTxs);
-    }
-    else{
-      console.log("process task failed, tx is dropped, ", messageObj.cid);
-    }
+    
+    
   }
 };
-const computeTaskWinnerApplication = async (ipfs, room, options, messageObj, from)=>{
+const computeTaskWinnerApplication = async (ipfs, room, globalState, messageObj, from)=>{
   
-  const {globalState} = options;
   const {userName, taskCid} = messageObj;
   const taskObj = (await ipfs.dag.get(taskCid)).value;
   const {depositAmt} = taskObj;
@@ -76,40 +56,42 @@ const computeTaskWinnerApplication = async (ipfs, room, options, messageObj, fro
   return true;
 }
 
-const gasTransferProcess = async (ipfs, room, options, cid)=>{
-  const {globalState} = options;
+const gasTransferProcess = async (iputState, cid)=>{
+  const globalState = Object.assign({}, iputState);
   if(!cid) return false;
-  const tx = await ipfs.dag.get(cid)
+  const tx = await global.ipfs.dag.get(cid)
 
-  if(!tx) return false;
+  if(!tx){
+    o('error', 'processing gasTransfer, tx cannot be retrieved from ipfs dag', cid);
+    throw "processing gasTransfer, tx cannot be retrieved from ipfs dag";
+  }
 
-  const {fromPeerId, toPeerId, amt} = tx.value;
-  if (amt < 0)  return false;
-  if (!fromPeerId || ! toPeerId || !amt)  return false;
-  if( globalState && globalState.gasMap && globalState.gasMap[fromPeerId] && globalState.gasMap[fromPeerId] > amt)
+  const {fromUserName, toUserName, amt} = tx.value;
+  if (amt < 0)  throw "gasTransfer amt need to > 0";
+  if (!fromUserName || ! toUserName || !amt)  throw "fromUserName, toUserName, amt need to have value";
+  if( globalState && globalState.gasMap && globalState.gasMap[fromUserName] && globalState.gasMap[fromUserName] > amt)
   {
-    globalState.gasMap[fromPeerId] -= amt;
-    if(! globalState.gasMap[toPeerId])  globalState.gasMap[toPeerId] = amt;
-    else globalState.gasMap[toPeerId] += amt;
+    globalState.gasMap[fromUserName] -= amt;
+    if(! globalState.gasMap[toUserName])  globalState.gasMap[toUserName] = amt;
+    else globalState.gasMap[toUserName] += amt;
 
     log('gas_transfer', {
-      from : fromPeerId,
-      to : toPeerId,
+      from : fromUserName,
+      to : toUserName,
       amt : amt,
-      from_balance : globalState.gasMap[fromPeerId],
-      to_balance : globalState.gasMap[toPeerId]
+      from_balance : globalState.gasMap[fromUserName],
+      to_balance : globalState.gasMap[toUserName]
     });
 
-    return true;
+    return globalState;
   }else{
-    console.log("gasTransferProcess error tx.value, globalState,", tx.value, globalState);
-    return false;
+    o('log', "gasTransferProcess error tx.value, globalState,", tx.value, globalState);
+    throw "failed at globalState && globalState.gasMap && globalState.gasMap[fromUserName] && globalState.gasMap[fromUserName] > amt"
   };
 
 }
 
-const newNodeJoinNeedRaProcess = async (ipfs, room, options, cid)=>{
-  const {globalState} = options;
+const newNodeJoinNeedRaProcess = async (ipfs, room, globalState, cid)=>{
   if(!cid) {
     console.log("in newNodeJoinNeedRaProcess, cid is not existing,", cid);
     return false
@@ -146,7 +128,7 @@ const newNodeJoinNeedRaProcess = async (ipfs, room, options, cid)=>{
 
 
 
-const remoteAttestationDoneProcess = async (ipfs, room, options, raDoneCid)=>{
+const remoteAttestationDoneProcess = async (ipfs, room, globalState, raDoneCid)=>{
   const tx = await ipfs.dag.get(raDoneCid);
   if(! tx || ! tx.value){
     console.log("in remoteAttestationDoneProcess, tx is not existing", tx);
@@ -155,8 +137,7 @@ const remoteAttestationDoneProcess = async (ipfs, room, options, raDoneCid)=>{
 
   const {potResult,proofOfTrust,proofOfVrf} = tx.value;
   const {j, proof, value, taskCid, blockHeightWhenVRF, userName, publicKey} = proofOfVrf;
-  const blockCid = options.globalState.blockHistory[blockHeightWhenVRF];
-  const {globalState} = options;
+  const blockCid = globalState.blockHistory[blockHeightWhenVRF];
   const task = await ipfs.dag.get(taskCid);
   //console.log('task,', task);
   const {depositAmt} = task.value;

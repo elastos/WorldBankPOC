@@ -11,8 +11,8 @@ const main = ()=>{
   document.getElementById('btn1').onclick = ()=>{
     editor.set({
       txType:"gasTransfer",
-      fromPeerId: userName,
-      toPeerId:"user #0", 
+      fromUserName: userName,
+      toUserName:"user #0", 
       amt:15
     })
   }

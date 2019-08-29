@@ -18,7 +18,7 @@ exports.rpcDirect = (room)=>(message) => {
   
   const handlerFunction = rpcDirectHandler[messageObj.type];
   if(typeof handlerFunction == 'function'){
-    handlerFunction({message, room})();
+    handlerFunction({from:message.from, guid:message.guid, messageObj})();
     return
   }
   else{
@@ -45,11 +45,12 @@ exports.rpcResponse =  (room)=>(args)=>{
 }
 
 const rpcDirectHandler = {
-  reqUserInfo: ({message, room})=>()=>{
+  reqUserInfo: ({from, guid})=>()=>{
     const resMessage = {
       type:'requestRandomUserInfo',
     };
-    room.rpcResponseWithNewRequest(message.from, JSON.stringify(resMessage), message.guid, (res, err)=>{
+    
+    const responseCallBack = (res, err)=>{
       if(err)
         console.log("rpcResponseWithNewRequest err,",err);
       else{
@@ -67,24 +68,41 @@ const rpcDirectHandler = {
         }
 
       }
+    };
+
+    global.rpcEvent.emit('rpcResponseWithNewRequest', {
+      sendToPeerId: from, 
+      message : JSON.stringify(resMessage), 
+      guid,
+      responseCallBack
     });
+
+
     //o('log', `send back reqUserInfo to townhall manager using RPC response`, {resMessage, guid: message.guid});
   },
-  simulatorRequestAction:({message, room})=> async ()=>{
-    console.log('from simulator request action,', message);
+  simulatorRequestAction:({from, guid, messageObj, room})=> async ()=>{
+
+    console.log('from simulator request action,', messageObj);
+
+    const txType = messageObj.action.txType;
+    const cidObj = Object.assign({}, messageObj.action);
+    delete cidObj.txType;
+
+    const cid = (await global.ipfs.dag.put(cidObj)).toBaseEncodedString();
+    global.broadcastEvent.emit('taskRoom', JSON.stringify({txType, cid}));
     global.rpcEvent.emit('rpcResponse', {
-      sendToPeerId: message.from, 
+      sendToPeerId: from, 
       message : JSON.stringify({result:"OK"}), 
-      guid : message.guid});
+      guid : guid});
 
     console.log("send back to simulatorRequestAction requestor:")
   },
-  reqRemoteAttestation: ({message, room})=> async ()=>{//Now I am new node, sending back poT after validate the remote attestation is real
+  reqRemoteAttestation: ({from, guid, messageObj})=> async ()=>{//Now I am new node, sending back poT after validate the remote attestation is real
     const { j, proof, value, taskCid, publicKey, userName, blockHeightWhenVRF} = messageObj;
     const validateReturn = await validateVrf({ipfs, j, proof, value, blockCid:blockHistory[blockHeightWhenVRF], taskCid, publicKey, userName});
 
     if(! validateReturn.result){
-      logToWebPage(`VRF Validation failed, reason is `, validateReturn.reason);
+      o('log', `VRF Validation failed, reason is `, validateReturn.reason);
       updateLog('req_ra', {
         name : userName,
         vrf : 'No',
@@ -93,7 +111,7 @@ const rpcDirectHandler = {
       return;
     }
     logToWebPage(`VRF Validation passed`);
-    const proofOfTrust = window.proofOfTrustTest? window.proofOfTrustTest : {
+    const proofOfTrust = {
       psrData:'placeholder',
       isHacked:false,
       tpmPublicKey:'placeholder'
@@ -103,9 +121,11 @@ const rpcDirectHandler = {
       proofOfVrf:messageObj,
       proofOfTrust
     }
-
-    room.rpcResponse(message.from, JSON.stringify(resRemoteAttestationObj), message.guid);
-
+    global.rpcEvent.emit('rpcResponse', {
+      sendToPeerId: from, 
+      message : JSON.stringify(resRemoteAttestationObj), 
+      guid});
+    
     updateLog('req_ra', {
       name : userName,
       vrf : 'Yes',
@@ -114,21 +134,21 @@ const rpcDirectHandler = {
       proofOfTrust
     });
     
-    logToWebPage(`send back resRemoteAttestation to the remote attestator ${message.from}, payload is `, resRemoteAttestationObj);
+    o('log', `send back resRemoteAttestation to the remote attestator ${from}, payload is `, resRemoteAttestationObj);
     return;
   },
-  computeTaskWinnerApplication:({message, room})=> async ()=>{
-    if(messageObj.userName == userInfo.userName){
+  computeTaskWinnerApplication:({from, guid, messageObj, room})=> async ()=>{
+    if(messageObj.userName == global.userInfo.userName){
       //myself
-      return
+      return o('log', 'I am the winner myself, I cannot take computeTaskWinnerApplication message');
     }
     const { j, proof, value, taskCid, publicKey, userName, blockHeightWhenVRF} = messageObj;
     const validateReturn = await validateVrf({ipfs, j, proof, value, blockCid: blockHistory[blockHeightWhenVRF], taskCid, publicKey, userName});
     if(! validateReturn.result){
-      logToWebPage(`VRF Validation failed, reason is `, validateReturn.reason);
+      o('log',`VRF Validation failed, reason is `, validateReturn.reason);
       return;
     }
-    //logToWebPage(`VRF Validation passed`);
+    o('log', `VRF Validation passed. What's next???`);
     
   },
   // remoteAttestationDone: ()=>{

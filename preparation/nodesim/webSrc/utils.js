@@ -32,4 +32,3 @@ exports.updateLog = (type, opts)=>{
   }).then((rs)=>{})
 }
 
-// && browserify ./webSrc/simulator.js -t babelify --plugins transform-runtime] -o ./web/js/simulator.js -d && browserify ./webSrc/taskGen.js -t babelify --plugins transform-runtime] -o ./web/js/taskGen.js -d
