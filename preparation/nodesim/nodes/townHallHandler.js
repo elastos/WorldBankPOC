@@ -1,12 +1,12 @@
 import {tryParseJson, o} from '../shared/utilities';
 import _ from 'lodash';
-//import {validateVrf, validatePot, verifyOthersRemoteAttestationVrfAndProof}  from '../remoteAttestation';
-//import {chooseExecutorAndMonitors, executeComputeUsingEval} from '../computeTask';
+import {validateVrf, validatePot, verifyOthersRemoteAttestationVrfAndProof}  from '../shared/remoteAttestation';
+//import {chooseExecutorAndMonitors, executeComputeUsingEval} from '../shared/computeTask';
 
 exports.peerJoined = (peer)=>console.log(`peer ${peer} joined`);
 exports.peerLeft = (peer)=>console.log(`peer ${peer} left`);
 exports.subscribed = (m)=>console.log(`Subscribed ${m}`);
-
+const updateLog = ()=>{};
 
 exports.rpcDirect = (room)=>(message) => {
   //o('log', 'In townhall got RPC message from ' + message.from + ': ', message);
@@ -85,6 +85,11 @@ const rpcDirectHandler = {
     console.log('from simulator request action,', messageObj);
 
     const txType = messageObj.action.txType;
+    switch(txType){
+      case 'newNodeJoinNeedRa':
+        messageObj.action.ipfsPeerId = ipfs._peerInfo.id.toB58String();
+        break;
+    }
     const cidObj = Object.assign({}, messageObj.action);
     delete cidObj.txType;
 
@@ -110,7 +115,7 @@ const rpcDirectHandler = {
       });
       return;
     }
-    logToWebPage(`VRF Validation passed`);
+    o('log', `VRF Validation passed`);
     const proofOfTrust = {
       psrData:'placeholder',
       isHacked:false,
@@ -220,3 +225,4 @@ const rpcDirectHandler = {
   // }
 }
 
+ 

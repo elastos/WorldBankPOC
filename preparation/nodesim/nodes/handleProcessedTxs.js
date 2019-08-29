@@ -36,6 +36,7 @@ exports.handleProccessedTxs = async ({height : eventTriggeredBlockHeight, cid:ev
   newNodeJoinNeedRaTxsCid.map(async (txCid)=>{
     const tx = (await global.ipfs.dag.get(txCid)).value;
     const userInfo = global.userInfo;
+    console.log('try ra task', userInfo, tx);
     const reqRaObj = handleNewNodeJoinNeedRaTxs({block, blockCid: eventTriggeredBlockCid, totalCreditForOnlineNodes: block.totalCreditForOnlineNodes, tx, txCid, userInfo});
     const handleRaResponse = async (res, err)=>{
       if(err){
@@ -49,7 +50,7 @@ exports.handleProccessedTxs = async ({height : eventTriggeredBlockHeight, cid:ev
       const cid = await global.ipfs.dag.put({potResult,proofOfTrust,proofOfVrf});
       const remoteAttestationDoneMsg = {
         txType:'remoteAttestationDone',
-        cid: txCid
+        cid: cid.toBaseEncodedString()
       }
       global.broadcastEvent.emit('taskRoom', JSON.stringify(remoteAttestationDoneMsg));
       o('log', `Broadcast in taskRoom about the Proof of trust verify result: ${potResult}`);
@@ -62,13 +63,15 @@ exports.handleProccessedTxs = async ({height : eventTriggeredBlockHeight, cid:ev
       });
     }
     if(reqRaObj){
-        global.rpcEvent.emit('rpcRequest', {
-          sendToPeerId:tx.ipfsPeerId, 
-          message:JSON.stringify(reqRaObj), 
-          responseCallBack:handleRaResponse
-        });
-        o('log', `Sending townhall request to the new node: ${tx.ipfsPeerId}  for RA:`, reqRaObj);
-      }
+      global.rpcEvent.emit('rpcRequest', {
+        sendToPeerId:tx.ipfsPeerId, 
+        message:JSON.stringify(reqRaObj), 
+        responseCallBack:handleRaResponse
+      });
+      o('log', `Sending townhall request to the new node: ${tx.ipfsPeerId}  for RA:`, reqRaObj);
+    }else{
+      console.log("reqRaObj is null");
+    }
   });
   
   // remoteAttestationDoneTxsCid.map((cid)=>{

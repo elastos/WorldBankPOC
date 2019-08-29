@@ -20,8 +20,8 @@ const main = ()=>{
     editor.set({
       txType:"newNodeJoinNeedRa",
       userName,
-      depositAmt:10
-
+      depositAmt:10,
+      ipfsPeerId:"Will Be Added Automatically"
     })
   };
   document.getElementById('btn3').onclick = ()=>{

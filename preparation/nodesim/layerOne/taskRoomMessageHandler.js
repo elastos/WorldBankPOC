@@ -126,7 +126,7 @@ const newNodeJoinNeedRaProcess = async (globalState, messageObj)=>{
 
 const remoteAttestationDoneProcess = async (globalState, messageObj)=>{
   const {ipfs} = global;
-  const {raDoneCid} = messageObj.cid;
+  const raDoneCid = messageObj.cid;
   const tx = await ipfs.dag.get(raDoneCid);
   if(! tx || ! tx.value){
     throw new Error("in remoteAttestationDoneProcess, tx is not existing" +  tx);
