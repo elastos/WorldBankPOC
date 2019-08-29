@@ -91,18 +91,17 @@ const main = (randRoomPostfix, blockGenerationInterval, swarmUrl)=>{
   .then(({ipfs, globalState, pubsubRooms})=>{
     global.pubsubRooms = pubsubRooms;
     global.globalState = globalState;
-    const {blockRoom} = pubsubRooms;
     const firstBlockDelay = 1000 * 10;
     if(blockGenerationInterval > 0){
-      const loop = async ({blockRoom})=>{
-        await generateBlock({blockRoom});
-        _.delay(loop, blockGenerationInterval, {blockRoom});
+      const loop = async ()=>{
+        await generateBlock();
+        _.delay(loop, blockGenerationInterval);
       }
-      _.delay(loop, firstBlockDelay, {blockRoom});
+      _.delay(loop, firstBlockDelay);
       console.log("Automacial block genreation starts. New block will be generated every" + blockGenerationInterval + ' seconds');
     }
     else{
-      _.delay(generateBlock, firstBlockDelay, {blockRoom});
+      _.delay(generateBlock, firstBlockDelay);
       console.log("No automatical block generation after the genesis block. You have to manually force generate new block every time!")
     }
 

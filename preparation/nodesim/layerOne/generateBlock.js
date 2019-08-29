@@ -4,8 +4,9 @@ const log=()=>{};//skip for now
 import Big from 'big.js';
 import {eligibilityCheck, chooseExecutorAndMonitors} from '../shared/computeTask';
 
-exports.generateBlock = async ({blockRoom})=>{
-  const {ipfs, globalState} = global;
+exports.generateBlock = async ()=>{
+  const {ipfs, globalState, pubsubRooms} = global;
+  const {blockRoom} = pubsubRooms;
   runSettlementBeforeNewBlock();
   globalState.creditMap = runCreditNormalization(globalState.creditMap, totalCreditToken);
   const {gasMap, creditMap, processedTxs, previousBlockHeight, previousBlockCid, escrowGasMap, pendingTasks} = globalState;
