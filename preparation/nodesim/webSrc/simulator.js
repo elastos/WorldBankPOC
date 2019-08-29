@@ -21,7 +21,7 @@ exports.main = ({userInfo, ipfs, rooms})=>{
       txType:"newNodeJoinNeedRa",
       userName,
       depositAmt:10,
-      ipfsPeerId:rooms.taskRoom.getMyPeerId(),
+      ipfsPeerId:
 
     })
   };

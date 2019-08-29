@@ -4,6 +4,7 @@ const log = ()=>{};
 exports.join = (ipfs, room, options, presetUsers)=>{
   return (peer)=>{
     //console.log("someone Joined townhall, asking its userinfo now ", peer);
+    //console.log('mypeerID:', ipfs._peerInfo.id.toB58String());
     if(peer == ipfs._peerInfo.id.toB58String()){
       console.log("this is myself. PeerId:", peer);
       return;
@@ -13,12 +14,11 @@ exports.join = (ipfs, room, options, presetUsers)=>{
     }
     //room.sendTo(peer, JSON.stringify(reqObj));
     room.rpcRequest(peer, JSON.stringify(reqObj), (res, err, withNewRequestGuid)=>{
-      console.log("finally I got the rpcResponse like this,", res, err, withNewRequestGuid);
+      //console.log("finally I got the rpcResponse like this,", res, err, withNewRequestGuid);
       if(err){
-        return console.log('reqUserInfo response error', err);
+        return console.error(`reqUserInfo to ${peer} response error`, err);
       }
       const {userInfo, type} = res;
-      console.log('userInfo, type', userInfo, type);
       if(userInfo){
         global.onlinePeerUserCache.put(peer, userInfo.userName, userInfo);
       

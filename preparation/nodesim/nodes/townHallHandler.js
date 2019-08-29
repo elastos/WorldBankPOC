@@ -18,7 +18,7 @@ exports.rpcDirect = (room)=>(message) => {
   
   const handlerFunction = rpcDirectHandler[messageObj.type];
   if(typeof handlerFunction == 'function'){
-    handlerFunction({message, room});
+    handlerFunction({message, room})();
     return
   }
   else{
@@ -45,7 +45,7 @@ exports.rpcResponse =  (room)=>(args)=>{
 }
 
 const rpcDirectHandler = {
-  reqUserInfo: ({message, room})=>{
+  reqUserInfo: ({message, room})=>()=>{
     const resMessage = {
       type:'requestRandomUserInfo',
     };
@@ -70,58 +70,58 @@ const rpcDirectHandler = {
     });
     //o('log', `send back reqUserInfo to townhall manager using RPC response`, {resMessage, guid: message.guid});
   },
-  // reqRemoteAttestation: ()=>{//Now I am new node, sending back poT after validate the remote attestation is real
-  //   const { j, proof, value, taskCid, publicKey, userName, blockHeightWhenVRF} = messageObj;
-  //   const validateReturn = await validateVrf({ipfs, j, proof, value, blockCid:blockHistory[blockHeightWhenVRF], taskCid, publicKey, userName});
+  reqRemoteAttestation: ({message, room})=> async ()=>{//Now I am new node, sending back poT after validate the remote attestation is real
+    const { j, proof, value, taskCid, publicKey, userName, blockHeightWhenVRF} = messageObj;
+    const validateReturn = await validateVrf({ipfs, j, proof, value, blockCid:blockHistory[blockHeightWhenVRF], taskCid, publicKey, userName});
 
-  //   if(! validateReturn.result){
-  //     logToWebPage(`VRF Validation failed, reason is `, validateReturn.reason);
-  //     updateLog('req_ra', {
-  //       name : userName,
-  //       vrf : 'No',
-  //       cid : messageObj.taskCid
-  //     });
-  //     return;
-  //   }
-  //   logToWebPage(`VRF Validation passed`);
-  //   const proofOfTrust = window.proofOfTrustTest? window.proofOfTrustTest : {
-  //     psrData:'placeholder',
-  //     isHacked:false,
-  //     tpmPublicKey:'placeholder'
-  //   }
-  //   const resRemoteAttestationObj = {
-  //     type:'resRemoteAttestation',
-  //     proofOfVrf:messageObj,
-  //     proofOfTrust
-  //   }
+    if(! validateReturn.result){
+      logToWebPage(`VRF Validation failed, reason is `, validateReturn.reason);
+      updateLog('req_ra', {
+        name : userName,
+        vrf : 'No',
+        cid : messageObj.taskCid
+      });
+      return;
+    }
+    logToWebPage(`VRF Validation passed`);
+    const proofOfTrust = window.proofOfTrustTest? window.proofOfTrustTest : {
+      psrData:'placeholder',
+      isHacked:false,
+      tpmPublicKey:'placeholder'
+    }
+    const resRemoteAttestationObj = {
+      type:'resRemoteAttestation',
+      proofOfVrf:messageObj,
+      proofOfTrust
+    }
 
-  //   room.rpcResponse(message.from, JSON.stringify(resRemoteAttestationObj), message.guid);
+    room.rpcResponse(message.from, JSON.stringify(resRemoteAttestationObj), message.guid);
 
-  //   updateLog('req_ra', {
-  //     name : userName,
-  //     vrf : 'Yes',
-  //     cid : messageObj.taskCid,
-  //     proofOfVrf: messageObj,
-  //     proofOfTrust
-  //   });
+    updateLog('req_ra', {
+      name : userName,
+      vrf : 'Yes',
+      cid : messageObj.taskCid,
+      proofOfVrf: messageObj,
+      proofOfTrust
+    });
     
-  //   logToWebPage(`send back resRemoteAttestation to the remote attestator ${message.from}, payload is `, resRemoteAttestationObj);
-  //   return;
-  // },
-  // computeTaskWinnerApplication:()=>{
-  //   if(messageObj.userName == userInfo.userName){
-  //     //myself
-  //     return
-  //   }
-  //   const { j, proof, value, taskCid, publicKey, userName, blockHeightWhenVRF} = messageObj;
-  //   const validateReturn = await validateVrf({ipfs, j, proof, value, blockCid: blockHistory[blockHeightWhenVRF], taskCid, publicKey, userName});
-  //   if(! validateReturn.result){
-  //     logToWebPage(`VRF Validation failed, reason is `, validateReturn.reason);
-  //     return;
-  //   }
-  //   //logToWebPage(`VRF Validation passed`);
+    logToWebPage(`send back resRemoteAttestation to the remote attestator ${message.from}, payload is `, resRemoteAttestationObj);
+    return;
+  },
+  computeTaskWinnerApplication:({message, room})=> async ()=>{
+    if(messageObj.userName == userInfo.userName){
+      //myself
+      return
+    }
+    const { j, proof, value, taskCid, publicKey, userName, blockHeightWhenVRF} = messageObj;
+    const validateReturn = await validateVrf({ipfs, j, proof, value, blockCid: blockHistory[blockHeightWhenVRF], taskCid, publicKey, userName});
+    if(! validateReturn.result){
+      logToWebPage(`VRF Validation failed, reason is `, validateReturn.reason);
+      return;
+    }
+    //logToWebPage(`VRF Validation passed`);
     
-  // },
+  },
   // remoteAttestationDone: ()=>{
   
   // },

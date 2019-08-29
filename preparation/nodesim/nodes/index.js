@@ -40,7 +40,7 @@ const startApp = async ()=>{
     console.log('pubsubInit done');
     
     global.blockMgr.registerNewBlockEventHandler(({height, cid})=>{
-      o('log', 'receive new block,', {height, cid});
+      o('log', `${global.userInfo?global.userInfo.userName : "UserNameNotAssignedYet"} -- ${global.ipfs._peerInfo.id.toB58String()} receives new block,`, {height});
     })
   })
   .catch(err=>{
