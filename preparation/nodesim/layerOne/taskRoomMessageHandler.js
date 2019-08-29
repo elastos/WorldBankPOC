@@ -7,7 +7,7 @@ const log=()=>{};//Jacky, disable for now
 
 export default (options)=>{
   return async (m)=>{
-    const {globalState} = options;
+    const globalState = {...options.globalState};
     const messageString = m.data.toString();
     const messageObj = tryParseJson(messageString);
     //console.log("before process tx cid=", messageObj.cid,  " the globalState.processedTxs is,", globalState.processedTxs);
@@ -25,7 +25,7 @@ export default (options)=>{
     const func = messageTypeHandlerMap[messageObj.txType];
     if(typeof func == 'function'){
       try{
-        const newGlobalState = await func(options.globalState, messageObj.cid, m.from);
+        const newGlobalState = await func(globalState, messageObj.cid, m.from);
         if(! newGlobalState)
           throw "newGlobalState is null. It should be throw inside func, not here";
         newGlobalState.processedTxs.push(messageObj);
@@ -56,8 +56,7 @@ const computeTaskWinnerApplication = async (ipfs, room, globalState, messageObj,
   return true;
 }
 
-const gasTransferProcess = async (iputState, cid)=>{
-  const globalState = Object.assign({}, iputState);
+const gasTransferProcess = async (globalState, cid)=>{
   if(!cid) return false;
   const tx = await global.ipfs.dag.get(cid)
 
