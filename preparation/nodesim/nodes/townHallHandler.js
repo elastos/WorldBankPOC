@@ -1,7 +1,7 @@
 import {tryParseJson, o} from '../shared/utilities';
 import _ from 'lodash';
 import {validateVrf, validatePot, verifyOthersRemoteAttestationVrfAndProof}  from '../shared/remoteAttestation';
-//import {chooseExecutorAndMonitors, executeComputeUsingEval} from '../shared/computeTask';
+import {chooseExecutorAndMonitors, executeComputeUsingEval} from '../shared/computeTask';
 
 exports.peerJoined = (peer)=>console.log(`peer ${peer} joined`);
 exports.peerLeft = (peer)=>console.log(`peer ${peer} left`);
@@ -142,7 +142,7 @@ const rpcDirectHandler = {
     o('log', `send back resRemoteAttestation to the remote attestator ${from}, payload is `, resRemoteAttestationObj);
     return;
   },
-  computeTaskWinnerApplication:({from, guid, messageObj, room})=> async ()=>{
+  computeTaskWinnerApplication:({messageObj})=> async ()=>{
     if(messageObj.userName == global.userInfo.userName){
       //myself
       return o('log', 'I am the winner myself, I cannot take computeTaskWinnerApplication message');
@@ -153,76 +153,74 @@ const rpcDirectHandler = {
       o('log',`VRF Validation failed, reason is `, validateReturn.reason);
       return;
     }
-    o('log', `VRF Validation passed. What's next???`);
+    o('log', `I verified the application passed VRF. `);
     
   },
-  // remoteAttestationDone: ()=>{
-  
-  // },
-  // reqTaskParams: ()=>{
-  //   console.log('reqTaskParams, messageObj', messageObj);
+
+  reqTaskParams: ({from, guid, messageObj, room})=>{
+    console.log('I have got a request for reqTaskParams, messageObj', messageObj);
     
-  //   const mayDelayExecuteDueToBlockDelay = (messageObj)=>{
-  //     const {taskCid,executor, blockHeight} = messageObj;
-  //     if(blockHeight <= block.blockHeight){
-  //       //this node is slower than the executor who send me the request. I have to wait till I have such a block to continue;
+    const mayDelayExecuteDueToBlockDelay = (messageObj)=>{
+      const {taskCid,executor, blockHeight} = messageObj;
+      if(blockHeight <= block.blockHeight){
+        //this node is slower than the executor who send me the request. I have to wait till I have such a block to continue;
         
-  //       const task = block.pendingTasks[taskCid];
+        const task = block.pendingTasks[taskCid];
         
-  //       const calculateExecutor = chooseExecutorAndMonitors(task);
-  //       if(! calculateExecutor){
-  //         logToWebPage(`Cannot find executor`, {task, blockHeight:block.blockHeight});
-  //         return;
-  //       }
-  //       if(chooseExecutorAndMonitors(task).userName != executor.userName){
-  //         logToWebPage(`Executor validate fail`, {executor, task});
-  //         return;
-  //       }
-  //       const resTaskParams = {
-  //         type:'resTaskParams',
-  //         data:['Hello', " World!"],
-  //         taskCid
-  //       };
-  //       room.rpcResponse(message.from, JSON.stringify(resTaskParams), message.guid);
-  //       logToWebPage(`Sending response for Task data back to executor.`, resTaskParams);
-  //     }else{
-  //       _.delay(mayDelayExecuteDueToBlockDelay, 1000, messageObj);
-  //     }
-  //   }
-  //   mayDelayExecuteDueToBlockDelay(messageObj)
+        const calculateExecutor = chooseExecutorAndMonitors(task);
+        if(! calculateExecutor){
+          o('log', `Cannot find executor`, {task, blockHeight:block.blockHeight});
+          return;
+        }
+        if(chooseExecutorAndMonitors(task).userName != executor.userName){
+          o('log', `Executor validate fail`, {executor, task});
+          return;
+        }
+        const resTaskParams = {
+          type:'resTaskParams',
+          data:['Hello', " World!"],
+          taskCid
+        };
+        room.rpcResponse(message.from, JSON.stringify(resTaskParams), message.guid);
+        o('log', `Sending response for Task data back to executor.`, resTaskParams);
+      }else{
+        _.delay(mayDelayExecuteDueToBlockDelay, 1000, messageObj);
+      }
+    }
+    mayDelayExecuteDueToBlockDelay(messageObj)
     
-  // },
-  // reqLambdaParams: ()=>{
-  //   //console.log('reqLambdaParams, messageObj', messageObj);
-  //   const mayDelayExecuteDueToBlockDelay = (messageObj)=>{
-  //     const {taskCid,executor, blockHeight} = messageObj;
-  //     if(blockHeight <= block.blockHeight){
-  //       const {taskCid,executor} = messageObj;
-  //       const task = block.pendingTasks[taskCid];
-  //       console.log('task,', task);
-  //       const calculateExecutor = chooseExecutorAndMonitors(task);
-  //       if(! calculateExecutor){
-  //         logToWebPage(`Cannot find executor`, {task , blockHeight:block.blockHeight});
-  //         return;
-  //       }
-  //       if(chooseExecutorAndMonitors(task).userName != executor.userName){
-  //         logToWebPage(`Executor validate fail`, {executor, task});
-  //         return;
-  //       }
-  //       const resLambdaParams = {
-  //         type:'resLambdaParams',
-  //         code:'args[0] + args[1]',
-  //         taskCid
-  //       };
-  //       room.rpcResponse(message.from, JSON.stringify(resLambdaParams), message.guid);
-  //       logToWebPage(`Sending response for Lambda Params back to executor.`, resLambdaParams);
-  //     }else{
-  //       _.delay(mayDelayExecuteDueToBlockDelay, 1000, messageObj);
-  //     }
-  //   }
-  //   mayDelayExecuteDueToBlockDelay(messageObj);
+  },
+  reqLambdaParams: ({from, guid, messageObj, room})=>{
+    console.log('I have got a request for Lambda Params reqLambdaParams, messageObj', messageObj);
+    const mayDelayExecuteDueToBlockDelay = (messageObj)=>{
+      const {taskCid,executor, blockHeight} = messageObj;
+      if(blockHeight <= block.blockHeight){
+        const {taskCid,executor} = messageObj;
+        const task = block.pendingTasks[taskCid];
+        console.log('task,', task);
+        const calculateExecutor = chooseExecutorAndMonitors(task);
+        if(! calculateExecutor){
+          o('log', `Cannot find executor`, {task , blockHeight:block.blockHeight});
+          return;
+        }
+        if(chooseExecutorAndMonitors(task).userName != executor.userName){
+          o('log', `Executor validate fail`, {executor, task});
+          return;
+        }
+        const resLambdaParams = {
+          type:'resLambdaParams',
+          code:'args[0] + args[1]',
+          taskCid
+        };
+        room.rpcResponse(message.from, JSON.stringify(resLambdaParams), message.guid);
+        o('log', `Sending response for Lambda Params back to executor.`, resLambdaParams);
+      }else{
+        _.delay(mayDelayExecuteDueToBlockDelay, 1000, messageObj);
+      }
+    }
+    mayDelayExecuteDueToBlockDelay(messageObj);
     
-  // }
+  }
 }
 
  
