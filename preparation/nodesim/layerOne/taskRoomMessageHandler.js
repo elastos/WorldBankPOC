@@ -46,10 +46,10 @@ const computeTaskWinnerApplication = async ( globalState, messageObj, from)=>{
   const {depositAmt} = taskObj;
   console.log('inside computeTaskWinnerApplication', {userName, depositAmt, taskCid, depositAmt});
   if (! takeEscrow(globalState, userName, depositAmt, taskCid))
-    return false;
+    throw 'computeTaskWinnerApplication cannot escrow, Probably caused by the application owner does not have enough gas to pay for escrow. abort';
   
   globalState.pendingTasks[taskCid].followUps.push(messageObj);
-  return true;
+  return globalState;
 }
 
 const gasTransferProcess = async (globalState, messageObj)=>{
@@ -90,8 +90,8 @@ const gasTransferProcess = async (globalState, messageObj)=>{
 const newNodeJoinNeedRaProcess = async (globalState, messageObj)=>{
   const {cid} = messageObj;
   if(!cid) {
-    console.log("in newNodeJoinNeedRaProcess, cid is not existing,", cid);
-    return false
+    throw "in newNodeJoinNeedRaProcess, cid is not existing," +  cid;
+    
   };
   const tx = await ipfs.dag.get(cid)
 
@@ -194,30 +194,34 @@ const takeEscrow = (globalState, userName, depositAmt, taskCid)=>{
   };
 };
 
-const updateLambda = async (ipfs, room, options, cid)=>{
-  const tx = await ipfs.dag.get(cid);
+const updateLambda = async (globalState, messageObj, from)=>{
+  const {cid} = messageObj;
+  const tx = await global.ipfs.dag.get(cid);
   if(! tx || ! tx.value){
-    console.log("in updateLambda, tx is not existing", tx);
-    return false;
+    throw "in updateLambda, tx is not existing";
+    
   }
-
-  if(tx.value.amt < 0) return false;
-  return true;
+  if(tx.value.amt < 0) throw "updateLambda but the amt < 0";
+  o('log', 'updateLambda processed, but no need to update globalState');
+  o('log','++++++++++  But please copy this lambda task CID for future reference+++++++');
+  o('log', "        " + cid + "         ");
+  o('log', '------------------------------------------------------------------------------');
+  return globalState;
 }
 
-const computeTask = async (ipfs, room, options, cid, from)=>{
-  const {globalState} = options;
+const computeTask = async (globalState, messageObj, from)=>{
+  const {cid} = messageObj;
   const tx = await ipfs.dag.get(cid);
   if(! tx || ! tx.value){
-    console.log("in computeTask, tx is not existing", tx);
-    return false;
+    throw "in computeTask, tx is not existing" + tx;
+    
   }
   const {userName, depositAmt} = tx.value;
-  if (!userName)  return false;
+  if (!userName)  throw "userName is valid";
   
 
   if (! globalState.escrowGasMap[cid] && ! takeEscrow(globalState, userName, depositAmt, cid)) //we should not double desposit for a delayed task due to unlucky vRF from other nodes.
-    return false;
+    throw "computeTask cannot take escrow";
     
 
 
@@ -228,7 +232,7 @@ const computeTask = async (ipfs, room, options, cid, from)=>{
     followUps:  []
   };
   
-
-  return true;
+  o('log', 'computeTask push into pendingTasks');
+  return globalState;
 }
 

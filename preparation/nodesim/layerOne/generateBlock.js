@@ -76,7 +76,7 @@ const runSettlementBeforeNewBlock = ()=>{
         //console.log('computeTask not implemented yet in runSettlementBeforeNewBlock');
         const result = eligibilityCheck(globalState.blockHeight, pendingTasks[taskCid]);
         if(result == 'needExtend')
-          globalState.processedTxs.push(taskCid);
+          globalState.processedTxs.push({txType:'computeTask', cid:taskCid});
         else if(result == 'timeUp'){
           chooseExecutorAndMonitors(pendingTasks[taskCid]);
           globalState.pendingTasks[taskCid].type = 'computeTaskDone';
