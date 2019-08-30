@@ -1,4 +1,5 @@
 import {minComputeGroupMembersToStartCompute, minBlockDelayRequiredBeforeComputeStart, maxBlockDelayRequiredBeforeComputeStart} from './constValue';
+import { o } from './utilities';
 
 
 
@@ -22,84 +23,101 @@ exports.eligibilityCheck = (currentBlockHeight, task)=>{
   return "timeUp"
 }
 
-exports.executeCompute = async (options, taskCid, executor)=>{
+exports.executeCompute = async (taskCid, executor)=>{
   //this is just a place holder, in the real system, we should launch docker and run the command to get the result.
   //Now we just return hello world
-  const task = (await options.ipfs.dag.get(taskCid)).value;
+  const computeTaskBuffer = {};//We use this buffer to store the params data from task owner, and code from lambda owner. then run execute task
+  
+  const task = (await ipfs.dag.get(taskCid)).value;
   console.log("I am executing task",task);
   
   const taskOwner = task.userName;
   
-  const lambda = (await options.ipfs.dag.get(task.lambdaCid)).value;
+  const lambda = (await ipfs.dag.get(task.lambdaCid)).value;
   console.log("lambda is,", lambda);
   const lambdaOwner = lambda.ownerName;
 
-  options.executeTaskParams = options.executeTaskParams || {};
-  const taskOwnerPeerId = global.onlinePeerUserCache.getByUserName(taskOwner);
-  const lambdaOwnerPeerId = global.onlinePeerUserCache.getByUserName(lambdaOwner);
+  const {peerId: taskOwnerPeerId} = global.onlinePeerUserCache.getByUserName(taskOwner);
+  const {peerId: lambdaOwnerPeerId} = global.onlinePeerUserCache.getByUserName(lambdaOwner);
+
   if(! taskOwnerPeerId || ! lambdaOwnerPeerId){
-    console.log('either task owner or lambda owner is not online. computing cannot start. abort', {taskOwner, taskOwnerPeerId, lambdaOwner, lambdaOwnerPeerId});
-    return "abort!";
+   throw 'either task owner or lambda owner is not online. computing cannot start. abort' + JSON.stringify({taskOwner, taskOwnerPeerId, lambdaOwner, lambdaOwnerPeerId});
   }
   const reqTaskParams = {
     type:'reqTaskParams',
     taskCid,
     executor,
-    blockHeight:options.block.blockHeight
+    blockHeight:block.blockHeight
   };  
 
   const reqLambdaParams = {
     type:'reqLambdaParams',
     taskCid,
     executor,
-    blockHeight:options.block.blockHeight
+    blockHeight:block.blockHeight
   };
-  window.rooms.townHall.rpcRequest(taskOwnerPeerId, JSON.stringify(reqTaskParams), (res, err)=>{
+  const reqTaskParamsResponseHandler = (res, err)=>{
     if(err){
-      console.log(`I have got the task data from task owner but it is an error, `, err);
-      return console.log(`I have got the task data from task owner but it is an error, `, err);
+      throw `I have got the task data from task owner but it is an error, ` +  err;
+      
     }
+    o('log', 'receiving response from task owner for task params:' + res);
+    
     const {data, taskCid} = res;
     console.log('data, ', data);
     console.log(`I have got the task data from task owner, `, data);
-    options.computeTaskBuffer = options.computeTaskBuffer || {};
-    options.computeTaskBuffer[taskCid] = options.computeTaskBuffer[taskCid] || {};
-    if(options.computeTaskBuffer[taskCid].data){
-      console.log(`Error, executor has got the data already, why a new data come up again?`, {data, buffer: options.computeTaskBuffer});
-      return;
+    
+    computeTaskBuffer[taskCid] = computeTaskBuffer[taskCid] || {};
+    if(computeTaskBuffer[taskCid].data){
+      throw `Error, executor has got the data already, why a new data come up again?`+  JSON.stringify({data, buffer: options.computeTaskBuffer});
+      
     }
 
-    options.computeTaskBuffer[taskCid].data = data;
+    computeTaskBuffer[taskCid].data = data;
     const result = executeIfParamsAreReady(options.computeTaskBuffer, taskCid);
     if(result){
       sendComputeTaskDone(options, taskCid);
     }
+  };
+
+  global.rpcEvent.emit('rpcRequest', {
+    sendToPeerId: taskOwnerPeerId,
+    message: JSON.stringify(reqTaskParams),
+    responseCallBack: reqTaskParamsResponseHandler
   });
+  
+   
   console.log(`Sending request for task data to taskOwner: ${taskOwner}  PeerId:${taskOwnerPeerId}`, reqTaskParams)
-  window.rooms.townHall.rpcRequest(lambdaOwnerPeerId, JSON.stringify(reqLambdaParams), (res, err)=>{
+  
+  const reqLambdaParamsHandler = (res, err)=>{
     if(err){
-      console.log(`I have got the task lambda from task owner but it is an error, `, err);
-      return console.log(`I have got the task lambda from task owner but it is an error, `, err);
+      throw `I have got the task lambda from task owner but it is an error, ` +  err;
+      
     }
+    o('log', 'receiving response from lambda owner for code:' + res);
     const {code, taskCid} = res;
     console.log('code, ', code);
     console.log(`I have got the lambda code from lambda owner, `, code);
-    options.computeTaskBuffer = options.computeTaskBuffer || {};
-    options.computeTaskBuffer[taskCid] = options.computeTaskBuffer[taskCid] || {};
-    if(options.computeTaskBuffer[taskCid].code){
-      console.log(`Error, executor has got the code already, why a new code come up again?`, {code, buffer: options.computeTaskBuffer});
-      return
+    computeTaskBuffer = computeTaskBuffer || {};
+    computeTaskBuffer[taskCid] = computeTaskBuffer[taskCid] || {};
+    if(computeTaskBuffer[taskCid].code){
+      throw `Error, executor has got the code already, why a new code come up again?` +  JSON.stringify({code, buffer: options.computeTaskBuffer});
+      
     }
 
-    options.computeTaskBuffer[taskCid].code = code;
-    const result = executeIfParamsAreReady(options.computeTaskBuffer, taskCid);
+    computeTaskBuffer[taskCid].code = code;
+    const result = executeIfParamsAreReady(computeTaskBuffer, taskCid);
     if(result){
       sendComputeTaskDone(options, taskCid);
     }
-    return
+  };
+
+  global.rpcEvent.on('rpcRequest', {
+    sendToPeerId: lambdaOwnerPeerId,
+    message: JSON.stringify(reqLambdaParams),
+    responseCallBack: reqLambdaParamsHandler
   });
   console.log(`Sending request for lambda function code to lambda Owner: ${lambdaOwner} PeerId:${lambdaOwnerPeerId}`, reqLambdaParams);
-  return;
 }
 
 const executeIfParamsAreReady = (computeTaskBuffer, taskCid)=>{
@@ -121,8 +139,8 @@ const sendComputeTaskDone = (options, taskCid)=>{
     taskCid
     
   }
-  window.rooms.taskRoom.broadcast(JSON.stringify(computeTaskDoneObj));
-
+  global.broadcastEvent.emit('taskRoom', JSON.stringify(computeTaskDoneObj));
+  o('log', 'computer task done. send out broadcast in taskRoom');
 }
 const chooseExecutorAndMonitors = (task)=>{
   let executor;

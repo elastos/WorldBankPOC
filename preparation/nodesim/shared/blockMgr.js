@@ -32,30 +32,36 @@ export default class BlockMgr{
   }
 
   async getBlockByHeight  (height){
-    const cid = this.getBlockCidByHeight(height);
-    if(! cid) return undefined;
-    return await this.getBlockByCid(cid, height);
+    if(this._blockHistory[height]){
+      if(this._blockHistory[height].block){
+        return this._blockHistory[height].block;
+      }else{
+        const cid = this.getBlockCidByHeight(height);
+        if(! cid) return undefined;
+    
+        const blockObj = await this._ipfs.dag.get(cid);
+        if( ! blockObj){
+          o('error', 'blockCid cannot be found from ipfs.dag', cid);
+          return undefined;
+        }
+        this._blockHistory[height].block = blockObj.value;
+        if(this._timeoutSeconds > 0){
+          _.delay((height)=>{
+            delete this._blockHistory[height].block;
+          }, this._timeoutSeconds, height)
+        }
+        return blockObj.value;
+      }
+    }
+    else
+      return undefined;
+    
   }
 
   getBlockCidByHeight(height){
     if(!this._blockHistory[height] || ! this._blockHistory[height].cid)
       return undefined;
     return this._blockHistory[height].cid;
-  }
-
-  async getBlockByCid(cid, height){
-    const blockObj = await this._ipfs.dag.get(cid);
-    if( ! blockObj){
-      o('error', 'blockCid cannot be found from ipfs.dag', cid);
-      return undefined;
-    }
-    this._blockHistory[height].block = blockObj.value;
-    if(this._timeoutSeconds > 0){
-      _.delay((height)=>{
-        delete this._blockHistory[height].block;
-      }, this._timeoutSeconds, height)
-    }
-    return blockObj.value;
   }
 
   getMaxHeight (){return this._maxHeight}

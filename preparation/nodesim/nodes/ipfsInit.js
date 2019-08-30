@@ -55,6 +55,6 @@ exports.pubsubInit = async (ipfs, roomNamePostfix, rpcEvent, broadcastEvent)=>{
     broadcastEvent.on('blockRoom', (m)=>blockRoom.broadcast(m));  
   }
   
-  return {townHall}
+  return {townHall, taskRoom, blockRoom}
 
 }

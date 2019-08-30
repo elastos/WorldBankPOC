@@ -15,6 +15,7 @@ import {o, done} from '../shared/utilities';
 import {ipfsInit, pubsubInit} from './ipfsInit';
 import BlockMgr from '../shared/blockMgr';
 import {handleProccessedTxs} from './handleProcessedTxs';
+import {handlePendingTxs} from './handlePendingTxs';
 import events from 'events';
 const OPTIONS = {};
 
@@ -29,6 +30,12 @@ const startApp = async ()=>{
     blockMgr.registerNewBlockEventHandler(async (args)=>{
       await handleProccessedTxs(args)
     });
+    blockMgr.registerNewBlockEventHandler(async (args)=>{
+      await handlePendingTxs(args)
+    });
+    blockMgr.registerNewBlockEventHandler(({height, cid})=>{
+      o('log', `${global.userInfo?global.userInfo.userName : "UserNameNotAssignedYet"} -- ${global.ipfs._peerInfo.id.toB58String()} receives new block,`, {height});
+    })
     
     global.ipfs = ipfs;
     global.blockMgr = blockMgr;
@@ -38,10 +45,6 @@ const startApp = async ()=>{
   })
   .then(({townHall, taskRoom, blockRoom})=>{
     console.log('pubsubInit done');
-    
-    global.blockMgr.registerNewBlockEventHandler(({height, cid})=>{
-      o('log', `${global.userInfo?global.userInfo.userName : "UserNameNotAssignedYet"} -- ${global.ipfs._peerInfo.id.toB58String()} receives new block,`, {height});
-    })
   })
   .catch(err=>{
     console.log('error in promises,', err);
