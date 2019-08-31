@@ -23,24 +23,15 @@ exports.eligibilityCheck = (currentBlockHeight, task)=>{
   return "timeUp"
 }
 
-exports.executeCompute = async (taskCid, executor)=>{
+exports.executeCompute = async (taskCid, task, executor)=>{
   //this is just a place holder, in the real system, we should launch docker and run the command to get the result.
   //Now we just return hello world
   const computeTaskBuffer = {};//We use this buffer to store the params data from task owner, and code from lambda owner. then run execute task
   
-  const task = (await ipfs.dag.get(taskCid)).value;
   console.log("I am executing task",task);
+  const {initiatorPeerId, lambdaOwnerPeerId} = task;
   
-  const taskOwner = task.userName;
-  
-  const lambda = (await ipfs.dag.get(task.lambdaCid)).value;
-  console.log("lambda is,", lambda);
-  const lambdaOwner = lambda.ownerName;
-
-  const {peerId: taskOwnerPeerId} = global.onlinePeerUserCache.getByUserName(taskOwner);
-  const {peerId: lambdaOwnerPeerId} = global.onlinePeerUserCache.getByUserName(lambdaOwner);
-
-  if(! taskOwnerPeerId || ! lambdaOwnerPeerId){
+  if(! initiatorPeerId || ! lambdaOwnerPeerId){
    throw 'either task owner or lambda owner is not online. computing cannot start. abort' + JSON.stringify({taskOwner, taskOwnerPeerId, lambdaOwner, lambdaOwnerPeerId});
   }
   const reqTaskParams = {

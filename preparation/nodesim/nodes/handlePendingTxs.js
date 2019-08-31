@@ -12,7 +12,7 @@ exports.handlePendingTxs = async ({height})=>{
       console.log("executor is,", executor.userName);
       if(global.userInfo.userName == executor.userName){
         o('log', "I am the executor. I am going to run taskCid:", c);
-        try{executeCompute(c, executor);}
+        try{executeCompute(c, task, executor);}
         catch(e){
           o('error', "executeCompute error", e);
         }

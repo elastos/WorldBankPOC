@@ -216,19 +216,32 @@ const computeTask = async (globalState, messageObj, from)=>{
     throw "in computeTask, tx is not existing" + tx;
     
   }
-  const {userName, depositAmt} = tx.value;
+  const {userName, depositAmt, lambdaCid} = tx.value;
   if (!userName)  throw "userName is valid";
   
 
   if (! globalState.escrowGasMap[cid] && ! takeEscrow(globalState, userName, depositAmt, cid)) //we should not double desposit for a delayed task due to unlucky vRF from other nodes.
     throw "computeTask cannot take escrow";
     
+  const lambdaTask = (await ipfs.dag.get(lambdaCid)).value;
+  if(! lambdaTask)  throw 'cannot find original Lambda task';
 
+  const {ownerName: lambdaOwnerName} = lambdaTask;
+  if(! lambdaOwnerName) throw 'cannot find original lambda owner name';
+
+  const {peerId: lambdaOwnerPeerId} = global.onlinePeerUserCache.getByUserName(lambdaOwnerName);
+  if(! lambdaOwnerPeerId) throw 'lambda original owner is not online at this moment. The excutor will not get the lambda code, so the task code wont be available. task abort';
+
+  const {peerId: initiatorPeerId} = global.onlinePeerUserCache.getByUserName(userName);
+  if(! initiatorPeerId) throw 'compute task owner is not online at this moment. The excutor will not get the task data, so the task code wont be available. task abort';
 
   if (!globalState.pendingTasks[cid]) globalState.pendingTasks[cid] = {
     type: 'computeTask',
     initiator: userName,
-    startBlockHeight: globalState.blockHeight + 1,
+    initiatorPeerId,
+    lambdaOwnerName,
+    lambdaOwnerPeerId,
+    startBlockHeight: globalState.blockHeight + 1,//starting next block
     followUps:  []
   };
   
