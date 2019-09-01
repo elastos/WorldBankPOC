@@ -1,4 +1,4 @@
-import {describe, it, before} from 'mocha';
+import {describe, it, beforeEach} from 'mocha';
 import BlockMgr from '../shared/blockMgr';
 import {ipfsInit} from '../nodes/ipfsInit';
 var assert = require('assert');
@@ -11,17 +11,16 @@ chai.use(chaiAsPromised);
 describe('blockMgr', ()=>{
   describe('blockMgr clear', async ()=>{
     
-    before(async ()=>{
+    beforeEach(async ()=>{
       const ipfs = global.ipfs? global.ipfs : await ipfsInit( 'local');
-      const blockMgr = new BlockMgr(ipfs)
-      console.log('bockMgr initialized');
       global.ipfs = ipfs;
-      global.blockMgr = blockMgr;
+      
     })
     it('new blockMgr should be empty', ()=>{
       console.log('inside new block mgr shoudl be empty')
       try{
-        const{ipfs, blockMgr} = global;
+        const{ipfs} = global;
+        const blockMgr = new BlockMgr(ipfs)
         const maxHeight = blockMgr.getMaxHeight();
         expect(maxHeight).to.equals(0);
         const block0 = blockMgr.getBlockCidByHeight(0);
@@ -37,7 +36,9 @@ describe('blockMgr', ()=>{
     });
 
     it('new blockMgr push a new block, the block cache should be empty', async ()=>{
-      const{ipfs, blockMgr} = global;
+      const{ipfs} = global;
+      const blockMgr = new BlockMgr(ipfs)
+      
       const placeHolder = {placeholder:'nothing'};
       const placeHolderCid = (await ipfs.dag.put(placeHolder)).toBaseEncodedString();
       blockMgr.pushNewBlock(8, placeHolderCid);
@@ -54,18 +55,49 @@ describe('blockMgr', ()=>{
 
     it('register registerNewBlockEventHandler function should get called when new block pushed', async ()=>{
       global.shouldBeRemovedIfEventHandlerIsCalled = "whatever";
+      const blockMgr = new BlockMgr(ipfs)
       
       const placeHolder = {placeholder:'nothing'};
       const placeHolderCid = (await ipfs.dag.put(placeHolder)).toBaseEncodedString();
+      const currentBlockHeight = blockMgr.getLatestBlockHeight();
+      const nextBlockHeight = currentBlockHeight + 1;
+      
       blockMgr.registerNewBlockEventHandler(({height, cid})=>{
-        expect(height).to.be.equal(10);
+        expect(height).to.be.equal(nextBlockHeight);
         expect(cid).to.be.equal(placeHolderCid);
         delete global.shouldBeRemovedIfEventHandlerIsCalled;
       })
-      blockMgr.pushNewBlock(10, placeHolderCid);
+      blockMgr.pushNewBlock(nextBlockHeight, placeHolderCid);
       expect(global.shouldBeRemovedIfEventHandlerIsCalled).to.be.undefined;
     })
 
+    it('reRunFunctionWhenNewBlockArrive', async ()=>{
+      const blockMgr = new BlockMgr(ipfs)
+      
+      global.shouldBeRemovedIfEventHandlerIsCalled = "whatever";
+      
+      const placeHolder = {placeholder:'nothing'};
+      const placeHolderCid = (await ipfs.dag.put(placeHolder)).toBaseEncodedString();
+      const currentBlockHeight = blockMgr.getLatestBlockHeight();
+      const nextBlockHeight = currentBlockHeight + 1;
+      const deferedFunction = (firstArg, secondArg)=>{
+
+        if(blockMgr.getLatestBlockHeight() != nextBlockHeight){
+          return blockMgr.reRunFunctionWhenNewBlockArrive(deferedFunction, "hello", "world");
+        }
+        expect(blockMgr.getLatestBlockHeight()).to.be.equal(nextBlockHeight);
+        
+        expect(firstArg).to.equal('hello');
+        expect(secondArg).to.equal('world');
+      
+        delete global.shouldBeRemovedIfEventHandlerIsCalled;
+        console.log('actually delete')
+      };
+      deferedFunction('hello', 'world');
+      blockMgr.pushNewBlock(nextBlockHeight, placeHolderCid);
+      console.log('block pushed');
+      expect(global.shouldBeRemovedIfEventHandlerIsCalled).to.be.undefined;
+    })
 
   });
 });

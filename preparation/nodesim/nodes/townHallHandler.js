@@ -2,6 +2,8 @@ import {tryParseJson, o} from '../shared/utilities';
 import _ from 'lodash';
 import {validateVrf, validatePot, verifyOthersRemoteAttestationVrfAndProof}  from '../shared/remoteAttestation';
 import {chooseExecutorAndMonitors, executeComputeUsingEval} from '../shared/computeTask';
+import {o} from '../shared/utilities';
+import Room from 'ipfs-pubsub-room';
 
 exports.peerJoined = (peer)=>console.log(`peer ${peer} joined`);
 exports.peerLeft = (peer)=>console.log(`peer ${peer} left`);
@@ -94,6 +96,15 @@ const rpcDirectHandler = {
     delete cidObj.txType;
 
     const cid = (await global.ipfs.dag.put(cidObj)).toBaseEncodedString();
+
+    if(txType === 'computeTask'){
+      computeTaskSpecialRoom.on('message', )
+      global.nodeSimCache.computeTasks[cid] = {
+        taskOwner:global.userInfo.userName, //I am the owner myself
+        taskOwnerPeerId: global.ipfs._peerInfo.id.toB58String(),
+        room:computeTaskSpecialRoom
+      }
+    }
     global.broadcastEvent.emit('taskRoom', JSON.stringify({txType, cid}));
     global.rpcEvent.emit('rpcResponse', {
       sendToPeerId: from, 
@@ -141,20 +152,6 @@ const rpcDirectHandler = {
     
     o('log', `send back resRemoteAttestation to the remote attestator ${from}, payload is `, resRemoteAttestationObj);
     return;
-  },
-  computeTaskWinnerApplication:({messageObj})=> async ()=>{
-    if(messageObj.userName == global.userInfo.userName){
-      //myself
-      return o('log', 'I am the winner myself, I cannot take computeTaskWinnerApplication message');
-    }
-    const { j, proof, value, taskCid, publicKey, userName, blockHeightWhenVRF} = messageObj;
-    const validateReturn = await validateVrf({ipfs, j, proof, value, blockCid: global.blockMgr.getBlockCidByHeight(blockHeightWhenVRF), taskCid, publicKey, userName});
-    if(! validateReturn.result){
-      o('log',`VRF Validation failed, reason is `, validateReturn.reason);
-      return;
-    }
-    o('log', `I verified the application passed VRF. `);
-    
   },
 
   reqTaskParams: ({from, guid, messageObj, room})=>{

@@ -69,4 +69,18 @@ export default class BlockMgr{
   registerNewBlockEventHandler(handler){
     this._newBlockEvent.on('newBlock', handler);
   }
+
+  async getLatestBlock(){
+    return await this.getBlockByHeight(this._maxHeight);
+  }
+  
+  getLatestBlockHeight(){
+    return this._maxHeight;
+  }
+
+  reRunFunctionWhenNewBlockArrive(f, ...args){
+    this._newBlockEvent.once('newBlock', ({height, cid})=>{
+      return f(...args);
+    })
+  }
 }

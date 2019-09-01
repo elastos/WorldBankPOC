@@ -122,9 +122,9 @@ exports.handleProccessedTxs = async ({height : eventTriggeredBlockHeight, cid:ev
       o('log', `I am lucky!! J is ${j.toFixed()}. However I should not tell anyone about my win. Do not want to get hacker noticed. I just join the secure p2p chat group for winner's only`);
       const applicationJoinSecGroup = {
         txType:'computeTaskWinnerApplication',
-        ipfsPeerId: global.ipfs._peerInfo.id.toB58String(),//peerId for myself
-        userName: userInfo.userName,
-        publicKey: userInfo.publicKey,
+        // ipfsPeerId: global.ipfs._peerInfo.id.toB58String(),//peerId for myself
+        // userName: userInfo.userName,
+        // publicKey: userInfo.publicKey,
         taskCid: cid,
         proof:proof.toString('hex'),
         value: value.toString('hex'),
@@ -134,7 +134,12 @@ exports.handleProccessedTxs = async ({height : eventTriggeredBlockHeight, cid:ev
     
       global.broadcastEvent.emit('taskRoom', JSON.stringify(applicationJoinSecGroup));
       o('log', `I am asking to join the secure chatting group by sending everyone in this group my application`, applicationJoinSecGroup);
-      
+      global.nodeSimCache.computeTasks[cid] = {
+        j:j.toFixed(),
+        blockHeightWhenVRF: block.blockHeight,
+        proof:proof.toString('hex'),
+        value: value.toString('hex')
+      }
     }else{
       // updateLog('req_ra_send', {
       //   name : userInfo.userName,

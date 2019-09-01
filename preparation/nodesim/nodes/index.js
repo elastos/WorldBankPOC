@@ -41,6 +41,9 @@ const startApp = async ()=>{
     global.blockMgr = blockMgr;
     global.rpcEvent = new events.EventEmitter();
     global.broadcastEvent = new events.EventEmitter();
+    global.nodeSimCache = {
+      computeTasks:{}
+    };
     return pubsubInit(ipfs, OPTIONS.randRoomPostfix, global.rpcEvent, global.broadcastEvent);
   })
   .then(({townHall, taskRoom, blockRoom})=>{
