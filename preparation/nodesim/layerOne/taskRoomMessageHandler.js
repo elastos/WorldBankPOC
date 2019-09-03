@@ -41,14 +41,18 @@ export default async (m)=>{
 };
 const computeTaskWinnerApplication = async ( globalState, messageObj, from)=>{
   const ipfs = global.ipfs;
-  const {userName, taskCid} = messageObj;
+  const {userName, taskCid, ...simplifiedMessageObjInBlock} = messageObj;
   const taskObj = (await ipfs.dag.get(taskCid)).value;
   const {depositAmt} = taskObj;
   console.log('inside computeTaskWinnerApplication', {userName, depositAmt, taskCid, depositAmt});
   if (! takeEscrow(globalState, userName, depositAmt, taskCid))
     throw 'computeTaskWinnerApplication cannot escrow, Probably caused by the application owner does not have enough gas to pay for escrow. abort';
   
-  globalState.pendingTasks[taskCid].followUps.push(messageObj);
+  simplifiedMessageObjInBlock.peerId = from;
+  
+  console.log('This will be written into pendingTasks followUps', simplifiedMessageObjInBlock);
+  
+  globalState.pendingTasks[taskCid].followUps.push(simplifiedMessageObjInBlock);
   return globalState;
 }
 
@@ -222,7 +226,7 @@ const computeTask = async (globalState, messageObj, from)=>{
 
   if (! globalState.escrowGasMap[cid] && ! takeEscrow(globalState, userName, depositAmt, cid)) //we should not double desposit for a delayed task due to unlucky vRF from other nodes.
     throw "computeTask cannot take escrow";
-    
+  o('debug', 'lambdaCid', lambdaCid);
   const lambdaTask = (await ipfs.dag.get(lambdaCid)).value;
   if(! lambdaTask)  throw 'cannot find original Lambda task';
 

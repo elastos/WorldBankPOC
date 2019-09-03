@@ -87,12 +87,21 @@ exports.handleProccessedTxs = async ({height : eventTriggeredBlockHeight, cid:ev
     const {userName, depositAmt, executorRequirement, lambdaCid} = tx.value;
 
     if(userName == userInfo.userName){
-      console.log("I am the task owner myself, I cannot do execution compute task on myself, skip");
+      o('debug', `I am the task owner myself, I cannot do execution compute task on myself, 
+        I just check to make sure the task owner is still me`);
+      console.assert(global.nodeSimCache.computeTasks[cid].taskOwner == global.userInfo.userName);
+      console.assert(global.nodeSimCache.computeTasks[cid].taskOwnerPeerId == global.ipfs._peerInfo.id.toB58String());
+      
       return;
     }
     const lambda = (await ipfs.dag.get(lambdaCid)).value;
     if(lambda.ownerName == userInfo.userName){
-      console.log("I am the lambda owner myself, I cannot do execution compute task because I wrote the code, skip");
+      o('debug', `I am the lambda owner myself, I cannot do execution compute task because I wrote the code, 
+        However, I will be in the execution group. because I will need to verify other nodes, make sure they are not hackers`);
+      global.nodeSimCache.computeTasks[cid] = {
+          lambdaOwner:global.userInfo.userName,//myself
+          lambdaOwnerPeerId:global.ipfs._peerInfo.id.toB58String()
+        }
       return;
     }
 
@@ -122,13 +131,13 @@ exports.handleProccessedTxs = async ({height : eventTriggeredBlockHeight, cid:ev
       o('log', `I am lucky!! J is ${j.toFixed()}. However I should not tell anyone about my win. Do not want to get hacker noticed. I just join the secure p2p chat group for winner's only`);
       const applicationJoinSecGroup = {
         txType:'computeTaskWinnerApplication',
-        // ipfsPeerId: global.ipfs._peerInfo.id.toB58String(),//peerId for myself
-        // userName: userInfo.userName,
+        ipfsPeerId: global.ipfs._peerInfo.id.toB58String(),//peerId for myself
+        userName: userInfo.userName,
         // publicKey: userInfo.publicKey,
         taskCid: cid,
-        proof:proof.toString('hex'),
-        value: value.toString('hex'),
-        j: j.toFixed(),
+        //proof:proof.toString('hex'),
+        //value: value.toString('hex'),
+        //j: j.toFixed(),
         blockHeightWhenVRF: block.blockHeight
       };
     
@@ -152,7 +161,11 @@ exports.handleProccessedTxs = async ({height : eventTriggeredBlockHeight, cid:ev
   });
 
   computeTaskWinnerApplicationCid.map(async (cid)=>{
-    
+    /****
+     * 
+     * At thi moment, we do not do anything. Because in the pendingTask section we will go through the 
+     * full list of applicator, asking them the proof of VRF using rpcRequest
+     */
   })
 }
 

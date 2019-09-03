@@ -1,9 +1,7 @@
 import {tryParseJson, o} from '../shared/utilities';
 import _ from 'lodash';
 import {validateVrf, validatePot, verifyOthersRemoteAttestationVrfAndProof}  from '../shared/remoteAttestation';
-import {chooseExecutorAndMonitors, executeComputeUsingEval} from '../shared/computeTask';
-import {o} from '../shared/utilities';
-import Room from 'ipfs-pubsub-room';
+import {executeComputeUsingEval} from '../shared/computeTask';
 
 exports.peerJoined = (peer)=>console.log(`peer ${peer} joined`);
 exports.peerLeft = (peer)=>console.log(`peer ${peer} left`);
@@ -98,12 +96,13 @@ const rpcDirectHandler = {
     const cid = (await global.ipfs.dag.put(cidObj)).toBaseEncodedString();
 
     if(txType === 'computeTask'){
-      computeTaskSpecialRoom.on('message', )
       global.nodeSimCache.computeTasks[cid] = {
         taskOwner:global.userInfo.userName, //I am the owner myself
         taskOwnerPeerId: global.ipfs._peerInfo.id.toB58String(),
-        room:computeTaskSpecialRoom
+        
       }
+      o('debug', `I am the task cid:${cid} owner. my current global.nodeSimCache.computeTasks[cid] is, `
+        , global.nodeSimCache.computeTasks[cid]);
     }
     global.broadcastEvent.emit('taskRoom', JSON.stringify({txType, cid}));
     global.rpcEvent.emit('rpcResponse', {
@@ -164,13 +163,8 @@ const rpcDirectHandler = {
         
         const task = block.pendingTasks[taskCid];
         
-        const calculateExecutor = chooseExecutorAndMonitors(task);
-        if(! calculateExecutor){
-          o('log', `Cannot find executor`, {task, blockHeight:block.blockHeight});
-          return;
-        }
-        if(chooseExecutorAndMonitors(task).userName != executor.userName){
-          o('log', `Executor validate fail`, {executor, task});
+        if( global.nodeSimCache.computeTasks[c].executor.userName != executor.userName){
+          o('log', `Executor validate fail`, {executor, myGlobalNodeSimCacheExecutor:global.nodeSimCache.computeTasks[c].executor});
           return;
         }
         const resTaskParams = {
@@ -195,13 +189,9 @@ const rpcDirectHandler = {
         const {taskCid,executor} = messageObj;
         const task = block.pendingTasks[taskCid];
         console.log('task,', task);
-        const calculateExecutor = chooseExecutorAndMonitors(task);
-        if(! calculateExecutor){
-          o('log', `Cannot find executor`, {task , blockHeight:block.blockHeight});
-          return;
-        }
-        if(chooseExecutorAndMonitors(task).userName != executor.userName){
-          o('log', `Executor validate fail`, {executor, task});
+
+        if( global.nodeSimCache.computeTasks[c].executor.userName != executor.userName){
+          o('log', `Executor validate fail`, {executor, myGlobalNodeSimCacheExecutor:global.nodeSimCache.computeTasks[c].executor});
           return;
         }
         const resLambdaParams = {

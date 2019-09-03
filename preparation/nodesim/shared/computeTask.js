@@ -133,18 +133,18 @@ const sendComputeTaskDone = (options, taskCid)=>{
   global.broadcastEvent.emit('taskRoom', JSON.stringify(computeTaskDoneObj));
   o('log', 'computer task done. send out broadcast in taskRoom');
 }
-const chooseExecutorAndMonitors = (task)=>{
-  let executor;
-  let maxJ = 0;
-  for(var i =0; i < task.followUps.length; i ++){
-    if ( parseInt(task.followUps[i].j) > maxJ){ //first come first server. If there are more than one member has the same highest J, the first is the winner. based on the block record
-      executor = task.followUps[i];
-      maxJ = parseInt(task.followUps[i].j);
-    }
-  }
-  return executor;
-}
-exports.chooseExecutorAndMonitors = chooseExecutorAndMonitors;
+// const chooseExecutorAndMonitors = (task)=>{
+//   let executor;
+//   let maxJ = 0;
+//   for(var i =0; i < task.followUps.length; i ++){
+//     if ( parseInt(task.followUps[i].j) > maxJ){ //first come first server. If there are more than one member has the same highest J, the first is the winner. based on the block record
+//       executor = task.followUps[i];
+//       maxJ = parseInt(task.followUps[i].j);
+//     }
+//   }
+//   return executor;
+// }
+// exports.chooseExecutorAndMonitors = chooseExecutorAndMonitors;
 
 const executeComputeUsingEval = ({code, data})=>{
   const args = data;

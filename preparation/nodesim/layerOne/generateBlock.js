@@ -2,7 +2,7 @@ import {totalCreditToken, minRemoteAttestatorsToPassRaTask, initialCreditIssuedW
 import _ from 'lodash';
 const log=()=>{};//skip for now
 import Big from 'big.js';
-import {eligibilityCheck, chooseExecutorAndMonitors} from '../shared/computeTask';
+import {eligibilityCheck} from '../shared/computeTask';
 
 exports.generateBlock = async ()=>{
   const {ipfs, globalState, pubsubRooms} = global;
@@ -78,7 +78,7 @@ const runSettlementBeforeNewBlock = ()=>{
         if(result == 'needExtend')
           globalState.processedTxs.push({txType:'computeTask', cid:taskCid});
         else if(result == 'timeUp'){
-          chooseExecutorAndMonitors(pendingTasks[taskCid]);
+          
           globalState.pendingTasks[taskCid].type = 'computeTaskDone';
         }
         break;
@@ -183,43 +183,43 @@ const runCreditNormalization = (creditMapInput, maxCredit)=>{
 const settleComputeTask = async (ipfs, globalState, taskCid)=>{
   console.log("gasMap before settleComputeTask,", globalState.gasMap);
   
-  const taskInPending = globalState.pendingTasks[taskCid];
-  const {followUps} = taskInPending;
-  const executor = chooseExecutorAndMonitors(taskInPending);
-  console.log('in settleComputeTask executor', executor)
-  let totalRewardGasRemaining = globalState.escrowGasMap[taskCid];
-  const taskObj = (await ipfs.dag.get(taskCid)).value;
-  const lambdaObj = (await ipfs.dag.get(taskObj.lambdaCid)).value;
+  // const taskInPending = globalState.pendingTasks[taskCid];
+  // const {followUps} = taskInPending;
+  // const executor = chooseExecutorAndMonitors(taskInPending);
+  // console.log('in settleComputeTask executor', executor)
+  // let totalRewardGasRemaining = globalState.escrowGasMap[taskCid];
+  // const taskObj = (await ipfs.dag.get(taskCid)).value;
+  // const lambdaObj = (await ipfs.dag.get(taskObj.lambdaCid)).value;
 
-  const {ownerName, amt} = lambdaObj;
-  console.log('in settleComputeTask ownerName', ownerName);
-  console.log('in settleComputeTask amt', amt);
-  globalState.gasMap[ownerName] += amt;
-  totalRewardGasRemaining -= amt;
-  const rewardToExecutor = totalRewardGasRemaining / 2;
-  console.log('in settleComputeTask rewardToExecutor', rewardToExecutor)
+  // const {ownerName, amt} = lambdaObj;
+  // console.log('in settleComputeTask ownerName', ownerName);
+  // console.log('in settleComputeTask amt', amt);
+  // globalState.gasMap[ownerName] += amt;
+  // totalRewardGasRemaining -= amt;
+  // const rewardToExecutor = totalRewardGasRemaining / 2;
+  // console.log('in settleComputeTask rewardToExecutor', rewardToExecutor)
   
-  globalState.gasMap[executor.userName] += rewardToExecutor;
+  // globalState.gasMap[executor.userName] += rewardToExecutor;
   
-  totalRewardGasRemaining -= rewardToExecutor;
+  // totalRewardGasRemaining -= rewardToExecutor;
 
-  if(followUps.length == 1){
-    //there is no monitor
-    console.log("ERROR: We should always have followups as monitors");
-  }else{
-    const rewardToEachMonitor = totalRewardGasRemaining / (followUps.length - 1);
-    console.log('in settleComputeTask rewardToEachMonitor', rewardToEachMonitor)
+  // if(followUps.length == 1){
+  //   //there is no monitor
+  //   console.log("ERROR: We should always have followups as monitors");
+  // }else{
+  //   const rewardToEachMonitor = totalRewardGasRemaining / (followUps.length - 1);
+  //   console.log('in settleComputeTask rewardToEachMonitor', rewardToEachMonitor)
   
-    followUps.forEach((f)=>{
-    const followUpUserName = f.userName;
-    console.log('in settleComputeTask followUpUserName', followUpUserName);
+  //   followUps.forEach((f)=>{
+  //   const followUpUserName = f.userName;
+  //   console.log('in settleComputeTask followUpUserName', followUpUserName);
   
-    if(followUpUserName != executor.userName)
-      globalState.gasMap[followUpUserName] += rewardToEachMonitor;
+  //   if(followUpUserName != executor.userName)
+  //     globalState.gasMap[followUpUserName] += rewardToEachMonitor;
 
-    })
-  }
-  console.log("gasMap after settleComputeTask,", globalState.gasMap);
+  //   })
+  // }
+  // console.log("gasMap after settleComputeTask,", globalState.gasMap);
   
   return true;
 }
