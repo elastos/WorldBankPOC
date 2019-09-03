@@ -20,6 +20,18 @@ exports.eligibilityCheck = (currentBlockHeight, task)=>{
     return null;  
   }
   //now it is time for those nodes who won the VRF to start. Server doesn't need to do anything.
+  if(! global.nodeSimCache.computeTasks[c])
+    return null;//still waiting for other peer response on VRF check rpcRequest
+
+  if(! global.nodeSimCache.computeTasks[c].executor)
+    return null;
+
+  if(! global.nodeSimCache.computeTasks[c].groupPeers )
+    return null;
+
+  if(Object.keys(global.nodeSimCache.computeTasks[c].groupPeers).length < minComputeGroupMembersToStartCompute)
+    return null;
+
   return "timeUp"
 }
 

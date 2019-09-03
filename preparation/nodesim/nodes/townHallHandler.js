@@ -62,7 +62,8 @@ const rpcDirectHandler = {
           global.userInfo = {
             userName: userInfo.name,
             publicKey: userInfo.pub,
-            privateKey: userInfo.pri
+            privateKey: userInfo.pri,
+            peerId:global.ipfs._peerInfo.id.toB58String()
           };
           console.log("User info confirmed:", global.userInfo);
         }
@@ -207,6 +208,17 @@ const rpcDirectHandler = {
     }
     mayDelayExecuteDueToBlockDelay(messageObj);
     
+  },
+  reqVerifyPeerVrfForComputeTasks: ({from, guid, messageObj, room})=>{
+    const {myVrfProofInfo} = messageObj;
+    o('debug', `I have got other peer sending me his vrf for compute task and ask mine. skip for the verify for now.`)
+    /******
+     * 
+     */
+    const resVerifyPeer = {
+
+    }
+    room.rpcResponse(message.from, JSON.stringify(resVerifyPeer), message.guid);
   }
 }
 

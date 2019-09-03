@@ -74,13 +74,13 @@ const runSettlementBeforeNewBlock = ()=>{
       }//case
       case 'computeTask':{
         //console.log('computeTask not implemented yet in runSettlementBeforeNewBlock');
-        const result = eligibilityCheck(globalState.blockHeight, pendingTasks[taskCid]);
-        if(result == 'needExtend')
-          globalState.processedTxs.push({txType:'computeTask', cid:taskCid});
-        else if(result == 'timeUp'){
+        // const result = eligibilityCheck(globalState.blockHeight, pendingTasks[taskCid]);
+        // if(result == 'needExtend')
+        //   globalState.processedTxs.push({txType:'computeTask', cid:taskCid});
+        // else if(result == 'timeUp'){
           
-          globalState.pendingTasks[taskCid].type = 'computeTaskDone';
-        }
+        //   globalState.pendingTasks[taskCid].type = 'computeTaskDone';
+        // }
         break;
       }
       case 'computeTaskDone':{
