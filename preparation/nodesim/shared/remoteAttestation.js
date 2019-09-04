@@ -1,13 +1,12 @@
 
-import {minimalNewNodeJoinRaDeposit, expectNumberOfRemoteAttestatorsToBeVoted} from './constValue';
+import {minimalNewNodeJoinRaDeposit, expectNumberOfRemoteAttestatorsToBeVoted, expectNumberOfExecutorGroupToBeVoted} from './constValue';
 
 import {sha256} from 'js-sha256';
 import { ecvrf, sortition} from 'vrf.js';
 import Big from 'big.js';
 
-
-exports.validateVrf = async ({ipfs, j, proof, value, blockCid, taskCid, publicKey, userName})=>{
-  if(!j || !proof || !value || !blockCid || !taskCid || !publicKey){
+const _verifyVrf = async (j, proof, value, blockCid, taskCid, publicKey, userName, numberOfCommitee)=>{
+  if(!j || !proof || !value || !blockCid || !taskCid || !publicKey || !numberOfCommitee){
     return {
       result:false, 
       reason:`The incoming message missing some properties: ${JSON.stringify({j, proof, value, blockCid, taskCid, publicKey, userName})}`
@@ -19,7 +18,7 @@ exports.validateVrf = async ({ipfs, j, proof, value, blockCid, taskCid, publicKe
 
   const vrfMsg = sha256.update(blockCid).update(taskCid).hex();
   
-  const p = expectNumberOfRemoteAttestatorsToBeVoted / totalCreditForOnlineNodes;
+  const p =  numberOfCommitee/ totalCreditForOnlineNodes;
   
   const vrfVerifyResult = ecvrf.verify(Buffer.from(publicKey, 'hex'), Buffer.from(vrfMsg, 'hex'), Buffer.from(proof, 'hex'), Buffer.from(value, 'hex'));
   if(! vrfVerifyResult){
@@ -35,14 +34,17 @@ exports.validateVrf = async ({ipfs, j, proof, value, blockCid, taskCid, publicKe
   return {result:true};
 };
 
+exports.validateRemoteAttestationVrf = async ({ipfs, j, proof, value, blockCid, taskCid, publicKey, userName})=>{
+  await _verifyVrf(j, proof, value, blockCid, taskCid, publicKey, userName, expectNumberOfRemoteAttestatorsToBeVoted);
+};
+
+exports.validateComputeTaskVrf = async ({ipfs, j, proof, value, blockCid, taskCid, publicKey, userName})=>{
+  await _verifyVrf(j, proof, value, blockCid, taskCid, publicKey, userName, expectNumberOfExecutorGroupToBeVoted);
+};
+
 exports.validatePot = (proofOfTrust)=>{
   const {psrData, isHacked, tpmPublicKey} = proofOfTrust;
 
   return ! isHacked;
-}
-
-exports.verifyOthersRemoteAttestationVrfAndProof = (messageObj)=>{
-  console.log("verifyOthersRemoteAttestationVrfAndProof  not implemented yet, just return true for now")
-  return true;//not implemented yet
 }
 

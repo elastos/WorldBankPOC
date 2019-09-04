@@ -18,7 +18,7 @@ export default async (m)=>{
     uploadLambda: updateLambda,
     computeTask: computeTask,
     computeTaskWinnerApplication: computeTaskWinnerApplication,
-    computeTaskDone: undefined
+    computeTaskDone: undefined//Not implemented yet
   };
 
   const func = messageTypeHandlerMap[messageObj.txType];

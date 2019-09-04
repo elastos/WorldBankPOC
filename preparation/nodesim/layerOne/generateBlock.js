@@ -1,8 +1,8 @@
-import {totalCreditToken, minRemoteAttestatorsToPassRaTask, initialCreditIssuedWhenPassRa, awardCreditWhenRaSuccessful, penaltyCreditWhenRaFail, reduceFactualIfRaFail} from '../shared/constValue';
-import _ from 'lodash';
+import {totalCreditToken, minRemoteAttestatorsToPassRaTask, minBlockDelayRequiredBeforeComputeStart,
+  maxBlockDelayRequiredBeforeComputeStart, initialCreditIssuedWhenPassRa, awardCreditWhenRaSuccessful, 
+  penaltyCreditWhenRaFail, minComputeGroupMembersToStartCompute, reduceFactualIfRaFail} from '../shared/constValue';
 const log=()=>{};//skip for now
-import Big from 'big.js';
-import {eligibilityCheck} from '../shared/computeTask';
+import { o } from '../shared/utilities';
 
 exports.generateBlock = async ()=>{
   const {ipfs, globalState, pubsubRooms} = global;
@@ -73,14 +73,38 @@ const runSettlementBeforeNewBlock = ()=>{
         break;
       }//case
       case 'computeTask':{
-        //console.log('computeTask not implemented yet in runSettlementBeforeNewBlock');
-        // const result = eligibilityCheck(globalState.blockHeight, pendingTasks[taskCid]);
-        // if(result == 'needExtend')
-        //   globalState.processedTxs.push({txType:'computeTask', cid:taskCid});
-        // else if(result == 'timeUp'){
-          
-        //   globalState.pendingTasks[taskCid].type = 'computeTaskDone';
-        // }
+        const {startBlockHeight, initiator, followUps} = pendingTasks[taskCid];
+        if(global.blockMgr.getLatestBlockHeight()  - startBlockHeight < minBlockDelayRequiredBeforeComputeStart){
+          console.log('we will need to wait more blocks until we can start computing. Let those slow nodes get more time responding the VRF');
+          break;
+        }
+        if((global.blockMgr.getLatestBlockHeight()  - startBlockHeight) < maxBlockDelayRequiredBeforeComputeStart){
+          if(followUps.length < minComputeGroupMembersToStartCompute){
+            //we did not get enough member but time is not out yet. so we can keep waiting
+            break;
+          }
+          else{
+            //we did not wait enough time but the followUps number has reached the minimal requriement, so we can start now
+            o('debug', 'we did not wait enough time but the followUps number has reached the minimal requriement, so we can start now');
+            globalState.pendingTasks[taskCid].type = 'computeTaskStart';
+            break;
+          }
+        }
+        else{
+          if(followUps.length < minComputeGroupMembersToStartCompute){
+            //we have wait long enough, cannot wait any longer. we need to start anyway even the members of compute group yet not reach min requirement
+            //what we need to do is to postpone
+            console.log("We have reached maxBlockDelayRequiredBeforeComputeStart but still did not get enough compute group members. so we have to put the task CID back to the processedTxs again so that other nodes have the 2nd chance to try VRF")
+            globalState.processedTxs.push({txType:'computeTask', cid:taskCid});
+            break;
+          }
+          else{
+            o('debug', 'we have waited enough time and the followUps number has reached the minimal requriement, so we can start now');
+            globalState.pendingTasks[taskCid].type = 'computeTaskStart';
+            break;
+          }
+        }
+        
         break;
       }
       case 'computeTaskDone':{

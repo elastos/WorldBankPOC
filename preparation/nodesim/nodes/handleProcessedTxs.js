@@ -89,19 +89,14 @@ exports.handleProccessedTxs = async ({height : eventTriggeredBlockHeight, cid:ev
     if(userName == userInfo.userName){
       o('debug', `I am the task owner myself, I cannot do execution compute task on myself, 
         I just check to make sure the task owner is still me`);
-      console.assert(global.nodeSimCache.computeTasks[cid].taskOwner == global.userInfo.userName);
-      console.assert(global.nodeSimCache.computeTasks[cid].taskOwnerPeerId == global.ipfs._peerInfo.id.toB58String());
-      
+      console.assert(global.nodeSimCache.computeTasks[cid].myRole == 'taskOwner');
       return;
     }
     const lambda = (await ipfs.dag.get(lambdaCid)).value;
     if(lambda.ownerName == userInfo.userName){
       o('debug', `I am the lambda owner myself, I cannot do execution compute task because I wrote the code, 
         However, I will be in the execution group. because I will need to verify other nodes, make sure they are not hackers`);
-      global.nodeSimCache.computeTasks[cid] = {
-          lambdaOwner:global.userInfo.userName,//myself
-          lambdaOwnerPeerId:global.ipfs._peerInfo.id.toB58String()
-        }
+      global.nodeSimCache.computeTasks[cid] = {myRole:'lambdaOwner'};
       return;
     }
 
@@ -122,10 +117,10 @@ exports.handleProccessedTxs = async ({height : eventTriggeredBlockHeight, cid:ev
     }
     const vrfMsg = sha256.update(eventTriggeredBlockCid).update(cid).hex();
     const p = expectNumberOfExecutorGroupToBeVoted / block.totalCreditForOnlineNodes;
-    console.log("VRFing.... this takes some time, please be patient..., ", userInfo, vrfMsg);
+    //console.log("VRFing.... this takes some time, please be patient..., ", userInfo, vrfMsg);
     const { proof, value } = ecvrf.vrf(Buffer.from(userInfo.publicKey, 'hex'), Buffer.from(userInfo.privateKey, 'hex'), Buffer.from(vrfMsg, 'hex'));
-    console.log("VRF{ proof, value }", { proof:proof.toString('hex'), value: value.toString('hex') });
-    console.log("Now running VRF sortition...it also needs some time... please be patient...", myCurrentCreditBalance, p);
+    //console.log("VRF{ proof, value }", { proof:proof.toString('hex'), value: value.toString('hex') });
+    //console.log("Now running VRF sortition...it also needs some time... please be patient...", myCurrentCreditBalance, p);
     const j = sortition.getVotes(value, new Big(myCurrentCreditBalance), new Big(p));
     if(j.gt(0)){
       o('log', `I am lucky!! J is ${j.toFixed()}. However I should not tell anyone about my win. Do not want to get hacker noticed. I just join the secure p2p chat group for winner's only`);
@@ -143,12 +138,20 @@ exports.handleProccessedTxs = async ({height : eventTriggeredBlockHeight, cid:ev
     
       global.broadcastEvent.emit('taskRoom', JSON.stringify(applicationJoinSecGroup));
       o('log', `I am asking to join the secure chatting group by sending everyone in this group my application`, applicationJoinSecGroup);
-      global.nodeSimCache.computeTasks[cid] = {
+      console.assert(! global.nodeSimCache.computeTasks[cid], `global.nodeSimCache.computeTasks[cid], cid is ${cid} should be empty before I add new object to it. but it is not`, global.nodeSimCache.computeTasks[cid]);
+      global.nodeSimCache.computeTasks[cid] = global.nodeSimCache.computeTasks[cid] || {};
+      
+      global.nodeSimCache.computeTasks[cid].myVrfProofInfo = {
         j:j.toFixed(),
         blockHeightWhenVRF: block.blockHeight,
         proof:proof.toString('hex'),
-        value: value.toString('hex')
+        value: value.toString('hex'),
+        taskCid:cid,
+        publicKey: global.userInfo.publicKey,//we add those information becasue we will give this data to other peer when we ask them their proof of VRF.
+        userName: global.userInfo.userName//we add those information becasue we will give this data to other peer when we ask them their proof of VRF.
+        
       }
+      
     }else{
       // updateLog('req_ra_send', {
       //   name : userInfo.userName,

@@ -1,6 +1,6 @@
 import {tryParseJson, o} from '../shared/utilities';
 import _ from 'lodash';
-import {validateVrf, validatePot, verifyOthersRemoteAttestationVrfAndProof}  from '../shared/remoteAttestation';
+import {validateRemoteAttestationVrf, validateComputeTaskVrf}  from '../shared/remoteAttestation';
 import {executeComputeUsingEval} from '../shared/computeTask';
 
 exports.peerJoined = (peer)=>console.log(`peer ${peer} joined`);
@@ -18,7 +18,7 @@ exports.rpcDirect = (room)=>(message) => {
   
   const handlerFunction = rpcDirectHandler[messageObj.type];
   if(typeof handlerFunction == 'function'){
-    handlerFunction({from:message.from, guid:message.guid, messageObj})();
+    handlerFunction({from:message.from, guid:message.guid, messageObj, room})();
     return
   }
   else{
@@ -97,11 +97,7 @@ const rpcDirectHandler = {
     const cid = (await global.ipfs.dag.put(cidObj)).toBaseEncodedString();
 
     if(txType === 'computeTask'){
-      global.nodeSimCache.computeTasks[cid] = {
-        taskOwner:global.userInfo.userName, //I am the owner myself
-        taskOwnerPeerId: global.ipfs._peerInfo.id.toB58String(),
-        
-      }
+      global.nodeSimCache.computeTasks[cid] = {myRole:'taskOwner'};
       o('debug', `I am the task cid:${cid} owner. my current global.nodeSimCache.computeTasks[cid] is, `
         , global.nodeSimCache.computeTasks[cid]);
     }
@@ -115,7 +111,7 @@ const rpcDirectHandler = {
   },
   reqRemoteAttestation: ({from, guid, messageObj})=> async ()=>{//Now I am new node, sending back poT after validate the remote attestation is real
     const { j, proof, value, taskCid, publicKey, userName, blockHeightWhenVRF} = messageObj;
-    const validateReturn = await validateVrf({ipfs, j, proof, value, blockCid:global.blockMgr.getBlockCidByHeight(blockHeightWhenVRF), taskCid, publicKey, userName});
+    const validateReturn = await validateRemoteAttestationVrf({ipfs, j, proof, value, blockCid:global.blockMgr.getBlockCidByHeight(blockHeightWhenVRF), taskCid, publicKey, userName});
 
     if(! validateReturn.result){
       o('log', `VRF Validation failed, reason is `, validateReturn.reason);
@@ -210,15 +206,148 @@ const rpcDirectHandler = {
     
   },
   reqVerifyPeerVrfForComputeTasks: ({from, guid, messageObj, room})=>{
-    const {myVrfProofInfo} = messageObj;
-    o('debug', `I have got other peer sending me his vrf for compute task and ask mine. skip for the verify for now.`)
-    /******
-     * 
-     */
-    const resVerifyPeer = {
+    o('debug', `I have got other peer sending me his vrf for compute task and ask mine. `, messageObj)
+
+    const handleReqVerifyPeerReRunable = (messageObj, room)=>{
+      o('debug', 'inside handleReqVerifyPeerReRunable', messageObj);
+      if(messageObj.blockHeight > global.blockMgr.getLatestBlockHeight()){
+        /******
+         * 
+         * This mean I have not receive the latest block while others send me the request. I have to wait to new block arrive and rerun this funciton
+         */
+        o('debug', 'I have not receive the latest block while others send me the request. I have to wait to new block arrive and rerun this funciton');
+        global.blockMgr.reRunFunctionWhenNewBlockArrive(handleReqVerifyPeerReRunable, messageObj, room);
+        return
+      }
+      
+      const {type, taskCid, myVrfProofInfo:othersPeerVrfProofInfo, myRoleProofInfo: othersRoleProofInfo} = messageObj;
+      
+      console.assert(type == "reqVerifyPeerVrfForComputeTasks");
+      if(! global.nodeSimCache.computeTasks[taskCid]){
+        o('error', 'I am not in the exeuction group of cid', taskCid);
+        return room.rpcResponse(from, null, guid, 'I am not in the execution group. I should not receive this message. cid:' + taskCid);
+      }
+
+      const validateOthersRoleProofInfo = (othersRoleProofInfo)=>{
+        if(othersRoleProofInfo.myRole == 'taskOwner'){
+          if(othersRoleProofInfo.proof)  return true;
+          else return false;
+        }
+        if(othersRoleProofInfo.myRole == 'lambdaOwner'){
+          if(othersRoleProofInfo.proof)  return true;
+          else return false;
+        }
+        return false;
+      };
+      const validateOthersPeerVrfProofInfo = (otherPeerVrfProofInfo)=>{
+        const {j, blockHeightWhenVRF, proof, value, blockCid, taskCid, publicKey, userName} = otherPeerVrfProofInfo;
+        const {myVrfProofInfo} = global.nodeSimCache.computeTasks[cid];
+        o('debug', `I am verifying against my global.nodeSimCache.computeTasks[${cid}], value is:`, global.nodeSimCache.computeTasks[cid]);
+        if(myVrfProofInfo.blockHeightWhenVRF != otherPeerVrfProofInfo.blockHeightWhenVRF){
+          const err = `Other peer userName:${otherPeerVrfProofInfo.userName} is using a different 
+            blockHeightWhenVrf ${otherPeerVrfProofInfo.blockHeightWhenVRF} than mine ${myVrfProofInfo.blockHeightWhenVRF}
+            I cannot verify if he is valid. So have to drop`;
+          o('error', err);
+          throw err;
+        }
+        if(myVrfProofInfo.blockCid != otherPeerVrfProofInfo.blockCid){
+          const err = `Other peer userName:${otherPeerVrfProofInfo.userName} is using a different 
+          blockCid ${otherPeerVrfProofInfo.blockCid} than mine ${myVrfProofInfo.blockCid}
+          I cannot verify if he is valid. So have to drop`;
+          o('error', err);
+          throw err
+          
+        }
+        if(myVrfProofInfo.taskCid != otherPeerVrfProofInfo.taskCid){
+          const err = `Other peer userName:${otherPeerVrfProofInfo.userName} is using a different 
+          taskCid ${otherPeerVrfProofInfo.taskCid} than mine ${myVrfProofInfo.taskCid}
+          I cannot verify if he is valid. So have to drop`;
+          o('error', err);
+          throw err;
+        }
+
+        const otherPeerVrfResult = validateComputeTaskVrf({
+          ipfs:global.ipfs,
+          j, proof, value, blockCid, taskCid, publicKey, userName
+        });
+        if(otherPeerVrfResult.result == false){
+          const err = `other peer ${otherPeerVrfProofInfo.userName} send me the vrf info but failed on verification. I should report to Layer One this voilation (in the future).
+          At this moment I will just ignore this peer, do not add him into my execute group member list`;
+          o('error', err , otherPeerVrfResult);
+          throw err;
+        }
+        return true;
+      };
+      let validationResult = false;
+      try{
+        validationResult = (validateOthersRoleProofInfo(othersRoleProofInfo)) || validateOthersPeerVrfProofInfo(othersPeerVrfProofInfo);
+        if(validationResult){
+          global.nodeSimCache.computeTasks[cid].groupPeers[addedPeer] = otherPeerVrfProofInfo;
+          o('log', `I verified another peer username:${otherPeerVrfProofInfo.userName} successfully. I have added him into my execution group`);
+          const resVerifyPeer = {
+            type:'resVerifyPeerVrfForComputeTasks',
+            taskCid
+            
+          }
+          const taskOwnerProof = ()=>{
+            if(global.nodeSimCache.computeTasks[c].myRole == 'taskOwner')
+              return {
+                role:'taskOwner',
+                proof:'placeholder'
+              }
+            else
+              return null;
+          }
+          const lambdaOwnerProof = ()=>{
+            if(global.nodeSimCache.computeTasks[c].myRole == 'lambdaOwner')
+            return {
+              role:'lambdaOwner',
+              proof:'placeholder'
+            }
+          }
+          if(taskOwnerProof()){
+            requestToOtherPeerForProof.myRoleProofInfo = taskOwnerProof();
+          }else if(lambdaOwnerProof()){
+            requestToOtherPeerForProof.myRoleProofInfo = lambdaOwnerProof();
+          }else if(global.nodeSimCache.computeTasks[taskCid].myVrfProofInfo){
+            requestToOtherPeerForProof.myVrfProofInfo = global.nodeSimCache.computeTasks[taskCid].myVrfProofInfo;
+          }else{
+            throw 'I am not taskOwner, nor the LambdaOwner. I do not have myVrfProofInfo either. Something wrong here.';
+          }
+          room.rpcResponse(from, JSON.stringify(resVerifyPeer), guid);
+          o('log', `send back to ${userName} resVerifyPeerVrfForComputeTasks`, resVerifyPeer);
+          return;
+        }
+        else{
+
+          o('error', `Validate other peer ${addedPeer} information failed. I cannot add him to my list. In the future, I should report 
+          this to Layer One because that peer could be a hacker trying to peek who is the VRF winner and plan DDoS attack. 
+          At this moment, we do not do anything. In the future, one possible solution is to abort this whole process and do it again 
+          after a pentalty to the possible hacker `);
+          room.rpcResponse(from, null, guid, `validating peer ${addedPeer} failed. I cannot add him into my list`);
+        }
+      }
+      catch(e){
+        o('error', `when validating otherPeerVrf, exception:${err}`);
+        room.rpcResponse(from, null, guid, e);
+      }
+        
+        
+
+        
+      }
+    
+      
 
     }
-    room.rpcResponse(message.from, JSON.stringify(resVerifyPeer), message.guid);
+    try{
+      handleReqVerifyPeerReRunable(messageObj, room);
+    }
+    catch(e){
+      o('error', 'exception inside handleReqVerifyPeerReRunable', e);
+      room.rpcResponse(from, null, guid, e);
+    }
+    
   }
 }
 
