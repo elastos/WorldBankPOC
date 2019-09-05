@@ -1,12 +1,14 @@
 import {o, done} from '../shared/utilities';
-import {expectNumberOfRemoteAttestatorsToBeVoted, minimalNewNodeJoinRaDeposit, expectNumberOfExecutorGroupToBeVoted} from '../shared/constValue';
+import {expectNumberOfRemoteAttestatorsToBeVoted, minimalNewNodeJoinRaDeposit, 
+  expectNumberOfExecutorGroupToBeVoted, ComputeTaskRole} from '../shared/constValue';
 import Big from 'big.js';
 import {sha256} from 'js-sha256';
 const {ecvrf, sortition} = require('vrf.js');
 import {validatePot} from '../shared/remoteAttestation';
+import ComputeTaskPeersMgr from './nodeSimComputeTaskPeersMgr';
 const updateLog = ()=>{};//Hi Jacky, just place holder here.
 
-exports.handleProccessedTxs = async ({height : eventTriggeredBlockHeight, cid:eventTriggeredBlockCid})=>{
+exports.handleProccessedTxs = async ({height})=>{
    
   
   const {userInfo} = global;
@@ -15,10 +17,11 @@ exports.handleProccessedTxs = async ({height : eventTriggeredBlockHeight, cid:ev
     return;
   }
 
-  const block = await global.blockMgr.getBlockByHeight(eventTriggeredBlockHeight);
+  const blockCid = global.blockMgr.getBlockCidByHeight(height);
+  const block = await global.blockMgr.getBlockByCid(blockCid);
   o('assert', ()=>{
-    block.height == eventTriggeredBlockHeight
-  }, 'receive new block but height is different than the blockRoom broadcasted');
+    block.height == height
+  }, 'receive new block but height is different than the blockRoom broadcasted', block.height, height);
 
   const newNodeJoinNeedRaTxsCid = [];
   const remoteAttestationDoneTxsCid = [];
@@ -37,7 +40,7 @@ exports.handleProccessedTxs = async ({height : eventTriggeredBlockHeight, cid:ev
     const tx = (await global.ipfs.dag.get(txCid)).value;
     const userInfo = global.userInfo;
     console.log('try ra task', userInfo, tx);
-    const reqRaObj = handleNewNodeJoinNeedRaTxs({block, blockCid: eventTriggeredBlockCid, totalCreditForOnlineNodes: block.totalCreditForOnlineNodes, tx, txCid, userInfo});
+    const reqRaObj = handleNewNodeJoinNeedRaTxs({block, blockCid, totalCreditForOnlineNodes: block.totalCreditForOnlineNodes, tx, txCid, userInfo});
     const handleRaResponse = async (res, err)=>{
       if(err){
         o('log', `I am a Remote Attestator, I received new node's error response :, err is `, err);
@@ -83,22 +86,14 @@ exports.handleProccessedTxs = async ({height : eventTriggeredBlockHeight, cid:ev
   });
   
   computeTaskTxsCid.map(async (cid)=>{
-    const tx = await ipfs.dag.get(cid);
-    const {userName, depositAmt, executorRequirement, lambdaCid} = tx.value;
-
-    if(userName == userInfo.userName){
-      o('debug', `I am the task owner myself, I cannot do execution compute task on myself, 
-        I just check to make sure the task owner is still me`);
-      console.assert(global.nodeSimCache.computeTasks[cid].myRole == 'taskOwner');
-      return;
-    }
-    const lambda = (await ipfs.dag.get(lambdaCid)).value;
-    if(lambda.ownerName == userInfo.userName){
-      o('debug', `I am the lambda owner myself, I cannot do execution compute task because I wrote the code, 
-        However, I will be in the execution group. because I will need to verify other nodes, make sure they are not hackers`);
-      global.nodeSimCache.computeTasks[cid] = {myRole:'lambdaOwner'};
-      return;
-    }
+    global.nodeSimCache.computeTaskPeersMgr.addNewComputeTask(cid);
+    const mySpecialRole = global.nodeSimCache.computeTaskPeersMgr.assignSpecialRoleToTask(cid, global.userInfo.userName);
+    if(mySpecialRole){
+      return o('debug', `I am the ${mySpecialRole} in this task cid ${cid} myself, I cannot do execution compute task on myself`);
+    };
+    o('debug', 'I will check the task first, make sure it is not faked');
+    
+    const {depositAmt, executorRequirement} = (await ipfs.dag.get(cid)).value;
 
     if(depositAmt < 0){
       o('log', `amt has to be greater than 0, otherwise he is stealing money from you: ${tx.value.depositAmt}. computTask abort now`);
@@ -115,42 +110,21 @@ exports.handleProccessedTxs = async ({height : eventTriggeredBlockHeight, cid:ev
       o('log', `My credit balance is ${myCurrentCreditBalance} which is lower than the task client required ${executorRequirement.credit}. I have to quit this competition. Sorry. `);
       return;
     }
-    const vrfMsg = sha256.update(eventTriggeredBlockCid).update(cid).hex();
-    const p = expectNumberOfExecutorGroupToBeVoted / block.totalCreditForOnlineNodes;
-    //console.log("VRFing.... this takes some time, please be patient..., ", userInfo, vrfMsg);
-    const { proof, value } = ecvrf.vrf(Buffer.from(userInfo.publicKey, 'hex'), Buffer.from(userInfo.privateKey, 'hex'), Buffer.from(vrfMsg, 'hex'));
-    //console.log("VRF{ proof, value }", { proof:proof.toString('hex'), value: value.toString('hex') });
-    //console.log("Now running VRF sortition...it also needs some time... please be patient...", myCurrentCreditBalance, p);
-    const j = sortition.getVotes(value, new Big(myCurrentCreditBalance), new Big(p));
-    if(j.gt(0)){
+    o('debug', 'I passed the basic verify of the new compute task. i will start try vrf');
+    const vrfResult = ComputeTaskPeersMgr.tryVrfForComputeTask(block, cid, userInfo);
+    if(vrfResult.j.gt(0)){
       o('log', `I am lucky!! J is ${j.toFixed()}. However I should not tell anyone about my win. Do not want to get hacker noticed. I just join the secure p2p chat group for winner's only`);
       const applicationJoinSecGroup = {
         txType:'computeTaskWinnerApplication',
         ipfsPeerId: global.ipfs._peerInfo.id.toB58String(),//peerId for myself
         userName: userInfo.userName,
-        // publicKey: userInfo.publicKey,
         taskCid: cid,
-        //proof:proof.toString('hex'),
-        //value: value.toString('hex'),
-        //j: j.toFixed(),
         blockHeightWhenVRF: block.blockHeight
       };
     
       global.broadcastEvent.emit('taskRoom', JSON.stringify(applicationJoinSecGroup));
       o('log', `I am asking to join the secure chatting group by sending everyone in this group my application`, applicationJoinSecGroup);
-      console.assert(! global.nodeSimCache.computeTasks[cid], `global.nodeSimCache.computeTasks[cid], cid is ${cid} should be empty before I add new object to it. but it is not`, global.nodeSimCache.computeTasks[cid]);
-      global.nodeSimCache.computeTasks[cid] = global.nodeSimCache.computeTasks[cid] || {};
-      
-      global.nodeSimCache.computeTasks[cid].myVrfProofInfo = {
-        j:j.toFixed(),
-        blockHeightWhenVRF: block.blockHeight,
-        proof:proof.toString('hex'),
-        value: value.toString('hex'),
-        taskCid:cid,
-        publicKey: global.userInfo.publicKey,//we add those information becasue we will give this data to other peer when we ask them their proof of VRF.
-        userName: global.userInfo.userName//we add those information becasue we will give this data to other peer when we ask them their proof of VRF.
-        
-      }
+      global.nodeSimCache.computeTaskPeersMgr.addMyVrfProofToTask(cid, vrfResult);
       
     }else{
       // updateLog('req_ra_send', {

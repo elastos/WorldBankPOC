@@ -17,6 +17,7 @@ import BlockMgr from '../shared/blockMgr';
 import {handleProccessedTxs} from './handleProcessedTxs';
 import {handlePendingTxs} from './handlePendingTxs';
 import events from 'events';
+import NodeSimComputeTaskPeersMgr from './nodeSimComputeTaskPeersMgr.js';
 const OPTIONS = {};
 
 const startApp = async ()=>{ 
@@ -42,7 +43,7 @@ const startApp = async ()=>{
     global.rpcEvent = new events.EventEmitter();
     global.broadcastEvent = new events.EventEmitter();
     global.nodeSimCache = {
-      computeTasks:{}
+      computeTaskPeersMgr = new NodeSimComputeTaskPeersMgr()
     };
     return pubsubInit(ipfs, OPTIONS.randRoomPostfix, global.rpcEvent, global.broadcastEvent);
   })

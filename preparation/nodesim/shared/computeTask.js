@@ -9,7 +9,7 @@ exports.eligibilityCheck = (currentBlockHeight, task)=>{
   return true
 }
 
-exports.executeCompute = async (taskCid, task, executor)=>{
+exports.executeCompute = async (taskCid, task)=>{
   //this is just a place holder, in the real system, we should launch docker and run the command to get the result.
   //Now we just return hello world
   const computeTaskBuffer = {};//We use this buffer to store the params data from task owner, and code from lambda owner. then run execute task
@@ -23,14 +23,12 @@ exports.executeCompute = async (taskCid, task, executor)=>{
   const reqTaskParams = {
     type:'reqTaskParams',
     taskCid,
-    executor,
     blockHeight:block.blockHeight
   };  
 
   const reqLambdaParams = {
     type:'reqLambdaParams',
     taskCid,
-    executor,
     blockHeight:block.blockHeight
   };
   const reqTaskParamsResponseHandler = (res, err)=>{
