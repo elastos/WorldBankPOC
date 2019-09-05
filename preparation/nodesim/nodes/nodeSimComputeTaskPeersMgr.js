@@ -1,5 +1,5 @@
 import autoBind from 'auto-bind';
-import {ComputeTaskRoles} from '../constValue';
+import {ComputeTaskRoles} from '../shared/constValue';
 import { o } from '../shared/utilities';
 import {expectNumberOfRemoteAttestatorsToBeVoted, minimalNewNodeJoinRaDeposit, 
   expectNumberOfExecutorGroupToBeVoted, ComputeTaskRole} from '../shared/constValue';
@@ -10,13 +10,17 @@ const {ecvrf, sortition} = require('vrf.js');
 
 
 export default class{
-  constructor(){
+  constructor(ipfs){
     this._taskObj = {},
-
+    this._ipfs = ipfs;
     autoBind(this);
   }
+
+  debugOutput(taskCid){
+    console.debug('debugOutput for CopmputTaskPeersMgr.js', this._taskObj[taskCid]);
+  }
   addNewComputeTask(taskCid){
-    if(! this._taskObj[taskCid]) return ;
+    if(this._taskObj[taskCid]) return ;
     const taskObj = {
       taskCid,
       groupPeers: {},
@@ -26,43 +30,36 @@ export default class{
     this._taskObj[taskCid] = taskObj;
   }
 
-  async static _checkMySpecialRole(taskCid, userName){
-    
-  }
-
   async assignSpecialRoleToTask(taskCid, userName){
     if(! this._taskObj[taskCid]) throw 'computeTaskMgr did not init taskObj';
     if(this._taskObj[taskCid].myRole) return this._taskObj[taskCid].myRole;
 
-    const task = (await ipfs.dag.get(taskCid)).value;
-    let role;
+    const task = (await this._ipfs.dag.get(taskCid)).value;
     if(userName == task.userName){
-      role = ComputeTaskRoles.taskOwner;
+      return this._taskObj[taskCid].myRole = ComputeTaskRoles.taskOwner;
     }
-    const lambda = (await ipfs.dag.get(task.lambdaCid)).value;
+    const lambda = (await this._ipfs.dag.get(task.lambdaCid)).value;
     if(lambda.ownerName == userName){
-      role = ComputeTaskRoles.lambdaOwner;
+      return this._taskObj[taskCid].myRole = ComputeTaskRoles.lambdaOwner;
     }
-    if(role){
-      this._taskObj[taskCid].myRole = role;
-    }
-    return role;
+    
   }
 
   checkMyRoleInTask(taskCid){
-    return _taskObj[taskCid].myRole;
+    if(! this._taskObj[taskCid])  return undefined;
+    return this._taskObj[taskCid].myRole;
   }
 
   addMyVrfProofToTask(taskCid, myVrfProofInfo){
     this._taskObj[taskCid].myRole = ComputeTaskRoles.executeGroupMember;
-    return _taskObj[taskCid].myVrfProofInfo = myVrfProofInfo;
+    return this._taskObj[taskCid].myVrfProofInfo = myVrfProofInfo;
   }
 
   getMyVrfProofInfo(taskCid){
     return Object.assign({}, this._taskObj[taskCid].myVrfProofInfo);
   }
 
-  static tryVrfForComputeTask(block, taskCid, totalCreditForOnlineNodes, myCurrentCreditBalance, userInfo ){
+  static tryVrfForComputeTask(block, taskCid, userInfo ){
     const blockCid = global.blockMgr.getBlockCidByHeight(block.blockHeight);
     const myCurrentCreditBalance = block.creditMap[userInfo.userName];
     const vrfMsg = sha256.update(blockCid).update(taskCid).hex();
@@ -102,7 +99,7 @@ export default class{
   setExecutorPeer(taskCid, peer){
     this._taskObj[taskCid].executor = peer;
   }
-  static validateOthersRoleProofInfo = (othersRoleProofInfo)=>{
+  static validateOthersRoleProofInfo(othersRoleProofInfo){
     if(othersRoleProofInfo.myRole == 'taskOwner'){
       if(othersRoleProofInfo.proof)  return true;
       else return false;
@@ -113,7 +110,7 @@ export default class{
     }
     return false;
   }
-  validateOthersRoleProofInfo = (taskCid, othersRoleProofInfo)=>{
+  validateOthersRoleProofInfo(taskCid, othersRoleProofInfo){
     if(othersRoleProofInfo.myRole == 'taskOwner'){
       if(othersRoleProofInfo.proof)  return true;
       else return false;
@@ -125,7 +122,7 @@ export default class{
     return false;
   }
 
-  validateOthersPeerVrfProofInfo = (taskCid, otherPeerVrfProofInfo)=>{
+  validateOthersPeerVrfProofInfo(taskCid, otherPeerVrfProofInfo){
     //const {j, blockHeightWhenVRF, proof, value, publicKey, userName} = otherPeerVrfProofInfo;
     const myVrfProofInfo = this.getMyVrfProofInfo(taskCid);
     if(myVrfProofInfo.blockHeightWhenVRF != otherPeerVrfProofInfo.blockHeightWhenVRF){
