@@ -17,9 +17,14 @@ export default class{
   }
 
   debugOutput(taskCid){
+    if(! taskCid){
+      o('debug', this._taskObj);
+      return;
+    }
     console.debug('debugOutput for CopmputTaskPeersMgr.js', this._taskObj[taskCid]);
   }
   addNewComputeTask(taskCid){
+    
     if(this._taskObj[taskCid]) return ;
     const taskObj = {
       taskCid,
@@ -174,7 +179,7 @@ export default class{
   setLambdaOwnerPeer(taskCid, peer){
     this._taskObj[taskCid].lambdaOwnerPeer = peer;
   }
-  
+
   setTaskOwnerPeer(taskCid, peer){
     this._taskObj[taskCid].taskOwnerPeer = peer;
   }

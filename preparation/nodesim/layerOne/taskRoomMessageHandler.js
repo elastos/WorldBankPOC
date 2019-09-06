@@ -18,6 +18,7 @@ export default async (m)=>{
     uploadLambda: updateLambda,
     computeTask: computeTask,
     computeTaskWinnerApplication: computeTaskWinnerApplication,
+    
     computeTaskDone: undefined//Not implemented yet
   };
 
@@ -252,4 +253,3 @@ const computeTask = async (globalState, messageObj, from)=>{
   o('log', 'computeTask push into pendingTasks');
   return globalState;
 }
-

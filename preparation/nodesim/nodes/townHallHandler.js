@@ -320,4 +320,16 @@ const rpcDirectHandler = {
   }
 }
 
- 
+exports.messageHandler = (message)=>{
+  const command = tryParseJson(message.data.toString());
+  if(! command){
+    o('debug', 'unhandled townhall message', message);
+    return;
+  }
+  if(command.txType == 'debug_showPeerMgr'){
+    global.nodeSimCache.computeTaskPeersMgr.debugOutput();
+  }
+  else{
+    o('debug', 'unhandled townhall message', message);
+  }
+}

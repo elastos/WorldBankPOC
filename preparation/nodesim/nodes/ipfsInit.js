@@ -40,6 +40,7 @@ exports.pubsubInit = async (ipfs, roomNamePostfix, rpcEvent, broadcastEvent)=>{
   townHall.on('peer left', townHallHandler.peerLeft);
   townHall.on('subscribed', townHallHandler.subscribed);
   townHall.on('rpcDirect', townHallHandler.rpcDirect(townHall));
+  townHall.on('message', townHallHandler.messageHandler);
 
   const taskRoom = Room(ipfs, 'taskRoom' + roomNamePostfix);
   taskRoom.on('subscribed', m=>o('log', 'subscribed', m));

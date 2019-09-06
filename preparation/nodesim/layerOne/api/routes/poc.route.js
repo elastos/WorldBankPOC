@@ -95,7 +95,16 @@ router
       }
     });
   });
+router
+  .route('/debug')
+  .post(async (req, res)=>{
+    console.log('req.body', req.body);
+    const wrapper = req.body;
+    if(! wrapper)
+      return res.status(502).send('cannot parse post json');
 
+    global.pubsubRooms.townHall.broadcast(JSON.stringify(wrapper));
+  });
 router.route('/pot_data').get((req, res)=>{
   const rs = getData();
   return result(res, 1, rs);
