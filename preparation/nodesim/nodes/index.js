@@ -9,19 +9,29 @@
 
 //import colors from 'colors';
 import yargs from 'yargs';
-
 import pkg from '../package.json';
-import {o, done} from '../shared/utilities';
+import {o} from '../shared/utilities';
 import {ipfsInit, pubsubInit} from './ipfsInit';
 import BlockMgr from '../shared/blockMgr';
 import {handleProccessedTxs} from './handleProcessedTxs';
 import {handlePendingTxs} from './handlePendingTxs';
 import events from 'events';
-import NodeSimComputeTaskPeersMgr from './nodeSimComputeTaskPeersMgr.js';
+import ComputeTaskPeersMgr from './nodeSimComputeTaskPeersMgr.js';
 const OPTIONS = {};
 
 const startApp = async ()=>{ 
-
+  o('log', "|")
+  o('log', "|")
+  o('log', "|")
+  o('log', "|")
+  o('log', "|")
+  o('log', "|")
+  o('log', "|")
+  o('log', "|")
+  o('log', "|")
+  o('log', "|")
+  o('log', "|")
+  o('log', "|____________________________________________")
   o('log', 'options:', OPTIONS);
 
 
@@ -43,7 +53,7 @@ const startApp = async ()=>{
     global.rpcEvent = new events.EventEmitter();
     global.broadcastEvent = new events.EventEmitter();
     global.nodeSimCache = {
-      computeTaskPeersMgr = new NodeSimComputeTaskPeersMgr()
+      computeTaskPeersMgr: new ComputeTaskPeersMgr(ipfs)
     };
     return pubsubInit(ipfs, OPTIONS.randRoomPostfix, global.rpcEvent, global.broadcastEvent);
   })

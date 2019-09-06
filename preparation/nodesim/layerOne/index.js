@@ -7,13 +7,25 @@ const {channelListener} = require('./channelListener');
 const {generateBlock} = require('./generateBlock');
 import PeerUserCache from './onlinePeerUser';
 const {utils} = require('vrf.js');
-
+import {o} from '../shared/utilities';
 import inquirer from 'inquirer';
 import BlockMgr from '../shared/blockMgr';
 
 
 // Prompt user to input data in console.
 console.clear();
+o('log', "|")
+o('log', "|")
+o('log', "|")
+o('log', "|")
+o('log', "|")
+o('log', "|")
+o('log', "|")
+o('log', "|")
+o('log', "|")
+o('log', "|")
+o('log', "|")
+o('log', "|____________________________________________")
 const app = require('./config/express');
 
 var questions = [{

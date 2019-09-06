@@ -18,7 +18,7 @@ exports.handleProccessedTxs = async ({height})=>{
   }
 
   const blockCid = global.blockMgr.getBlockCidByHeight(height);
-  const block = await global.blockMgr.getBlockByCid(blockCid);
+  const block = (await global.ipfs.dag.get(blockCid)).value;
   o('assert', ()=>{
     block.height == height
   }, 'receive new block but height is different than the blockRoom broadcasted', block.height, height);
@@ -87,7 +87,7 @@ exports.handleProccessedTxs = async ({height})=>{
   
   computeTaskTxsCid.map(async (cid)=>{
     global.nodeSimCache.computeTaskPeersMgr.addNewComputeTask(cid);
-    const mySpecialRole = global.nodeSimCache.computeTaskPeersMgr.assignSpecialRoleToTask(cid, global.userInfo.userName);
+    const mySpecialRole = await global.nodeSimCache.computeTaskPeersMgr.assignSpecialRoleToTask(cid, global.userInfo.userName);
     if(mySpecialRole){
       return o('debug', `I am the ${mySpecialRole} in this task cid ${cid} myself, I cannot do execution compute task on myself`);
     };
@@ -112,8 +112,8 @@ exports.handleProccessedTxs = async ({height})=>{
     }
     o('debug', 'I passed the basic verify of the new compute task. i will start try vrf');
     const vrfResult = ComputeTaskPeersMgr.tryVrfForComputeTask(block, cid, userInfo);
-    if(vrfResult.j.gt(0)){
-      o('log', `I am lucky!! J is ${j.toFixed()}. However I should not tell anyone about my win. Do not want to get hacker noticed. I just join the secure p2p chat group for winner's only`);
+    if(vrfResult.result){
+      o('log', `I am lucky!! J is ${vrfResult.j}. However I should not tell anyone about my win. Do not want to get hacker noticed. I just join the secure p2p chat group for winner's only`);
       const applicationJoinSecGroup = {
         txType:'computeTaskWinnerApplication',
         ipfsPeerId: global.ipfs._peerInfo.id.toB58String(),//peerId for myself
@@ -125,7 +125,7 @@ exports.handleProccessedTxs = async ({height})=>{
       global.broadcastEvent.emit('taskRoom', JSON.stringify(applicationJoinSecGroup));
       o('log', `I am asking to join the secure chatting group by sending everyone in this group my application`, applicationJoinSecGroup);
       global.nodeSimCache.computeTaskPeersMgr.addMyVrfProofToTask(cid, vrfResult);
-      
+      global.nodeSimCache.computeTaskPeersMgr.debugOutput(cid);
     }else{
       // updateLog('req_ra_send', {
       //   name : userInfo.userName,
