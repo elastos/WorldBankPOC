@@ -125,6 +125,7 @@ exports.handleProccessedTxs = async ({height})=>{
       global.broadcastEvent.emit('taskRoom', JSON.stringify(applicationJoinSecGroup));
       o('log', `I am asking to join the secure chatting group by sending everyone in this group my application`, applicationJoinSecGroup);
       global.nodeSimCache.computeTaskPeersMgr.addMyVrfProofToTask(cid, vrfResult);
+      global.nodeSimCache.computeTaskPeersMgr.setExecutorPeer(cid,  global.ipfs._peerInfo.id.toB58String());//first set myself to be the executor, then it may change if other peer send me their J and random
       global.nodeSimCache.computeTaskPeersMgr.debugOutput(cid);
     }else{
       // updateLog('req_ra_send', {

@@ -143,7 +143,10 @@ export default class{
   getExecutor(taskCid){
     const executorPeer = this.getExecutorPeer(taskCid);
     if (! executorPeer) return null;
-    return this._taskObj[taskCid].groupPeers[executorPeer];
+    if(executorPeer == global.ipfs._peerInfo.id.toB58String())
+      return this._taskObj[taskCid].myVrfProofInfo;
+    else
+      return this._taskObj[taskCid].groupPeers[executorPeer];
   }
   setExecutorPeer(taskCid, peer){
     this._taskObj[taskCid].executor = peer;

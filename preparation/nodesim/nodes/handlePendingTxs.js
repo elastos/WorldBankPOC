@@ -64,32 +64,62 @@ const handlePendingComputeTask = (block)=>( taskCid)=>{
         return;
       }
       const {type, taskCid:othersPeerTaskCid, myVrfProofInfo:otherPeerVrfProofInfo, myRoleProofInfo: othersRoleProofInfo} = res;
-      
+
       console.assert(othersPeerTaskCid == taskCid), 'other Peer response taskCid need to be the same as mine';
       console.assert(type == "resVerifyPeerVrfForComputeTasks", 'make sure the response type is resVerifyPeerVrfForComputeTasks');
       
       let validationResult = false;
+      let otherPeerUserName;
       try{
+
+        if(validationResult == false){
+          const block = await global.blockMgr.getLatestBlock();
+          if(block.pendingTasks && block.pendingTasks[taskCid]){
+            if(block.pendingTasks[taskCid].initiatorPeerId == addedPeer){
+              validationResult = true;
+              otherPeerUserName = 'taskOwner';
+              global.nodeSimCache.computeTaskPeersMgr.setLambdaOwnerPeer(taskCid, addedPeer);
+              return
+            }
+            else if(block.pendingTasks[taskCid].lambdaOwnerPeerId == addedPeer){
+              validationResult = true;
+              otherPeerUserName = 'lambdaOwner';
+              global.nodeSimCache.computeTaskPeersMgr.setTaskOwnerPeer(taskCid, addedPeer);
+              return
+            }
+            else
+              validationResult = false;
+          }
+            
+        }
+
+        if(validationResult == false && otherPeerVrfProofInfo){
+          console.assert(! othersRoleProofInfo , 'if we start to validate vrf, we shoudl be sure that othersRoleProofInfo is not existing');
+          otherPeerUserName = otherPeerVrfProofInfo? otherPeerVrfProofInfo.userName: 'otherPeerVrfProofInfo_is_null';
+          
+          const blockCid = global.blockMgr.getBlockCidByHeight(otherPeerVrfProofInfo.blockHeightWhenVRF);
+          const block = (await global.ipfs.dag.get(blockCid)).value;
+          if(otherPeerVrfProofInfo && global.nodeSimCache.computeTaskPeersMgr.validateOtherPeerVrfProofInfo(taskCid, otherPeerVrfProofInfo, blockCid, block)){
+            validationResult = true;
+            global.nodeSimCache.computeTaskPeersMgr.addOtherPeerToMyExecutionPeers(taskCid, addedPeer, otherPeerVrfProofInfo);
+            o('log', `added Peer: I verified another peer username:${otherPeerUserName} successfully. I have added him into my execution group`);
+          
+            //o('debug', 'vdalite VRF successful.......')
+          }else{
+            o('error', `Validate other peer ${addedPeer} ${otherPeerUserName} information failed. I cannot add him to my list. In the future, I should report 
+              this to Layer One because that peer could be a hacker trying to peek who is the VRF winner and plan DDoS attack. 
+              At this moment, we do not do anything. In the future, one possible solution is to abort this whole process and do it again 
+              after a pentalty to the possible hacker `);
+          }
+        }
+
         if(othersRoleProofInfo && global.nodeSimCache.computeTaskPeersMgr.validateOthersRoleProofInfo(taskCid, othersRoleProofInfo)){
-          global.nodeSimCache.computeTaskPeersMgr.addOtherPeerToMyExecutionPeers(taskCid, addedPeer, otherPeerVrfProofInfo);
-          o('log', `addedPeer: I verified another peer username:${otherPeerVrfProofInfo.userName} successfully. I have added him into my execution group`);
+          if(othersRoleProofInfo.myRole == 'taskOwner') global.nodeSimCache.computeTaskPeersMgr.setTaskOwnerPeer(taskCid, addedPeer);
+          else if(othersRoleProofInfo.myRole == 'lambdaOwner') global.nodeSimCache.computeTaskPeersMgr.setLambdaOwnerPeer(taskCid, addedPeer);
+          o('log', `addedPeer: I verified another peer username:${otherPeerUserName} successfully. I have added him into my execution group`);
           return;
         }
-        const blockCid = global.blockMgr.getBlockCidByHeight(otherPeerVrfProofInfo.blockHeightWhenVRF);
         
-        const block = (await global.ipfs.dag.get(blockCid)).value;
-        if(otherPeerVrfProofInfo && global.nodeSimCache.computeTaskPeersMgr.validateOtherPeerVrfProofInfo(taskCid, otherPeerVrfProofInfo, blockCid, block)){
-          global.nodeSimCache.computeTaskPeersMgr.addOtherPeerToMyExecutionPeers(taskCid, addedPeer, otherPeerVrfProofInfo);
-          o('log', `added Peer: I verified another peer username:${otherPeerVrfProofInfo.userName} successfully. I have added him into my execution group`);
-          return;   
-        }
-        else{
-          o('error', `Validate other peer ${addedPeer} information failed. I cannot add him to my list. In the future, I should report 
-          this to Layer One because that peer could be a hacker trying to peek who is the VRF winner and plan DDoS attack. 
-          At this moment, we do not do anything. In the future, one possible solution is to abort this whole process and do it again 
-          after a pentalty to the possible hacker `);
-          return;
-        }
       }
       catch(err){
         o('error', `differences.added.forEach when validating otherPeerVrf, exception:${err}`);
@@ -145,9 +175,10 @@ const handlePendingComputeTask = (block)=>( taskCid)=>{
 
 const handlePendingComputeTaskStart = (block)=> async (taskCid)=>{
  
-    
+  if(! global.nodeSimCache.computeTaskPeersMgr.checkMyRoleInTask(taskCid))
+    return;
   if(global.userInfo.userName == global.nodeSimCache.computeTaskPeersMgr.getExecutorName(taskCid)){
-    o('log', "I am the executor. Its time for me to run taskCid:", c);
+    o('log', "I am the executor. Its time for me to run taskCid:", taskCid);
     try{executeCompute(taskCid, task);}
     catch(e){
       o('error', "executeCompute error", e);
