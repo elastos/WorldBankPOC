@@ -83,24 +83,31 @@ export default class{
   }
 
   validateOtherPeerVrfProofInfo(taskCid, otherPeerVrfProofInfo, blockCid, block){
-    //const {j, blockHeightWhenVRF, proof, value, publicKey, userName} = otherPeerVrfProofInfo;
-    o('debug', 'inside ValidateOtherPeerVrfProofInfo function, otherPeerVrfProofInfo:', {otherPeerVrfProofInfo, block});
-    if(this._taskObj[taskCid].myRole == ComputeTaskRoles.executeGroupMember){
-      const myVrfProofInfo = this.getMyVrfProofInfo(taskCid);
-      if(myVrfProofInfo.blockHeightWhenVRF != otherPeerVrfProofInfo.blockHeightWhenVRF){
-        const err = `Other peer userName:${otherPeerVrfProofInfo.userName} is using a different 
-          blockHeightWhenVrf ${otherPeerVrfProofInfo.blockHeightWhenVRF} than mine ${myVrfProofInfo.blockHeightWhenVRF}
+    if(! otherPeerVrfProofInfo)
+      return false;
+    try{
+      if(this._taskObj[taskCid].myRole == ComputeTaskRoles.executeGroupMember){
+        const myVrfProofInfo = this.getMyVrfProofInfo(taskCid);
+        if(myVrfProofInfo.blockHeightWhenVRF != otherPeerVrfProofInfo.blockHeightWhenVRF){
+          const err = `Other peer userName:${otherPeerVrfProofInfo.userName} is using a different 
+            blockHeightWhenVrf ${otherPeerVrfProofInfo.blockHeightWhenVRF} than mine ${myVrfProofInfo.blockHeightWhenVRF}
+            I cannot verify if he is valid. So have to drop`;
+          o('error', err);
+          return false;
+        }
+        if(myVrfProofInfo.taskCid != otherPeerVrfProofInfo.taskCid){
+          const err = `Other peer userName:${otherPeerVrfProofInfo.userName} is using a different 
+          taskCid ${otherPeerVrfProofInfo.taskCid} than mine ${myVrfProofInfo.taskCid}
           I cannot verify if he is valid. So have to drop`;
-        o('error', err);
-        return false;
+          o('error', err);
+          return false;
+        }
       }
-      if(myVrfProofInfo.taskCid != otherPeerVrfProofInfo.taskCid){
-        const err = `Other peer userName:${otherPeerVrfProofInfo.userName} is using a different 
-        taskCid ${otherPeerVrfProofInfo.taskCid} than mine ${myVrfProofInfo.taskCid}
-        I cannot verify if he is valid. So have to drop`;
-        o('error', err);
-        return false;
-      }
+    
+    }
+    catch(e){
+      o('error', 'inside validateOtherPeerVrfProofInfo exception:', e, otherPeerVrfProofInfo);
+      return false;
     }
     
     const otherPeerCreditBalance = block.creditMap[otherPeerVrfProofInfo.userName];
@@ -111,9 +118,7 @@ export default class{
       o('error', `validate Other peer VRF failed.`, vrfVerifyResult, otherPeerVrfProofInfo);
       return false;
     }
-    o('debug', `right before sortition.getVotes otherPeerCreditBalance:${otherPeerCreditBalance}, p:${p}`);
     const jVerify = sortition.getVotes(Buffer.from(otherPeerVrfProofInfo.value, 'hex'), new Big(otherPeerCreditBalance), new Big(p));
-    o('debug', `right after sortition.getVotes, jVerify:${jVerify.toFixed()}`);
     if(jVerify != otherPeerVrfProofInfo.j){
       o('error', `verifyOther peer failed on J value. other claim J is ${otherPeerVrfProofInfo.j}, but my calculation result J is ${jVerify.toFixed()}`);
       return false;
@@ -140,22 +145,39 @@ export default class{
   }
  
   validateOthersRoleProofInfo(taskCid, othersRoleProofInfo){
+    o('debug', 'inside validateOthersRoleProofInfo now, ', othersRoleProofInfo);
     if(!othersRoleProofInfo)  return false;
+    o('debug', 'inside validateOthersRoleProofInfo 2 ');
+    
     if(othersRoleProofInfo.role == 'taskOwner'){
-      if(othersRoleProofInfo.proof)  return true;
+      if(othersRoleProofInfo.proof)  {
+        return true
+      }
       else return false;
     }
+    o('debug', 'inside validateOthersRoleProofInfo 3 ');
+    
     if(othersRoleProofInfo.role == 'lambdaOwner'){
-      if(othersRoleProofInfo.proof)  return true;
+      if(othersRoleProofInfo.proof)  {
+        return true
+      }
       else return false;
     }
+    o('debug', 'inside validateOthersRoleProofInfo 4 ');
+    
     return false;
   }
   validateOthersPeerAlreadyInMyPeerList(taskCid, otherPeer){
     return this._taskObj[taskCid].groupPeers[otherPeer]? true: false;
   }
 
-
+  setLambdaOwnerPeer(taskCid, peer){
+    this._taskObj[taskCid].lambdaOwnerPeer = peer;
+  }
+  
+  setTaskOwnerPeer(taskCid, peer){
+    this._taskObj[taskCid].taskOwnerPeer = peer;
+  }
   addOtherPeerToMyExecutionPeers(taskCid, peer, otherPeerVrfInfo){
     this._taskObj[taskCid].groupPeers[peer] = otherPeerVrfInfo;
 
@@ -174,12 +196,12 @@ export default class{
     
     const currentExecutor = this.getExecutor(taskCid);
     if(currentExecutor.j < otherPeerVrfInfo.j){
-      this.setExecutorPeer(peer);
+      this.setExecutorPeer(taskCid, peer);
       return
     }
     if(currentExecutor.j == otherPeerVrfInfo.j){
       if(currentExecutor.value > otherPeerVrfInfo.value){
-        this.setExecutorPeer(peer);
+        this.setExecutorPeer(taskCid, peer);
         return;
       }
 
@@ -194,6 +216,16 @@ export default class{
 
   getPeersInGroup(taskCid){
     return Object.keys(this._taskObj[taskCid].groupPeers)
+  }
+
+  isPeerInGroup(taskCid, peer){
+    try{
+      if( this._taskObj[taskCid].groupPeers[peer])
+      return true;
+    }
+    catch(e){
+      return false;
+    }
   }
 
   removePeerFromGroup(taskCid, peer){

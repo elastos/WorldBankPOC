@@ -204,108 +204,119 @@ const rpcDirectHandler = {
     
   },
   reqVerifyPeerVrfForComputeTasks: ({from, guid, messageObj, room})=>{
-    o('debug', `I have got other peer sending me his vrf for compute task and ask mine. `, messageObj)
+    //o('debug', `I have got other peer sending me his vrf for compute task and ask mine. `, messageObj)
 
     const handleReqVerifyPeerReRunable = async (messageObj, room)=>{
-      o('debug', 'inside handleReqVerifyPeerReRunable', messageObj);
-      if(messageObj.blockHeight > global.blockMgr.getLatestBlockHeight()){
-        /******
-         * 
-         * This mean I have not receive the latest block while others send me the request. I have to wait to new block arrive and rerun this funciton
-         */
-        o('debug', 'I have not receive the latest block while others send me the request. I have to wait to new block arrive and rerun this funciton');
-        global.blockMgr.reRunFunctionWhenNewBlockArrive(handleReqVerifyPeerReRunable, messageObj, room);
-        return
-      }
-      
-      const {type, taskCid, myVrfProofInfo:otherPeerVrfProofInfo, myRoleProofInfo: othersRoleProofInfo} = messageObj;
-      
-      console.assert(type == "reqVerifyPeerVrfForComputeTasks");
-
-      if(typeof global.nodeSimCache.computeTaskPeersMgr.checkMyRoleInTask(taskCid) == 'undefined'){
-        o('error', 'I am not in the exeuction group of cid', taskCid);
-        return room.rpcResponse(from, null, guid, 'I am not in the execution group. I should not receive this message. cid:' + taskCid);
-      }
-
-      let validationResult = false;
       try{
-       
-        if(global.nodeSimCache.computeTaskPeersMgr.validateOthersRoleProofInfo(taskCid, othersRoleProofInfo)){
-          validationResult = true;
-          
+        o('debug', 'inside handleReqVerifyPeerReRunable', messageObj);
+        if(messageObj.blockHeight > global.blockMgr.getLatestBlockHeight()){
+          /******
+           * 
+           * This mean I have not receive the latest block while others send me the request. I have to wait to new block arrive and rerun this funciton
+           */
+          o('debug', 'I , ${global.userInfo.userName},  have not receive the latest block while others send me the request. I have to wait to new block arrive and rerun this funciton');
+          global.blockMgr.reRunFunctionWhenNewBlockArrive(handleReqVerifyPeerReRunable, messageObj, room);
+          return
         }
-        else{
+        
+        
+        if(typeof global.nodeSimCache.computeTaskPeersMgr.checkMyRoleInTask(messageObj.taskCid) == 'undefined'){
+          o('error', `I, ${global.userInfo.userName},  am  not in the exeuction group of cid`, messageObj.taskCid);
+          return room.rpcResponse(from, null, guid, 'I , ${global.userInfo.userName},  am not in the execution group. I should not receive this message. cid:' + messageObj.taskCid);
+        }
+        let validationResult = false;
+        let otherPeerUserName;
+        
+        if(! validationResult){
+          if(global.nodeSimCache.computeTaskPeersMgr.isPeerInGroup(from)){
+            validationResult = true;
+            otherPeerUserName = "already_in_my_group";
+          }
+        }
+        const {type, taskCid, myVrfProofInfo:otherPeerVrfProofInfo, myRoleProofInfo: othersRoleProofInfo} = messageObj;
+        
+        if(validationResult == false){
+          const block = await global.blockMgr.getLatestBlock();
+          if(block.pendingTasks && block.pendingTasks[taskCid]){
+            if(block.pendingTasks[taskCid].initiatorPeerId == from){
+              validationResult = true;
+              otherPeerUserName = 'taskOwner';
+              global.nodeSimCache.computeTaskPeersMgr.setLambdaOwnerPeer(taskCid, from);
+            }
+            else if(block.pendingTasks[taskCid].lambdaOwnerPeerId == from){
+              validationResult = true;
+              otherPeerUserName = 'lambdaOwner';
+              global.nodeSimCache.computeTaskPeersMgr.setTaskOwnerPeer(taskCid, from);
+            }
+            else
+            validationResult = false;
+          }
+            
+        }
+        if(validationResult == false && otherPeerVrfProofInfo){
+          console.assert(! othersRoleProofInfo , 'if we start to validate vrf, we shoudl be sure that othersRoleProofInfo is not existing');
+          otherPeerUserName = otherPeerVrfProofInfo? otherPeerVrfProofInfo.userName: 'otherPeerVrfProofInfo_is_null';
           const blockCid = global.blockMgr.getBlockCidByHeight(otherPeerVrfProofInfo.blockHeightWhenVRF);
         
           const block = (await global.ipfs.dag.get(blockCid)).value;
-          o('debug', 'townHall handleReqVerifyPeerReRunable before verify VRF for', blockCid, otherPeerVrfProofInfo);
           if(global.nodeSimCache.computeTaskPeersMgr.validateOtherPeerVrfProofInfo(taskCid, otherPeerVrfProofInfo, blockCid, block)){
             validationResult = true;
-          }
-          else{
-            o('error', `Townhall handleReqVerifyPeerReRunable: Validate other peer ${from} information failed. I cannot add him to my list. In the future, I should report 
-            this to Layer One because that peer could be a hacker trying to peek who is the VRF winner and plan DDoS attack. 
-            At this moment, we do not do anything. In the future, one possible solution is to abort this whole process and do it again 
-            after a pentalty to the possible hacker `);
-            validationResult = false;
+            global.nodeSimCache.computeTaskPeersMgr.addOtherPeerToMyExecutionPeers(taskCid, from, otherPeerVrfProofInfo);
+            o('debug', 'vdalite VRF successful.......')
+          }else{
+            o('debug', 'vrf validation failed too');
           }
         }
-        
-        if(validationResult){
-          global.nodeSimCache.computeTaskPeersMgr.addOtherPeerToMyExecutionPeers(taskCid, from, otherPeerVrfProofInfo);
-          o('log', `I verified another peer successfully. I have added him into my execution group`);
-          
-          
-          const resVerifyPeer = {
-            type:'resVerifyPeerVrfForComputeTasks',
-            taskCid
-          }
-         
-          switch( global.nodeSimCache.computeTaskPeersMgr.checkMyRoleInTask(taskCid)){
-            case ComputeTaskRoles.taskOwner:
-              resVerifyPeer.myRoleProofInfo = {
-                role:'taskOwner',
-                proof:'placeholder'
-              };
-              break;
-            case ComputeTaskRoles.lambdaOwner:
-              resVerifyPeer.myRoleProofInfo = {
-                role:'lambdaOwner',
-                proof:'placeholder'
-              };
-              break;
-            case ComputeTaskRoles.executeGroupMember:
-              resVerifyPeer.myVrfProofInfo = global.nodeSimCache.computeTaskPeersMgr.getMyVrfProofInfo(taskCid);
-              break;
-            default:
-              throw "We have to have a role in the executeGroup, a taskOwner, lambdaOwner, or just executeGroupMember, cannot be nothing"
-          }
-          
-          room.rpcResponse(from, JSON.stringify(resVerifyPeer), guid);
-          o('log', `send back resVerifyPeerVrfForComputeTasks`, resVerifyPeer);
-          
-        }
-        else{
-
-          o('error', `Validate other peer ${from} information failed. I cannot add him to my list. In the future, I should report 
+        if(validationResult == false){
+          o('error', `Townhall handleReqVerifyPeerReRunable: Validate other peer ${from} information failed. I cannot add him to my list. In the future, I should report 
           this to Layer One because that peer could be a hacker trying to peek who is the VRF winner and plan DDoS attack. 
           At this moment, we do not do anything. In the future, one possible solution is to abort this whole process and do it again 
           after a pentalty to the possible hacker `);
-          room.rpcResponse(from, null, guid, `validating peer ${from} failed. I cannot add him into my list`);
+          
+          room.rpcResponse(from, null, guid, `Response from ${global.userInfo.userName}: validating peer ${from} failed. I cannot add you ${otherPeerUserName}into my list`);
+          return;
         }
+        
+        o('log', `I, ${global.userInfo.userName}, verified another peer ${otherPeerUserName} successfully. I have added him into my execution group`);
+        
+        
+        const resVerifyPeer = {
+          type:'resVerifyPeerVrfForComputeTasks',
+          taskCid
+        }
+        
+        switch( global.nodeSimCache.computeTaskPeersMgr.checkMyRoleInTask(taskCid)){
+          case ComputeTaskRoles.taskOwner:
+            resVerifyPeer.myRoleProofInfo = {
+              role:'taskOwner',
+              proof:'placeholder'
+            };
+            break;
+          case ComputeTaskRoles.lambdaOwner:
+            resVerifyPeer.myRoleProofInfo = {
+              role:'lambdaOwner',
+              proof:'placeholder'
+            };
+            break;
+          case ComputeTaskRoles.executeGroupMember:
+            resVerifyPeer.myVrfProofInfo = global.nodeSimCache.computeTaskPeersMgr.getMyVrfProofInfo(taskCid);
+            break;
+          default:
+            throw "We have to have a role in the executeGroup, a taskOwner, lambdaOwner, or just executeGroupMember, cannot be nothing"
+        }
+        
+        room.rpcResponse(from, JSON.stringify(resVerifyPeer), guid);
+        o('log', `I, ${global.userInfo.userName}, send back resVerifyPeerVrfForComputeTasks to ${from} ${guid} userName: ${otherPeerUserName}`);
+      
       }
       catch(e){
-        o('error', `when validating otherPeerVrf ${from} has exception, exception:${e.toString()}`);
-        room.rpcResponse(from, null, guid, e.toString());
+        const err = 'reqVerifyPeerVrfForComputeTasks: exception inside handleReqVerifyPeerReRunable' + e.toString();
+        o('error', err);
+        room.rpcResponse(from, null, guid, err);
       }
     }
-    try{
-      handleReqVerifyPeerReRunable(messageObj, room);
-    }
-    catch(e){
-      o('error', 'exception inside handleReqVerifyPeerReRunable', e);
-      room.rpcResponse(from, null, guid, e.toString());
-    }
+    handleReqVerifyPeerReRunable(messageObj, room);
+
   }
 }
 

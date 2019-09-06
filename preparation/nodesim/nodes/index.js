@@ -45,7 +45,11 @@ const startApp = async ()=>{
       await handlePendingTxs(args)
     });
     blockMgr.registerNewBlockEventHandler(({height, cid})=>{
-      o('log', `${global.userInfo?global.userInfo.userName : "UserNameNotAssignedYet"} -- ${global.ipfs._peerInfo.id.toB58String()} receives new block,`, {height});
+      o('log', '------------------------------------------')
+      o('log', '|');
+      o('log', `|      ${global.userInfo?global.userInfo.userName : "UserNameNotAssignedYet"} -- ${global.ipfs._peerInfo.id.toB58String()} receives new block,`, {height});
+      o('log', '|');
+      o('log', '------------------------------------------')
     })
     
     global.ipfs = ipfs;

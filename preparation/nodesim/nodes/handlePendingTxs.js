@@ -57,25 +57,30 @@ const handlePendingComputeTask = (block)=>( taskCid)=>{
     
     const handleRpcResponse = (taskCid)=>async (res, err)=>{
       if(err){
-        return o('error', `response from other peer on reqVerifyPeerVrfForComputeTasks has error`, err);
+        return o('error', `response from other peer ${addedPeer} on reqVerifyPeerVrfForComputeTasks has error`, err, res);
+      }
+      if(global.nodeSimCache.computeTaskPeersMgr.isPeerInGroup(addedPeer)){
+        o('debug', `The peer ${addedPeer} is already in my groupPeers. No need to verify and add again.return`);
+        return;
       }
       const {type, taskCid:othersPeerTaskCid, myVrfProofInfo:otherPeerVrfProofInfo, myRoleProofInfo: othersRoleProofInfo} = res;
+      
       console.assert(othersPeerTaskCid == taskCid), 'other Peer response taskCid need to be the same as mine';
       console.assert(type == "resVerifyPeerVrfForComputeTasks", 'make sure the response type is resVerifyPeerVrfForComputeTasks');
       
       let validationResult = false;
       try{
-        if(global.nodeSimCache.computeTaskPeersMgr.validateOthersRoleProofInfo(taskCid, othersRoleProofInfo)){
+        if(othersRoleProofInfo && global.nodeSimCache.computeTaskPeersMgr.validateOthersRoleProofInfo(taskCid, othersRoleProofInfo)){
           global.nodeSimCache.computeTaskPeersMgr.addOtherPeerToMyExecutionPeers(taskCid, addedPeer, otherPeerVrfProofInfo);
-          o('log', `I verified another peer username:${otherPeerVrfProofInfo.userName} successfully. I have added him into my execution group`);
+          o('log', `addedPeer: I verified another peer username:${otherPeerVrfProofInfo.userName} successfully. I have added him into my execution group`);
           return;
         }
         const blockCid = global.blockMgr.getBlockCidByHeight(otherPeerVrfProofInfo.blockHeightWhenVRF);
         
         const block = (await global.ipfs.dag.get(blockCid)).value;
-        if(global.nodeSimCache.computeTaskPeersMgr.validateOtherPeerVrfProofInfo(taskCid, otherPeerVrfProofInfo, blockCid, block)){
+        if(otherPeerVrfProofInfo && global.nodeSimCache.computeTaskPeersMgr.validateOtherPeerVrfProofInfo(taskCid, otherPeerVrfProofInfo, blockCid, block)){
           global.nodeSimCache.computeTaskPeersMgr.addOtherPeerToMyExecutionPeers(taskCid, addedPeer, otherPeerVrfProofInfo);
-          o('log', `I verified another peer username:${otherPeerVrfProofInfo.userName} successfully. I have added him into my execution group`);
+          o('log', `added Peer: I verified another peer username:${otherPeerVrfProofInfo.userName} successfully. I have added him into my execution group`);
           return;   
         }
         else{
@@ -119,8 +124,8 @@ const handlePendingComputeTask = (block)=>( taskCid)=>{
       sendToPeerId:addedPeer, 
       message:JSON.stringify(requestToOtherPeerForProof), 
       responseCallBack:handleRpcResponse(taskCid)
-    }
-    );
+    });
+    o('debug', `I ${global.userInfo.userName} send out a rpcReqeust to peer ${addedPeer}`);
   });
 
 
