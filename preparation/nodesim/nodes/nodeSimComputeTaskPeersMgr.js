@@ -199,7 +199,7 @@ export default class{
 
   addOtherPeerToMyExecutionPeers(taskCid, peer, otherPeerVrfInfo){
     this._taskObj[taskCid].groupPeers[peer] = otherPeerVrfInfo;
-
+ 
     /*****
        * 
        * compare existing groupPeers's exeuctor. We always trying to keep the exeuctor has the hightest J and lowest random value

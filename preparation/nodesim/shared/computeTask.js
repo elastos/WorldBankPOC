@@ -51,7 +51,7 @@ exports.executeCompute = async (taskCid)=>{
     computeTaskBuffer[taskCid].data = data;
     const result = executeIfParamsAreReady(computeTaskBuffer, taskCid);
     if(result){
-      sendComputeTaskDone(taskCid);
+      sendComputeTaskExecutionDone(taskCid);
     }
   };
 
@@ -84,7 +84,7 @@ exports.executeCompute = async (taskCid)=>{
     console.log('computeTaskBuffer', computeTaskBuffer);
     const result = executeIfParamsAreReady(computeTaskBuffer, taskCid);
     if(result){
-      sendComputeTaskDone(taskCid);
+      sendComputeTaskExecutionDone(taskCid);
     }
   };
 
@@ -106,12 +106,38 @@ const executeIfParamsAreReady = (computeTaskBuffer, taskCid)=>{
   }
   return null;
 }
+const sendComputeTaskRaDone = (taskCid, result=true)=>{
+  const computeTaskRaDoneObj = {
+    txType:'computeTaskExecutionDone',
+    monitorName: global.userInfo.userName,
+    executorName: global.nodeSimCache.computeTaskPeersMgr.getExecutorName(taskCid),
+    taskCid,
+    myVrfProof,
+    result
+  }
+  global.broadcastEvent.emit('taskRoom', JSON.stringify(computeTaskRaDoneObj));
+  o('log', 'computer ra task done. send out broadcast in taskRoom');
+}
 
-const sendComputeTaskDone = (taskCid)=>{
+const computeTaskOwnerConfirmationDone = (taskCid, result = true)=>{
+  const computeTaskOwnerConfirmationDoneObj = {
+    txType:'computeTaskExecutionDone',
+    taskOwnerName: global.userInfo.userName,
+    executorName: global.nodeSimCache.computeTaskPeersMgr.getExecutorName(taskCid),
+    taskCid,
+    result
+  }
+  global.broadcastEvent.emit('taskRoom', JSON.stringify(computeTaskOwnerConfirmationDoneObj));
+  o('log', 'computer computeTaskOwnerConfirmationDone. send out broadcast in taskRoom');
+}
+
+
+const sendComputeTaskExecutionDone = (taskCid)=>{
   const computeTaskDoneObj = {
-    txType:'computeTaskDone',
-    userName: global.userInfo.userName,
-    taskCid
+    txType:'computeTaskExecutionDone',
+    executorName: global.userInfo.userName,
+    taskCid,
+    myVrfProof:global.nodeSimCache.computeTaskPeersMgr.getMyVrfProofInfo(taskCid),
     
   }
   global.broadcastEvent.emit('taskRoom', JSON.stringify(computeTaskDoneObj));

@@ -183,8 +183,18 @@ const handlePendingComputeTaskStart = (block)=> async (taskCid)=>{
     catch(e){
       o('error', "executeCompute error", e);
     }
-  }else{
-    //o('log', `I am the monitor, the executor is ${global.nodeSimCache.computeTaskPeersMgr.getExecutorName(taskCid)}. i am doing the remote attestatio now.... Not impletmented yet`);
+  }
+  else if(global.nodeSimCache.computeTaskPeersMgr.checkMyRoleInTask(taskCid) == ComputeTaskRoles.executeGroupMember){
+    o('debug', `I am the monitor, the executor is ${global.nodeSimCache.computeTaskPeersMgr.getExecutorName(taskCid)}. i am doing the remote attestatio now.
+      After the task complete, I will send tx computeTaskRaDone.
+      remote attestation during execution is not implemented yet. `);
+      
+  }
+  else if(global.nodeSimCache.computeTaskPeersMgr.checkMyRoleInTask(taskCid) == ComputeTaskRoles.taskOwner){
+    o('debug', 'I am the task owner. I will response to executor request and waiting for the result then send tx computeTaskOwnerConfirmationDone');
+  }
+  else{
+    o('debug', 'I am the lambdaOwner in this task. there is nothing for me to do now.')
   }
 
 }

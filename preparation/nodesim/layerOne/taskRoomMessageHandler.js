@@ -19,7 +19,9 @@ export default async (m)=>{
     computeTask: computeTask,
     computeTaskWinnerApplication: computeTaskWinnerApplication,
     
-    computeTaskDone: undefined//Not implemented yet
+    computeTaskExecutionDone: computeTaskExecutionDone,
+    computeTaskRaDone: computeTaskRaDone,
+    computeTaskOwnerConfirmationDone: computeTaskOwnerConfirmationDone
   };
 
   const func = messageTypeHandlerMap[messageObj.txType];
@@ -56,6 +58,68 @@ const computeTaskWinnerApplication = async ( globalState, messageObj, from)=>{
   globalState.pendingTasks[taskCid].followUps.push(simplifiedMessageObjInBlock);
   return globalState;
 }
+
+const computeTaskRaDone = ( globalState, messageObj, from)=>{
+  const {executorName, monitorUserName, taskCid, myVrfProof, raResult} = messageObj;
+  const computeTaskInPending = globalState.pendingTasks[taskCid];
+  console.assert(! computeTaskInPending, 'while the task is still on going, it must be exists in pendingTasks');
+  computeTaskInPending.result = computeTaskInPending.result || {};
+  computeTaskInPending.result.monitors = computeTaskInPending.result.monitors || {};
+
+  computeTaskInPending.result.monitors[peerId] = {
+    monitorUserName,
+    executorName,
+    vrfProof : myVrfProof,
+    peerId: from,
+    raResult
+  }
+  markComputeTaskDoneIfAllRaCompleted(taskCid);
+  return globalState;
+};
+const computeTaskExecutionDone = ( globalState, messageObj, from)=>{
+  // {
+  //   txType: 'computeTaskDone',
+  //   userName: 'user #2',
+  //   taskCid: 'bafyreic6bghpwow4lmjsvcy5pi5grqpwol62ousmsx475pyuzxpqqbdsde'
+  // }
+  const {executorName, taskCid, myVrfProof} = messageObj;
+  const computeTaskInPending = globalState.pendingTasks[taskCid];
+  console.assert(! computeTaskInPending, 'while the task is still on going, it must be exists in pendingTasks');
+  computeTaskInPending.result = computeTaskInPending.result || {};
+  computeTaskInPending.result.executor = {
+    userName: executorName,
+    vrfProof : myVrfProof,
+    peerId: from
+  }
+  
+  markComputeTaskDoneIfAllRaCompleted(taskCid);
+  return globalState;
+}
+
+const computeTaskOwnerConfirmationDone = ( globalState, messageObj, from)=>{
+  // {
+  //   txType: 'computeTaskDone',
+  //   userName: 'user #2',
+  //   taskCid: 'bafyreic6bghpwow4lmjsvcy5pi5grqpwol62ousmsx475pyuzxpqqbdsde'
+  // }
+  const {executorName, taskOwnerName, taskCid,taskResult} = messageObj;
+  const computeTaskInPending = globalState.pendingTasks[taskCid];
+  console.assert(! computeTaskInPending, 'while the task is still on going, it must be exists in pendingTasks');
+  computeTaskInPending.result = computeTaskInPending.result || {};
+  computeTaskInPending.result.taskOwner = {
+    userName: taskOwnerName,
+    executorName,
+    taskResult,
+    peerId: from
+  }
+  
+  markComputeTaskDoneIfAllRaCompleted(taskCid);
+  return globalState;
+}
+
+const markComputeTaskDoneIfAllRaCompleted = ()=>{
+  //globalState.pendingTasks[taskCid].type = 'computeTaskDone';
+};
 
 const gasTransferProcess = async (globalState, messageObj)=>{
   const {cid} = messageObj;
