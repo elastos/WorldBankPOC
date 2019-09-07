@@ -73,14 +73,15 @@ exports.executeCompute = async (taskCid)=>{
     const {code, taskCid} = res;
     console.log('code, ', code);
     console.log(`I have got the lambda code from lambda owner, `, code);
-    computeTaskBuffer = computeTaskBuffer || {};
     computeTaskBuffer[taskCid] = computeTaskBuffer[taskCid] || {};
+    
     if(computeTaskBuffer[taskCid].code){
       throw `Error, executor has got the code already, why a new code come up again?` +  JSON.stringify({code, buffer: computeTaskBuffer});
       
     }
 
     computeTaskBuffer[taskCid].code = code;
+    console.log('computeTaskBuffer', computeTaskBuffer);
     const result = executeIfParamsAreReady(computeTaskBuffer, taskCid);
     if(result){
       sendComputeTaskDone(taskCid);

@@ -149,7 +149,7 @@ const rpcDirectHandler = {
     return;
   },
 
-  reqTaskParams: ({from, guid, messageObj})=>{
+  reqTaskParams: ({from, guid, messageObj})=>()=>{
     console.log('I have got a request for reqTaskParams, messageObj', messageObj);
     
     const mayDelayExecuteDueToBlockDelay = (messageObj)=>{
@@ -193,7 +193,7 @@ const rpcDirectHandler = {
     mayDelayExecuteDueToBlockDelay(messageObj)
     
   },
-  reqLambdaParams: ({from, guid, messageObj})=>{
+  reqLambdaParams: ({from, guid, messageObj})=>()=>{
     console.log('I have got a request for Lambda Params reqLambdaParams, messageObj', messageObj);
     const mayDelayExecuteDueToBlockDelay = (messageObj)=>{
       
@@ -232,7 +232,7 @@ const rpcDirectHandler = {
     mayDelayExecuteDueToBlockDelay(messageObj);
     
   },
-  reqVerifyPeerVrfForComputeTasks: ({from, guid, messageObj})=>{
+  reqVerifyPeerVrfForComputeTasks: ({from, guid, messageObj})=>()=>{
     //o('debug', `I have got other peer sending me his vrf for compute task and ask mine. `, messageObj)
 
     const handleReqVerifyPeerReRunable = async (messageObj)=>{

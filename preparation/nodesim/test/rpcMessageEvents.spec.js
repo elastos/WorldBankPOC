@@ -12,22 +12,39 @@ import {ipfsInit, pubsubInit} from '../nodes/ipfsInit';
 
 chai.use(chaiAsPromised);
 
-describe('rpcMessageEvents', ()=>{
+describe.only('rpcMessageEvents', ()=>{
   describe('events', async ()=>{
-    
+    const rooms = [];
+    const rpcEvents = [];
+    const broadcastEvents = [];
+    const peers = [];
+
     before(async ()=>{
-      const ipfs = global.ipfs? global.ipfs : await ipfsInit( 'local');
-      const blockMgr = new BlockMgr(ipfs)
-      console.log('bockMgr initialized');
-      global.ipfs = ipfs;
-      global.rpcEvent = new events.EventEmitter();
-      const rooms = await pubsubInit(ipfs, "", global.rpcEvent);
+      for (let i = 0; i < 3; i ++) {
+        const ipfs =  await ipfsInit( 'local');
+        peers.push(ipfs._peerInfo.id.toB58String());
+        const rpcEvent = new events.EventEmitter();
+        rpcEvents.push(rpcEvent);
+        const broadcastEvent = new events.EventEmitter();
+        broadcastEvents.push(broadcastEvent);
+        rooms.push(await pubsubInit(ipfs, "test", rpcEvent, broadcastEvent));
+      }
+      
     })
-    it.skip('on townHall event', ()=>{
+    it('rpc Request should get response', ()=>{
       try{
-        global.rpcEvent.emit('rpcRequest', {first:'hello', next:'world'});
-        global.rpcEvent.emit('rpcResponseWithNewRequest', {first:'hello', next:'world'});
-        global.rpcEvent.emit('rpcResponse', {first:'hello', next:'world'});
+
+        rpcEvents[0].emit('rpcRequest', {
+          sendToPeerId:peers[1],
+          message:JSON.stringify({
+            type:'ping'
+          }),
+          responseCallBack:(res, err)=>{
+            console.log("I have got peer 1 response,", res, err)
+          }
+        });
+
+        
       }
       catch(e){
         console.log(e);

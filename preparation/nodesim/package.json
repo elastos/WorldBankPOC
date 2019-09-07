@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node --require @babel/register ./nodes -s local",
     "debug": "node --inspect=127.0.0.1:9239 --require @babel/register ./nodes -s local",
-    "test": "mocha --timeout 15000 --exit --require @babel/register --require reify",
+    "test": "mocha --timeout 15000  --require @babel/register --require reify",
     "layer1": "node --require @babel/register ./layerOne",
     "debug:layer1": "node --inspect --require @babel/register ./layerOne",
     "compile": "browserify ./webSrc/ipfsPubSub.js -t babelify --plugins [transform-runtime] -o ./web/js/ipfsPubSub.js -d && browserify ./webSrc/simulator.js -t babelify --plugins [transform-runtime] -o ./web/js/simulator.js -d"
