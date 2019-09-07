@@ -10,7 +10,7 @@ import chaiAsPromised from "chai-as-promised";
 import 'babel-polyfill';
 chai.use(chaiAsPromised);
 
-describe.only('computeTaskPeersMgr', ()=>{
+describe('computeTaskPeersMgr', ()=>{
   const localGlobal = {};
 
   const block1String = `{"gasMap":{"user #0":500,"user #1":500,"user #2":500,"user #3":500,"user #4":500,"user #5":500,

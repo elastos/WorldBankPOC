@@ -179,12 +179,12 @@ const handlePendingComputeTaskStart = (block)=> async (taskCid)=>{
     return;
   if(global.userInfo.userName == global.nodeSimCache.computeTaskPeersMgr.getExecutorName(taskCid)){
     o('log', "I am the executor. Its time for me to run taskCid:", taskCid);
-    try{executeCompute(taskCid, task);}
+    try{executeCompute(taskCid);}
     catch(e){
       o('error', "executeCompute error", e);
     }
   }else{
-    o('log', `I am the monitor, the executor is ${global.nodeSimCache.computeTaskPeersMgr.getExecutorName(taskCid)}. i am doing the remote attestatio now.... Not impletmented yet`);
+    //o('log', `I am the monitor, the executor is ${global.nodeSimCache.computeTaskPeersMgr.getExecutorName(taskCid)}. i am doing the remote attestatio now.... Not impletmented yet`);
   }
 
 }

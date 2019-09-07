@@ -7,7 +7,7 @@ exports.peerLeft = (peer)=>console.log(`peer ${peer} left`);
 exports.subscribed = (m)=>console.log(`Subscribed ${m}`);
 const updateLog = ()=>{};
 
-exports.rpcDirect = (room)=>(message) => {
+exports.rpcDirect = (message) => {
   //o('log', 'In townhall got RPC message from ' + message.from + ': ', message);
   if(! message.guid || ! message.verb)
     return console.log("twonHall RPC handler got a message not standard RPC,", message);
@@ -17,7 +17,7 @@ exports.rpcDirect = (room)=>(message) => {
   
   const handlerFunction = rpcDirectHandler[messageObj.type];
   if(typeof handlerFunction == 'function'){
-    handlerFunction({from:message.from, guid:message.guid, messageObj, room})();
+    handlerFunction({from:message.from, guid:message.guid, messageObj})();
     return
   }
   else{
@@ -26,8 +26,8 @@ exports.rpcDirect = (room)=>(message) => {
 }
 
 exports.rpcResponseWithNewRequest = (room)=>(args)=>{
-  const {sendToPeerId, message, guid, responseCallBack} = args;
-  room.rpcResponseWithNewRequest(sendToPeerId, message, guid, responseCallBack);
+  const {sendToPeerId, message, guid, responseCallBack, err} = args;
+  room.rpcResponseWithNewRequest(sendToPeerId, message, guid, responseCallBack, err);
 }
 exports.rpcRequest = (room)=>(args)=>{
   const {sendToPeerId, message, responseCallBack} = args;
@@ -39,8 +39,9 @@ exports.rpcRequest = (room)=>(args)=>{
 }
 
 exports.rpcResponse =  (room)=>(args)=>{
-  const {sendToPeerId, message, guid} = args;
-  room.rpcResponse(sendToPeerId, message, guid);
+  const {sendToPeerId, message, guid, err} = args;
+  o('debug', 'inside exports.rpcResponse:', sendToPeerId, message, guid, err);
+  room.rpcResponse(sendToPeerId, message, guid, err);
 }
 
 const rpcDirectHandler = {
@@ -80,7 +81,7 @@ const rpcDirectHandler = {
 
     //o('log', `send back reqUserInfo to townhall manager using RPC response`, {resMessage, guid: message.guid});
   },
-  simulatorRequestAction:({from, guid, messageObj, room})=> async ()=>{
+  simulatorRequestAction:({from, guid, messageObj})=> async ()=>{
 
     console.log('from simulator request action,', messageObj);
 
@@ -148,65 +149,93 @@ const rpcDirectHandler = {
     return;
   },
 
-  reqTaskParams: ({from, guid, messageObj, room})=>{
+  reqTaskParams: ({from, guid, messageObj})=>{
     console.log('I have got a request for reqTaskParams, messageObj', messageObj);
     
     const mayDelayExecuteDueToBlockDelay = (messageObj)=>{
       const {taskCid, blockHeight} = messageObj;
-      if(blockHeight <= block.blockHeight){
+      if(blockHeight <= global.blockMgr.getLatestBlockHeight()){
         //this node is slower than the executor who send me the request. I have to wait till I have such a block to continue;
-        
-        const task = block.pendingTasks[taskCid];
-        
-        if( global.nodeSimCache.computeTaskPeersMgr.getExecutorPeer(taskCid) != from){
-          o('log', `Executor validate fail`);
-          return;
+        try{
+          if( global.nodeSimCache.computeTaskPeersMgr.getExecutorPeer(taskCid) != from){
+            o('log', `Executor validate fail`);
+            return;
+          }
+          const resTaskParams = {
+            type:'resTaskParams',
+            data:['Hello', " World!"],
+            taskCid
+          };
+          global.rpcEvent.emit('rpcResponse', {
+            sendToPeerId: from, 
+            message : JSON.stringify(resTaskParams), 
+            guid
+          });
+          
+          o('log', `Sending response for Task data back to executor.`, resTaskParams);
         }
-        const resTaskParams = {
-          type:'resTaskParams',
-          data:['Hello', " World!"],
-          taskCid
-        };
-        room.rpcResponse(from, JSON.stringify(resTaskParams),guid);
-        o('log', `Sending response for Task data back to executor.`, resTaskParams);
+        catch(e){
+          o('error', 'reqTaskParams handler has exception:', e);
+          global.rpcEvent.emit('rpcResponse', {
+            sendToPeerId: from, 
+            message : null, 
+            guid,
+            err:e.toString()
+          });
+          
+        }
+        
       }else{
-        _.delay(mayDelayExecuteDueToBlockDelay, 1000, messageObj);
+        global.blockMgr.reRunFunctionWhenNewBlockArrive(mayDelayExecuteDueToBlockDelay, messageObj);
+        
       }
     }
     mayDelayExecuteDueToBlockDelay(messageObj)
     
   },
-  reqLambdaParams: ({from, guid, messageObj, room})=>{
+  reqLambdaParams: ({from, guid, messageObj})=>{
     console.log('I have got a request for Lambda Params reqLambdaParams, messageObj', messageObj);
     const mayDelayExecuteDueToBlockDelay = (messageObj)=>{
       
-      if(blockHeight <= block.blockHeight){
-        const {taskCid} = messageObj;
-        const task = block.pendingTasks[taskCid];
-        console.log('task,', task);
-
-        if( global.nodeSimCache.computeTaskPeersMgr.getExecutorPeer(taskCid) != from){
-          o('log', `Executor validate fail`);
-          return;
+      const {taskCid, blockHeight} = messageObj;
+      if(blockHeight <= global.blockMgr.getLatestBlockHeight()){
+        try{
+          if( global.nodeSimCache.computeTaskPeersMgr.getExecutorPeer(taskCid) != from){
+            o('log', `Executor validate fail`);
+            return;
+          }
+          const resLambdaParams = {
+            type:'resLambdaParams',
+            code:'args[0] + args[1]',
+            taskCid
+          };
+          global.rpcEvent.emit('rpcResponse', {
+            sendToPeerId: from, 
+            message : JSON.stringify(resLambdaParams), 
+            guid,
+          });
+          o('log', `Sending response for Lambda Params back to executor.`, resLambdaParams);
         }
-        const resLambdaParams = {
-          type:'resLambdaParams',
-          code:'args[0] + args[1]',
-          taskCid
-        };
-        room.rpcResponse(from, JSON.stringify(resLambdaParams), guid);
-        o('log', `Sending response for Lambda Params back to executor.`, resLambdaParams);
+        catch(e){
+          o('error', 'reqLambdaParams handler has exception:', e);
+          global.rpcEvent.emit('rpcResponse', {
+            sendToPeerId: from, 
+            message : null, 
+            guid,
+            err:e.toString()
+          });
+        }
       }else{
-        _.delay(mayDelayExecuteDueToBlockDelay, 1000, messageObj);
+        global.blockMgr.reRunFunctionWhenNewBlockArrive(mayDelayExecuteDueToBlockDelay, messageObj);
       }
     }
     mayDelayExecuteDueToBlockDelay(messageObj);
     
   },
-  reqVerifyPeerVrfForComputeTasks: ({from, guid, messageObj, room})=>{
+  reqVerifyPeerVrfForComputeTasks: ({from, guid, messageObj})=>{
     //o('debug', `I have got other peer sending me his vrf for compute task and ask mine. `, messageObj)
 
-    const handleReqVerifyPeerReRunable = async (messageObj, room)=>{
+    const handleReqVerifyPeerReRunable = async (messageObj)=>{
       try{
         o('debug', 'inside handleReqVerifyPeerReRunable', messageObj);
         if(messageObj.blockHeight > global.blockMgr.getLatestBlockHeight()){
@@ -215,14 +244,19 @@ const rpcDirectHandler = {
            * This mean I have not receive the latest block while others send me the request. I have to wait to new block arrive and rerun this funciton
            */
           o('debug', 'I , ${global.userInfo.userName},  have not receive the latest block while others send me the request. I have to wait to new block arrive and rerun this funciton');
-          global.blockMgr.reRunFunctionWhenNewBlockArrive(handleReqVerifyPeerReRunable, messageObj, room);
+          global.blockMgr.reRunFunctionWhenNewBlockArrive(handleReqVerifyPeerReRunable, messageObj);
           return
         }
         
         
         if(typeof global.nodeSimCache.computeTaskPeersMgr.checkMyRoleInTask(messageObj.taskCid) == 'undefined'){
           o('error', `I, ${global.userInfo.userName},  am  not in the exeuction group of cid`, messageObj.taskCid);
-          return room.rpcResponse(from, null, guid, 'I , ${global.userInfo.userName},  am not in the execution group. I should not receive this message. cid:' + messageObj.taskCid);
+          return global.rpcEvent.emit('rpcResponse', {
+            sendToPeerId: from, 
+            message : null, 
+            guid,
+            err:'I , ${global.userInfo.userName},  am not in the execution group. I should not receive this message. cid:' + messageObj.taskCid
+          });
         }
         let validationResult = false;
         let otherPeerUserName;
@@ -233,7 +267,7 @@ const rpcDirectHandler = {
             otherPeerUserName = "already_in_my_group";
           }
         }
-        const {type, taskCid, myVrfProofInfo:otherPeerVrfProofInfo, myRoleProofInfo: othersRoleProofInfo} = messageObj;
+        const {taskCid, myVrfProofInfo:otherPeerVrfProofInfo, myRoleProofInfo: othersRoleProofInfo} = messageObj;
         
         if(validationResult == false){
           const block = await global.blockMgr.getLatestBlock();
@@ -272,8 +306,13 @@ const rpcDirectHandler = {
           this to Layer One because that peer could be a hacker trying to peek who is the VRF winner and plan DDoS attack. 
           At this moment, we do not do anything. In the future, one possible solution is to abort this whole process and do it again 
           after a pentalty to the possible hacker `);
+          global.rpcEvent.emit('rpcResponse',{
+            sendToPeerId: from,
+            message: null,
+            guid,
+            err:`Response from ${global.userInfo.userName}: validating peer ${from} failed. I cannot add you ${otherPeerUserName}into my list`
+          });
           
-          room.rpcResponse(from, null, guid, `Response from ${global.userInfo.userName}: validating peer ${from} failed. I cannot add you ${otherPeerUserName}into my list`);
           return;
         }
         
@@ -304,18 +343,28 @@ const rpcDirectHandler = {
           default:
             throw "We have to have a role in the executeGroup, a taskOwner, lambdaOwner, or just executeGroupMember, cannot be nothing"
         }
+        global.rpcEvent.emit('rpcResponse',{
+          sendToPeerId: from,
+          message: JSON.stringify(resVerifyPeer),
+          guid
+        });
         
-        room.rpcResponse(from, JSON.stringify(resVerifyPeer), guid);
         o('log', `I, ${global.userInfo.userName}, send back resVerifyPeerVrfForComputeTasks to ${from} ${guid} userName: ${otherPeerUserName}`);
       
       }
       catch(e){
         const err = 'reqVerifyPeerVrfForComputeTasks: exception inside handleReqVerifyPeerReRunable' + e.toString();
         o('error', err);
-        room.rpcResponse(from, null, guid, err);
+        global.rpcEvent.emit('rpcResponse',{
+          sendToPeerId: from,
+          message: null,
+          guid,
+          err
+        });
+        
       }
     }
-    handleReqVerifyPeerReRunable(messageObj, room);
+    handleReqVerifyPeerReRunable(messageObj);
 
   }
 }

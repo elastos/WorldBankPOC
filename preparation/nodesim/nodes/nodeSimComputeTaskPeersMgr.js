@@ -183,9 +183,20 @@ export default class{
     this._taskObj[taskCid].lambdaOwnerPeer = peer;
   }
 
+  getTaskOwnerPeer(taskCid){
+    if(! this._taskObj[taskCid]) return null;
+    return this._taskObj[taskCid].taskOwnerPeer;
+  }
+
+  getLambdaOwnerPeer(taskCid){
+    if(! this._taskObj[taskCid]) return null;
+    return this._taskObj[taskCid].lambdaOwnerPeer;
+  }
+
   setTaskOwnerPeer(taskCid, peer){
     this._taskObj[taskCid].taskOwnerPeer = peer;
   }
+
   addOtherPeerToMyExecutionPeers(taskCid, peer, otherPeerVrfInfo){
     this._taskObj[taskCid].groupPeers[peer] = otherPeerVrfInfo;
 
