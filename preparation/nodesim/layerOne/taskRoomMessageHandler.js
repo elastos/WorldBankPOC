@@ -63,11 +63,11 @@ const computeTaskWinnerApplication = async ( globalState, messageObj, from)=>{
 const computeTaskRaDone = ( globalState, messageObj, from)=>{
   const {executorName, monitorUserName, taskCid, myVrfProof, raResult} = messageObj;
   const computeTaskInPending = globalState.pendingTasks[taskCid];
-  console.assert(! computeTaskInPending, 'while the task is still on going, it must be exists in pendingTasks');
+  console.assert(computeTaskInPending, 'while the task is still on going, it must be exists in pendingTasks');
   computeTaskInPending.result = computeTaskInPending.result || {};
   computeTaskInPending.result.monitors = computeTaskInPending.result.monitors || {};
 
-  computeTaskInPending.result.monitors[peerId] = {
+  computeTaskInPending.result.monitors[from] = {
     monitorUserName,
     executorName,
     vrfProof : myVrfProof,
@@ -88,7 +88,7 @@ const computeTaskExecutionDone = ( globalState, messageObj, from)=>{
   // }
   const {executorName, taskCid, myVrfProof} = messageObj;
   const computeTaskInPending = globalState.pendingTasks[taskCid];
-  console.assert(! computeTaskInPending, 'while the task is still on going, it must be exists in pendingTasks');
+  console.assert(computeTaskInPending, 'while the task is still on going, it must be exists in pendingTasks');
   computeTaskInPending.result = computeTaskInPending.result || {};
   computeTaskInPending.result.executor = {
     userName: executorName,
@@ -109,17 +109,18 @@ const computeTaskOwnerConfirmationDone = ( globalState, messageObj, from)=>{
   //   userName: 'user #2',
   //   taskCid: 'bafyreic6bghpwow4lmjsvcy5pi5grqpwol62ousmsx475pyuzxpqqbdsde'
   // }
-  const {executorName, taskOwnerName, taskCid,taskResult} = messageObj;
+  o('debug', 'inside computeTaskOwnerConfirmationDone', messageObj);
+  const {executorName, taskOwnerName, taskCid, result} = messageObj;
   const computeTaskInPending = globalState.pendingTasks[taskCid];
-  console.assert(! computeTaskInPending, 'while the task is still on going, it must be exists in pendingTasks');
+  console.assert(computeTaskInPending, 'while the task is still on going, it must be exists in pendingTasks');
   computeTaskInPending.result = computeTaskInPending.result || {};
   computeTaskInPending.result.taskOwner = {
     userName: taskOwnerName,
     executorName,
-    taskResult,
+    result,
     peerId: from
   }
-  
+  o('debug', 'computeTaskInPending.result.taskOwner = ', computeTaskInPending.result);
   const r = markComputeTaskDoneIfAllRaCompleted(globalState.pendingTasks[taskCid]);
   if(r){
     globalState.pendingTasks[taskCid] = r;
@@ -129,14 +130,14 @@ const computeTaskOwnerConfirmationDone = ( globalState, messageObj, from)=>{
 
 const markComputeTaskDoneIfAllRaCompleted = (computeTaskInPending)=>{
   if(! computeTaskInPending)  return;
-  o('debug', 'inside markComputeTaskDone, the computeTaskInPending is,', computeTaskInPending);
   if(! computeTaskInPending.result) return;
   const {taskOwner, executor, monitors} = computeTaskInPending.result;
-  if(! taskOwner) return;
-  if(! monitors) return;
-  if(! executor) return;
-  if(Object.keys(monitors).length < minComputeGroupMembersToStartCompute)  return;
-
+  if(! taskOwner) return o('log', 'missing taskOwner in markComputeTaskDoneIfAllRaCompleted');
+  if(! monitors) return o('log', 'missing monitor in markComputeTaskDoneIfAllRaCompleted');
+  if(! executor) return o('log', 'missing executor in markComputeTaskDoneIfAllRaCompleted');
+  if(Object.keys(monitors).length < minComputeGroupMembersToStartCompute)  return o('log', 'Monitors are not enough in markComputeTaskDoneIfAllRaCompleted');
+  o('debug', 'inside markComputeTaskDone, the computeTaskInPending is,', computeTaskInPending);
+  
   const taskOwnerHasGotResult = ()=>{
     if(! taskOwner)
       return false;

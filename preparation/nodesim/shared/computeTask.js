@@ -165,7 +165,7 @@ exports.sendComputeTaskRaDone = (taskCid, result=true)=>{
     monitorName: global.userInfo.userName,
     executorName: global.nodeSimCache.computeTaskPeersMgr.getExecutorName(taskCid),
     taskCid,
-    myVrfProof,
+    myVrfProof:global.nodeSimCache.computeTaskPeersMgr.getMyVrfProofInfo(taskCid),
     result
   }
   global.broadcastEvent.emit('taskRoom', JSON.stringify(computeTaskRaDoneObj));
@@ -174,7 +174,7 @@ exports.sendComputeTaskRaDone = (taskCid, result=true)=>{
 
 exports.computeTaskOwnerConfirmationDone = (taskCid, result = true)=>{
   const computeTaskOwnerConfirmationDoneObj = {
-    txType:'computeTaskExecutionDone',
+    txType:'computeTaskOwnerConfirmationDone',
     taskOwnerName: global.userInfo.userName,
     executorName: global.nodeSimCache.computeTaskPeersMgr.getExecutorName(taskCid),
     taskCid,

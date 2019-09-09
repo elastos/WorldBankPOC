@@ -6,7 +6,8 @@ import blockRoomHandler from './blockRoomHandler';
 
 exports.ipfsInit = async (swarmUrlOption)=>{
   console.log('swarmUrlOption:|', swarmUrlOption, '|');
-  const swarmUrl = swarmUrlOption == 'local'? '/ip4/127.0.0.1/tcp/9090/ws/p2p-websocket-star': swarmUrlOption;
+  //const swarmUrl = swarmUrlOption == 'local'? '/ip4/127.0.0.1/tcp/9090/ws/p2p-websocket-star': swarmUrlOption;
+  const swarmUrl = swarmUrlOption == 'public'? '/dns4/ws-star.discovery.libp2p.io/tcp/443/wss/p2p-websocket-star': swarmUrlOption;
   
   console.log('swarmUrl:|', swarmUrl, '|');
   const ipfs = await IPFS.create({
@@ -55,7 +56,5 @@ exports.pubsubInit = async (ipfs, roomNamePostfix, rpcEvent, broadcastEvent)=>{
     broadcastEvent.on('taskRoom', (m)=>taskRoom.broadcast(m));
     broadcastEvent.on('blockRoom', (m)=>blockRoom.broadcast(m));  
   }
-  
   return {townHall, taskRoom, blockRoom}
-
 }

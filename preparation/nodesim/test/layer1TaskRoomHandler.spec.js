@@ -11,7 +11,7 @@ chai.use(chaiAsPromised);
 import {markComputeTaskDoneIfAllRaCompleted} from '../layerOne/taskRoomMessageHandler';
 
 describe.only('markComputeTaskDoneIfAllRaCompleted', ()=>{
-  it('It has to have taskOwner, executor, monitors. return undefined if any of them missing', ()=>{
+  it.skip('It has to have taskOwner, executor, monitors. return undefined if any of them missing', ()=>{
     let computeTaskInPending = {
 
     };
@@ -32,43 +32,63 @@ describe.only('markComputeTaskDoneIfAllRaCompleted', ()=>{
     const computeTaskInPending = {
       type: 'computeTaskStart',
       initiator: 'user #5',
-      initiatorPeerId: 'QmTuQw9NosJid1NTkUKYJdTBHFRriNDaNA5obtazGyHp86',
+      initiatorPeerId: 'Qmcpedsrkpz87cgcbJE3snsugJ7K86zCGZjJyHoihbGfJP',
       lambdaOwnerName: 'user #4',
-      lambdaOwnerPeerId: 'QmW39cfRsUJ1rcqQHuGNcm2tQzFgMprFqMqBnGxTKWmJ6c',
-      startBlockHeight: 2,
+      lambdaOwnerPeerId: 'QmbKXudJnZTy5dx3ADsSdmd4YaujohpqNpyaHADbnSFngw',
+      startBlockHeight: 1,
       followUps: [
         {
           txType: 'computeTaskWinnerApplication',
-          ipfsPeerId: 'Qma8wRkeXeYtE3RQfqFDGjsKCEqXR5CGxfmRxvus9aULcs',
-          blockHeightWhenVRF: 2,
-          peerId: 'Qma8wRkeXeYtE3RQfqFDGjsKCEqXR5CGxfmRxvus9aULcs'
+          ipfsPeerId: 'Qmc3swMSRi7cpr8P9SLyeXkwyULNKKaQvJFyqz1H1ywkGz',
+          blockHeightWhenVRF: 1,
+          peerId: 'Qmc3swMSRi7cpr8P9SLyeXkwyULNKKaQvJFyqz1H1ywkGz'
         },
         {
           txType: 'computeTaskWinnerApplication',
-          ipfsPeerId: 'QmbotokQdnL7DyY8bFV1xdVFPRupxJoWq8zQbLSWXxhJva',
-          blockHeightWhenVRF: 2,
-          peerId: 'QmbotokQdnL7DyY8bFV1xdVFPRupxJoWq8zQbLSWXxhJva'
+          ipfsPeerId: 'QmYtDFtJB2BBifKAVoe3ByA632u4n784ywnYmoj4ZUPCgK',
+          blockHeightWhenVRF: 1,
+          peerId: 'QmYtDFtJB2BBifKAVoe3ByA632u4n784ywnYmoj4ZUPCgK'
         },
         {
           txType: 'computeTaskWinnerApplication',
-          ipfsPeerId: 'QmVmtb69Pumi7G7VGAwRMCcpqrUjiYSYupb2fF6nabpibV',
-          blockHeightWhenVRF: 2,
-          peerId: 'QmVmtb69Pumi7G7VGAwRMCcpqrUjiYSYupb2fF6nabpibV'
+          ipfsPeerId: 'QmPeXVhC4QDaxPSgY2FqC7ioi8EiWkpWSX6bZudiB9cG3d',
+          blockHeightWhenVRF: 1,
+          peerId: 'QmPeXVhC4QDaxPSgY2FqC7ioi8EiWkpWSX6bZudiB9cG3d'
         }
       ],
       result: {
+        taskOwner: {
+          userName: 'user #5',
+          executorName: 'user #1',
+          result: true,
+          peerId: 'Qmcpedsrkpz87cgcbJE3snsugJ7K86zCGZjJyHoihbGfJP'
+        },
         executor: {
-          userName: 'user #0',
-          vrfProof: [Object],
-          peerId: 'QmbotokQdnL7DyY8bFV1xdVFPRupxJoWq8zQbLSWXxhJva'
+          userName: 'user #1',
+          vrfProof: 'something',
+          peerId: 'QmPeXVhC4QDaxPSgY2FqC7ioi8EiWkpWSX6bZudiB9cG3d'
         },
         monitors: {
-          QmVmtb69Pumi7G7VGAwRMCcpqrUjiYSYupb2fF6nabpibV: [Object],
-          Qma8wRkeXeYtE3RQfqFDGjsKCEqXR5CGxfmRxvus9aULcs: [Object]
+          QmYtDFtJB2BBifKAVoe3ByA632u4n784ywnYmoj4ZUPCgK: {
+            monitorUserName: 'user #3' ,
+            executorName: 'user #1',
+            vrfProof : 'myVrfProof',
+          },
+          QmYtDFtJB2BBifKAVoe3ByA632u4n784ywnYmoj4ZUPCgK: {
+            peerId: 'QmVmtb69Pumi7G7VGAwRMCcpqrUjiYSYupb2fF6nabpibV',
+            raResult: true,
+          },
+          Qmc3swMSRi7cpr8P9SLyeXkwyULNKKaQvJFyqz1H1ywkGz: {
+            monitorUserName: 'user #2' ,
+            executorName: 'user #0',
+            vrfProof : 'myVrfProof',
+            peerId: 'Qmc3swMSRi7cpr8P9SLyeXkwyULNKKaQvJFyqz1H1ywkGz',
+            raResult: true,
+          }
         }
       }
-    
-    }
+    };
+  
 
     const ret = markComputeTaskDoneIfAllRaCompleted(computeTaskInPending);
     console.log(ret);

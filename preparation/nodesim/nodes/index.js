@@ -84,7 +84,8 @@ const getOptions = ()=>{
       ],
       description:'Local, default or an IPFS swarm URL',
       type:'string',
-      default:'/dns4/ws-star.discovery.libp2p.io/tcp/443/wss/p2p-websocket-star',
+      //default:'/dns4/ws-star.discovery.libp2p.io/tcp/443/wss/p2p-websocket-star',
+      default:'/ip4/127.0.0.1/tcp/9090/ws/p2p-websocket-star',
     })
     .options('randRoomPostfix', {
       alias:[

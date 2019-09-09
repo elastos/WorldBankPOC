@@ -38,7 +38,7 @@ inquirer.prompt([
     {
       type:'input',
       name:'swarmUrl',
-      message:'IP address of your IPFS swarm server. Or type "local" for 127.0.0.1. If leave it blank the defalt is /dns4/127.0.0.1/tcp/9090/wss/p2p-websocket-star',
+      message:'IP address of your IPFS swarm server. Or type "public" for IPFS free server. If leave it blank the defalt is /dns4/127.0.0.1/tcp/9090/wss/p2p-websocket-star',
       default:()=>{
         return '';
       }
@@ -62,10 +62,10 @@ inquirer.prompt([
   ]
 ).then(answers => {
   let swarmUrl;
-  if(answers['swarmUrl'] == 'local'){
-    swarmUrl = '/ip4/127.0.0.1/tcp/9090/ws/p2p-websocket-star';
-  }else if(answers['swarmUrl'] == ''){
+  if(answers['swarmUrl'] == 'public'){
     swarmUrl = '/dns4/ws-star.discovery.libp2p.io/tcp/443/wss/p2p-websocket-star';
+  }else if(answers['swarmUrl'] == ''){
+    swarmUrl = '/ip4/127.0.0.1/tcp/9090/ws/p2p-websocket-star';
   }else{
     swarmUrl = '/ip4/' + answers['swarmUrl'] + '/tcp/9090/ws/p2p-websocket-star';
   }

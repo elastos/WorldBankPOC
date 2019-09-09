@@ -4,9 +4,11 @@
   "description": "",
   "author": "Kevin G Zhang",
   "license": "Apache 2.0",
+  
   "scripts": {
-    "start": "node --require @babel/register ./nodes -s local",
-    "debug": "node --inspect=127.0.0.1:9239 --require @babel/register ./nodes -s local",
+    "start": "node --require @babel/register ./nodes",
+    "dev": "nodemon --require @babel/register ./nodes",
+    "debug": "node --inspect=127.0.0.1:9239 --require @babel/register ./nodes",
     "test": "mocha --timeout 15000 --exit --require @babel/register --require reify",
     "layer1": "node --require @babel/register ./layerOne",
     "debug:layer1": "node --inspect --require @babel/register ./layerOne",
@@ -51,6 +53,7 @@
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "mocha": "^6.2.0",
+    "nodemon": "^1.19.2",
     "reify": "^0.20.12"
   }
 }

@@ -385,7 +385,7 @@ const rpcDirectHandler = {
       });
       o('debug', `I am task Owner. I response executor's request back Great Job`);
       computeTaskOwnerConfirmationDone(taskCid);
-      
+      o('debug', 'done: computeTaskOwnerConfirmationDone');
     }
     else if(ComputeTaskRoles.executeGroupMember == global.nodeSimCache.computeTaskPeersMgr.checkMyRoleInTask(taskCid)){
       if(global.nodeSimCache.computeTaskPeersMgr.getExecutorName(taskCid) == global.userInfo.userName){
@@ -421,3 +421,4 @@ exports.messageHandler = (message)=>{
     o('debug', 'unhandled townhall message', message);
   }
 }
+
