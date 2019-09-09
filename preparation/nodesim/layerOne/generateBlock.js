@@ -207,6 +207,75 @@ const runCreditNormalization = (creditMapInput, maxCredit)=>{
 const settleComputeTask = async (ipfs, globalState, taskCid)=>{
   console.log("gasMap before settleComputeTask,", globalState.gasMap);
   
+  const moreThanHalfCreditOfMonitorsAgreeTheExecutor = ()=>{
+    let agreeCredit = 0;
+    let disagreeCredit = 0;
+    
+    const agreeMonitors = [];
+    const disagreeMonitors = [];
+    for(var m in monitors){
+      const thisMonitorCredit = globalState.creditMap[m.monitorUserName];
+      if(executor.userName == m.executorName && m.raResult == true){
+        agreeCredit += thisMonitorCredit;
+        agreeMonitors.push(m);
+      }else{
+        disagreeCredit += thisMonitorCredit;
+        disagreeMonitors.push(m);
+      }
+    };
+    const totalPotentialMonitorCredit = computeTaskInPending.followUps.reduce((total, f)=>{
+      const peerId = f.peerId;
+      if(monitor[peerId]){
+        const thisMonitorUsername = monitor[peerId].monitorUserName
+        thisMonitorCredit = globalState.creditMap[thisMonitorUsername];
+        return total + thisMonitorCredit;
+      }else{
+        /** this peer is not in the monitor list. that means he is either absent or not response yet */
+        return total;
+      }
+      
+    }, 0);
+
+    if(agreeCredit >= totalPotentialMonitorCredit/2){
+      return {
+        executorGotConsensus: true,
+        agreeCredit,
+        disagreeCredit,
+        totalPotentialMonitorCredit,
+        agreeMonitors,
+        disagreeMonitors
+      };
+    }
+    else if(disagreeCredit >= totalPotentialMonitorCredit/2){
+      return {
+        executorGotConsensus: false,
+        agreeCredit,
+        disagreeCredit,
+        totalPotentialMonitorCredit,
+        agreeMonitors,
+        disagreeMonitors
+      };
+    }else{
+      /**** We have not got consensus yet, need to wait to next block or eventually timed out */
+      return {
+        executorGotConsensus: undefined,
+        agreeCredit,
+        disagreeCredit,
+        totalPotentialMonitorCredit,
+        agreeMonitors,
+        disagreeMonitors
+      };
+    }
+  }
+  const moreThanHalfCreditOfMonitorsAgreeTheExecutorResult = moreThanHalfCreditOfMonitorsAgreeTheExecutor();
+  if(typeof moreThanHalfCreditOfMonitorsAgreeTheExecutorResult.executorGotConsensus == 'undefined'){
+    return;
+  }
+  
+  computeTaskInPending.type = 'computeTaskDone';
+  computeTaskInPending.consensus = moreThanHalfCreditOfMonitorsAgreeTheExecutorResult;
+  return computeTaskInPending;
+};
   // const taskInPending = globalState.pendingTasks[taskCid];
   // const {followUps} = taskInPending;
   // const executor = chooseExecutorAndMonitors(taskInPending);
@@ -245,6 +314,5 @@ const settleComputeTask = async (ipfs, globalState, taskCid)=>{
   // }
   // console.log("gasMap after settleComputeTask,", globalState.gasMap);
   
-  return true;
-}
+
 exports.runCreditNormalization = runCreditNormalization;

@@ -16,6 +16,7 @@ exports.minBlockDelayRequiredBeforeComputeStart = 1;
 exports.mBlockDelayRequiredBeforeComputeStart = 3;
 exports.minComputeGroupMembersToStartCompute = 2;
 exports.maxBlockDelayRequiredBeforeComputeStart = 3;
+exports.howManyBlockToWaitAfterComputeTaskCompletedBeforeForceSettlement = 2;
 exports.ComputeTaskRoles = {
   taskOwner:'taskOwner',
   lambdaOwner:'lambdaOwner',

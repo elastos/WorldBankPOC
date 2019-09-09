@@ -1,5 +1,5 @@
 import {tryParseJson, minimalNewNodeJoinRaDeposit, expectNumberOfRemoteAttestatorsToBeVoted
-  ,minComputeGroupMembersToStartCompute } from '../shared/constValue'
+  ,minComputeGroupMembersToStartCompute, howManyBlockToWaitAfterComputeTaskCompletedBeforeForceSettlement } from '../shared/constValue'
 import {sha256} from 'js-sha256';
 import { ecvrf, sortition} from 'vrf.js';
 import Big from 'big.js';
@@ -29,8 +29,7 @@ export default async (m)=>{
   if(typeof func == 'function'){
     try{
       const newGlobalState = await func(globalState, messageObj, m.from);
-      if(! newGlobalState)
-        throw "newGlobalState is null. It should be throw inside func, not here";
+      
       newGlobalState.processedTxs.push(messageObj);
       if(newGlobalState)
         global.globalState = newGlobalState;
@@ -74,11 +73,12 @@ const computeTaskRaDone = ( globalState, messageObj, from)=>{
     peerId: from,
     raResult
   }
-  const r = markComputeTaskDoneIfAllRaCompleted(globalState.pendingTasks[taskCid]);
+  const r = markComputeTaskDoneIfAllRaCompleted(computeTaskInPending, globalState.blockHeight);
   if(r){
-    globalState.pendingTasks[taskCid] = r;
+    computeTaskInPending.type = 'computeTaskDone';
+    return globalState;
   }
-  return globalState;
+  return;
 };
 const computeTaskExecutionDone = ( globalState, messageObj, from)=>{
   // {
@@ -95,12 +95,13 @@ const computeTaskExecutionDone = ( globalState, messageObj, from)=>{
     vrfProof : myVrfProof,
     peerId: from
   }
-  
-  const r = markComputeTaskDoneIfAllRaCompleted(globalState.pendingTasks[taskCid]);
+  computeTaskInPending.blockHeightWhenExecutionCompleted = globalState.blockHeight;
+  const r = markComputeTaskDoneIfAllRaCompleted(computeTaskInPending, globalState.blockHeight);
   if(r){
-    globalState.pendingTasks[taskCid] = r;
+    computeTaskInPending.type = 'computeTaskDone';
+    return globalState;
   }
-  return globalState;
+  return;
 }
 
 const computeTaskOwnerConfirmationDone = ( globalState, messageObj, from)=>{
@@ -121,27 +122,28 @@ const computeTaskOwnerConfirmationDone = ( globalState, messageObj, from)=>{
     peerId: from
   }
   o('debug', 'computeTaskInPending.result.taskOwner = ', computeTaskInPending.result);
-  const r = markComputeTaskDoneIfAllRaCompleted(globalState.pendingTasks[taskCid]);
+  const r = markComputeTaskDoneIfAllRaCompleted(computeTaskInPending, globalState.blockHeight);
   if(r){
-    globalState.pendingTasks[taskCid] = r;
+    computeTaskInPending.type = 'computeTaskDone';
+    return globalState;
   }
-  return globalState;
+  return;
 }
 
-const markComputeTaskDoneIfAllRaCompleted = (computeTaskInPending)=>{
-  if(! computeTaskInPending)  return;
-  if(! computeTaskInPending.result) return;
+const markComputeTaskDoneIfAllRaCompleted = (computeTaskInPending, currentBlockHeight)=>{
+  if(! computeTaskInPending)  return false;
+  if(! computeTaskInPending.result) return false;
   const {taskOwner, executor, monitors} = computeTaskInPending.result;
-  if(! taskOwner) return o('log', 'missing taskOwner in markComputeTaskDoneIfAllRaCompleted');
-  if(! monitors) return o('log', 'missing monitor in markComputeTaskDoneIfAllRaCompleted');
-  if(! executor) return o('log', 'missing executor in markComputeTaskDoneIfAllRaCompleted');
-  if(Object.keys(monitors).length < minComputeGroupMembersToStartCompute)  return o('log', 'Monitors are not enough in markComputeTaskDoneIfAllRaCompleted');
+  if(! taskOwner) return false;//o('log', 'missing taskOwner in markComputeTaskDoneIfAllRaCompleted');
+  if(! monitors) return  false;//o('log', 'missing monitor in markComputeTaskDoneIfAllRaCompleted');
+  if(! executor) return  false;//o('log', 'missing executor in markComputeTaskDoneIfAllRaCompleted');
+  if(Object.keys(monitors).length < minComputeGroupMembersToStartCompute)  return false;//o('log', 'Monitors are not enough in markComputeTaskDoneIfAllRaCompleted');
   o('debug', 'inside markComputeTaskDone, the computeTaskInPending is,', computeTaskInPending);
   
   const taskOwnerHasGotResult = ()=>{
     if(! taskOwner)
       return false;
-    if(taskOwner.taskResult == true)
+    if(taskOwner.result == true)
       return true;
 
     else
@@ -149,77 +151,29 @@ const markComputeTaskDoneIfAllRaCompleted = (computeTaskInPending)=>{
   }
 
   if(! taskOwnerHasGotResult())
-    return;
+    return false;
 
-  const moreThanHalfCreditOfMonitorsAgreeTheExecutor = ()=>{
-    let agreeCredit = 0;
-    let disagreeCredit = 0;
-    
-    const agreeMonitors = [];
-    const disagreeMonitors = [];
-    for(var m in monitors){
-      const thisMonitorCredit = globalState.creditMap[m.monitorUserName];
-      if(executor.userName == m.executorName && m.raResult == true){
-        agreeCredit += thisMonitorCredit;
-        agreeMonitors.push(m);
-      }else{
-        disagreeCredit += thisMonitorCredit;
-        disagreeMonitors.push(m);
-      }
-    };
-    const totalPotentialMonitorCredit = computeTaskInPending.followUps.reduce((total, f)=>{
-      const peerId = f.peerId;
-      if(monitor[peerId]){
-        const thisMonitorUsername = monitor[peerId].monitorUserName
-        thisMonitorCredit = globalState.creditMap[thisMonitorUsername];
-        return total + thisMonitorCredit;
-      }else{
-        /** this peer is not in the monitor list. that means he is either absent or not response yet */
-        return total;
-      }
-      
-    }, 0);
+  const enoughMonitorsSentRaConfirmation = ()=>{
+    if(Object.keys(monitors).length >= computeTaskInPending.followUps.length - 1)  
+      return true;
+    else
+      return false;
+  }
 
-    if(agreeCredit >= totalPotentialMonitorCredit/2){
-      return {
-        executorGotConsensus: true,
-        agreeCredit,
-        disagreeCredit,
-        totalPotentialMonitorCredit,
-        agreeMonitors,
-        disagreeMonitors
-      };
+  const haveBeenWaitLongEnough = ()=>{
+    if( computeTaskInPending.result.blockHeightWhenExecutionCompleted < howManyBlockToWaitAfterComputeTaskCompletedBeforeForceSettlement + currentBlockHeight){
+      return true;
     }
-    else if(disagreeCredit >= totalPotentialMonitorCredit/2){
-      return {
-        executorGotConsensus: false,
-        agreeCredit,
-        disagreeCredit,
-        totalPotentialMonitorCredit,
-        agreeMonitors,
-        disagreeMonitors
-      };
-    }else{
-      /**** We have not got consensus yet, need to wait to next block or eventually timed out */
-      return {
-        executorGotConsensus: undefined,
-        agreeCredit,
-        disagreeCredit,
-        totalPotentialMonitorCredit,
-        agreeMonitors,
-        disagreeMonitors
-      };
-    }
+    else
+      return false
   }
-  const moreThanHalfCreditOfMonitorsAgreeTheExecutorResult = moreThanHalfCreditOfMonitorsAgreeTheExecutor();
-  if(typeof moreThanHalfCreditOfMonitorsAgreeTheExecutorResult.executorGotConsensus == 'undefined'){
-    return;
-  }
+
+  if((haveBeenWaitLongEnough() == false) 
+    && (enoughMonitorsSentRaConfirmation() == false))  return false;
   
-  computeTaskInPending.type = 'computeTaskDone';
-  computeTaskInPending.consensus = moreThanHalfCreditOfMonitorsAgreeTheExecutorResult;
-  return computeTaskInPending;
-};
+  return true;
+}
+
 
 exports.markComputeTaskDoneIfAllRaCompleted = markComputeTaskDoneIfAllRaCompleted;
 

@@ -57,6 +57,7 @@ describe.only('markComputeTaskDoneIfAllRaCompleted', ()=>{
         }
       ],
       result: {
+        blockHeightWhenExecutionCompleted: 4,
         taskOwner: {
           userName: 'user #5',
           executorName: 'user #1',
@@ -66,7 +67,8 @@ describe.only('markComputeTaskDoneIfAllRaCompleted', ()=>{
         executor: {
           userName: 'user #1',
           vrfProof: 'something',
-          peerId: 'QmPeXVhC4QDaxPSgY2FqC7ioi8EiWkpWSX6bZudiB9cG3d'
+          peerId: 'QmPeXVhC4QDaxPSgY2FqC7ioi8EiWkpWSX6bZudiB9cG3d',
+          
         },
         monitors: {
           QmYtDFtJB2BBifKAVoe3ByA632u4n784ywnYmoj4ZUPCgK: {
@@ -90,7 +92,7 @@ describe.only('markComputeTaskDoneIfAllRaCompleted', ()=>{
     };
   
 
-    const ret = markComputeTaskDoneIfAllRaCompleted(computeTaskInPending);
+    const ret = markComputeTaskDoneIfAllRaCompleted(computeTaskInPending, 5);
     console.log(ret);
   })
   
