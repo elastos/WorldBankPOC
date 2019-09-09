@@ -32,43 +32,42 @@ describe.only('markComputeTaskDoneIfAllRaCompleted', ()=>{
     const computeTaskInPending = {
       type: 'computeTaskStart',
       initiator: 'user #5',
-      initiatorPeerId: 'QmPeaM9PaLP1fK7GbdpmNVUEev59tKxKWubAMC7c6TE2VB',
+      initiatorPeerId: 'QmTuQw9NosJid1NTkUKYJdTBHFRriNDaNA5obtazGyHp86',
       lambdaOwnerName: 'user #4',
-      lambdaOwnerPeerId: 'QmeFz2NvHF5zh5K5bsPyd3jHjHaiKwnEdSReyXdr8ubpwo',
+      lambdaOwnerPeerId: 'QmW39cfRsUJ1rcqQHuGNcm2tQzFgMprFqMqBnGxTKWmJ6c',
       startBlockHeight: 2,
       followUps: [
         {
           txType: 'computeTaskWinnerApplication',
-          ipfsPeerId: 'QmcbQ9mBHqQtH5Cx3XuEa9KPcKnLVEXECnvCbaTq91uwFj',
+          ipfsPeerId: 'Qma8wRkeXeYtE3RQfqFDGjsKCEqXR5CGxfmRxvus9aULcs',
           blockHeightWhenVRF: 2,
-          peerId: 'QmcbQ9mBHqQtH5Cx3XuEa9KPcKnLVEXECnvCbaTq91uwFj'
+          peerId: 'Qma8wRkeXeYtE3RQfqFDGjsKCEqXR5CGxfmRxvus9aULcs'
         },
         {
           txType: 'computeTaskWinnerApplication',
-          ipfsPeerId: 'QmYkBecZGGXrhJ7UrPEUcPaKrPzAarm5R6qpSESteYP9XQ',
+          ipfsPeerId: 'QmbotokQdnL7DyY8bFV1xdVFPRupxJoWq8zQbLSWXxhJva',
           blockHeightWhenVRF: 2,
-          peerId: 'QmYkBecZGGXrhJ7UrPEUcPaKrPzAarm5R6qpSESteYP9XQ'
+          peerId: 'QmbotokQdnL7DyY8bFV1xdVFPRupxJoWq8zQbLSWXxhJva'
         },
         {
           txType: 'computeTaskWinnerApplication',
-          ipfsPeerId: 'QmaWc8cchspWjYDyZCMuNUX7kkR4off5AXXBmRdPbv3Y4E',
+          ipfsPeerId: 'QmVmtb69Pumi7G7VGAwRMCcpqrUjiYSYupb2fF6nabpibV',
           blockHeightWhenVRF: 2,
-          peerId: 'QmaWc8cchspWjYDyZCMuNUX7kkR4off5AXXBmRdPbv3Y4E'
-        },
-        {
-          txType: 'computeTaskWinnerApplication',
-          ipfsPeerId: 'QmPxPCcr9abX8czivRpCXDhEcLtBkBYkgu5pAzPw7nghuF',
-          blockHeightWhenVRF: 2,
-          peerId: 'QmPxPCcr9abX8czivRpCXDhEcLtBkBYkgu5pAzPw7nghuF'
+          peerId: 'QmVmtb69Pumi7G7VGAwRMCcpqrUjiYSYupb2fF6nabpibV'
         }
       ],
       result: {
         executor: {
-          userName: 'user #2',
-          vrfProof: undefined,
-          peerId: 'QmPeaM9PaLP1fK7GbdpmNVUEev59tKxKWubAMC7c6TE2VB'
+          userName: 'user #0',
+          vrfProof: [Object],
+          peerId: 'QmbotokQdnL7DyY8bFV1xdVFPRupxJoWq8zQbLSWXxhJva'
+        },
+        monitors: {
+          QmVmtb69Pumi7G7VGAwRMCcpqrUjiYSYupb2fF6nabpibV: [Object],
+          Qma8wRkeXeYtE3RQfqFDGjsKCEqXR5CGxfmRxvus9aULcs: [Object]
         }
       }
+    
     }
 
     const ret = markComputeTaskDoneIfAllRaCompleted(computeTaskInPending);
