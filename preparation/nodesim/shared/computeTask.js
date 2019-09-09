@@ -51,6 +51,8 @@ exports.executeCompute = async (taskCid)=>{
     computeTaskBuffer[taskCid].data = data;
     const result = executeIfParamsAreReady(computeTaskBuffer, taskCid);
     if(result){
+      sendComputeResultBackToTaskOwner(taskCid, result);
+      sendComputeExecutionDoneToMonitor(taskCid);
       sendComputeTaskExecutionDone(taskCid);
     }
   };
@@ -129,7 +131,7 @@ const sendComputeResultBackToTaskOwner = (taskCid, result)=>{
     message:JSON.stringify(reqComputeCompleted),
     responseCallBack: reqComputeCompletedCallBack
   })
-  o('debug', `I have done the task execution. i send reqComputeComplete to the task owner peer:${sendToPeerId}, waiting for response.`);
+  o('debug', `I have done the task execution. i send reqComputeComplete to the task owner peer:${taskOwnerPeerId}, waiting for response.`);
 };
 
 const sendComputeExecutionDoneToMonitor = (taskCid)=>{

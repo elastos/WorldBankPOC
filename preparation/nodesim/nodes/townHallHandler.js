@@ -18,12 +18,17 @@ exports.rpcDirect = (message) => {
     return console.log("townHallMessageHandler received non-parsable message, ", messageString);
   
   const handlerFunction = rpcDirectHandler[messageObj.type];
-  if(typeof handlerFunction == 'function'){
-    handlerFunction({from:message.from, guid:message.guid, messageObj})();
-    return
+  try {
+      if(typeof handlerFunction == 'function'){
+      handlerFunction({from:message.from, guid:message.guid, messageObj});
+      return
+    }
+    else{
+      return console.log("townHallMessageHandler received unknown type message object,", messageObj );
+    }
   }
-  else{
-    return console.log("townHallMessageHandler received unknown type message object,", messageObj );
+  catch(e){
+    return console.error('executing handlerFunction inside townhall has exception:', e);
   }
 }
 
@@ -47,7 +52,7 @@ exports.rpcResponse =  (room)=>(args)=>{
 }
 
 const rpcDirectHandler = {
-  reqUserInfo: ({from, guid})=>()=>{
+  reqUserInfo: ({from, guid})=>{
     const resMessage = {
       type:'requestRandomUserInfo',
     };
@@ -83,7 +88,7 @@ const rpcDirectHandler = {
 
     //o('log', `send back reqUserInfo to townhall manager using RPC response`, {resMessage, guid: message.guid});
   },
-  simulatorRequestAction:({from, guid, messageObj})=> async ()=>{
+  simulatorRequestAction: async ({from, guid, messageObj})=>{
 
     console.log('from simulator request action,', messageObj);
 
@@ -110,7 +115,7 @@ const rpcDirectHandler = {
 
     console.log("send back to simulatorRequestAction requestor:")
   },
-  reqRemoteAttestation: ({from, guid, messageObj})=> async ()=>{//Now I am new node, sending back poT after validate the remote attestation is real
+  reqRemoteAttestation: async ({from, guid, messageObj})=>{//Now I am new node, sending back poT after validate the remote attestation is real
     const { j, proof, value, taskCid, publicKey, userName, blockHeightWhenVRF} = messageObj;
     const validateReturn = await validateRemoteAttestationVrf({ipfs, j, proof, value, blockCid:global.blockMgr.getBlockCidByHeight(blockHeightWhenVRF), taskCid, publicKey, userName});
 
@@ -151,7 +156,7 @@ const rpcDirectHandler = {
     return;
   },
 
-  reqTaskParams: ({from, guid, messageObj})=>()=>{
+  reqTaskParams: ({from, guid, messageObj})=>{
     console.log('I have got a request for reqTaskParams, messageObj', messageObj);
     
     const mayDelayExecuteDueToBlockDelay = (messageObj)=>{
@@ -195,7 +200,7 @@ const rpcDirectHandler = {
     mayDelayExecuteDueToBlockDelay(messageObj)
     
   },
-  reqLambdaParams: ({from, guid, messageObj})=>()=>{
+  reqLambdaParams: ({from, guid, messageObj})=>{
     console.log('I have got a request for Lambda Params reqLambdaParams, messageObj', messageObj);
     const mayDelayExecuteDueToBlockDelay = (messageObj)=>{
       
@@ -234,7 +239,7 @@ const rpcDirectHandler = {
     mayDelayExecuteDueToBlockDelay(messageObj);
     
   },
-  reqVerifyPeerVrfForComputeTasks: ({from, guid, messageObj})=>()=>{
+  reqVerifyPeerVrfForComputeTasks: ({from, guid, messageObj})=>{
     //o('debug', `I have got other peer sending me his vrf for compute task and ask mine. `, messageObj)
 
     const handleReqVerifyPeerReRunable = async (messageObj)=>{
@@ -370,7 +375,7 @@ const rpcDirectHandler = {
 
   },
 
-  reqComputeCompleted: ({from, guid, messageObj})=>()=>{
+  reqComputeCompleted: ({from, guid, messageObj})=>{
     const {taskCid, result} = messageObj;
     if( ComputeTaskRoles.taskOwner == global.nodeSimCache.computeTaskPeersMgr.checkMyRoleInTask(taskCid)){
       global.rpcEvent.emit('rpcResponse', {
@@ -383,7 +388,7 @@ const rpcDirectHandler = {
       
     }
     else if(ComputeTaskRoles.executeGroupMember == global.nodeSimCache.computeTaskPeersMgr.checkMyRoleInTask(taskCid)){
-      if(getExecutorName(taskCid) == global.userInfo.userName){
+      if(global.nodeSimCache.computeTaskPeersMgr.getExecutorName(taskCid) == global.userInfo.userName){
         /**** I am the executor, i do not need to handle this message */
       }else{
         global.rpcEvent.emit('rpcResponse', {
