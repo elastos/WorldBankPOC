@@ -1,4 +1,5 @@
-import {tryParseJson, minimalNewNodeJoinRaDeposit, expectNumberOfRemoteAttestatorsToBeVoted} from '../shared/constValue'
+import {tryParseJson, minimalNewNodeJoinRaDeposit, expectNumberOfRemoteAttestatorsToBeVoted
+  ,minComputeGroupMembersToStartCompute } from '../shared/constValue'
 import {sha256} from 'js-sha256';
 import { ecvrf, sortition} from 'vrf.js';
 import Big from 'big.js';
@@ -73,7 +74,7 @@ const computeTaskRaDone = ( globalState, messageObj, from)=>{
     peerId: from,
     raResult
   }
-  markComputeTaskDoneIfAllRaCompleted(taskCid);
+  markComputeTaskDoneIfAllRaCompleted(taskCid, globalState);
   return globalState;
 };
 const computeTaskExecutionDone = ( globalState, messageObj, from)=>{
@@ -92,7 +93,7 @@ const computeTaskExecutionDone = ( globalState, messageObj, from)=>{
     peerId: from
   }
   
-  markComputeTaskDoneIfAllRaCompleted(taskCid);
+  markComputeTaskDoneIfAllRaCompleted(taskCid, globalState);
   return globalState;
 }
 
@@ -113,12 +114,102 @@ const computeTaskOwnerConfirmationDone = ( globalState, messageObj, from)=>{
     peerId: from
   }
   
-  markComputeTaskDoneIfAllRaCompleted(taskCid);
+  markComputeTaskDoneIfAllRaCompleted(taskCid, globalState);
   return globalState;
 }
 
-const markComputeTaskDoneIfAllRaCompleted = ()=>{
+const markComputeTaskDoneIfAllRaCompleted = (taskCid, globalState)=>{
   //globalState.pendingTasks[taskCid].type = 'computeTaskDone';
+  const computeTaskInPending = globalState.pendingTasks[taskCid];
+  if(! computeTaskInPending)  return;
+  o('debug', 'inside markComputeTaskDone, the computeTaskInPending.result is,', computeTaskInPending.result);
+  if(! computeTaskInPending.result) return;
+  const {taskOwner, executor, monitors} = computeTaskInPending.result;
+  if(! taskOwner) return;
+  if(! monitors) return;
+  if(! executor) return;
+  if(monitors.length < minComputeGroupMembersToStartCompute)  return;
+
+  const taskOwnerHasGotResult = ()=>{
+    if(! taskOwner)
+      return false;
+    if(taskOwner.taskResult == true)
+      return true;
+
+    else
+      return false;
+  }
+
+  if(! taskOwnerHasGotResult())
+    return;
+
+  const moreThanHalfCreditOfMonitorsAgreeTheExecutor = ()=>{
+    let agreeCredit = 0;
+    let disagreeCredit = 0;
+    
+    const agreeMonitors = [];
+    const disagreeMonitors = [];
+    monitors.forEach((m)=>{
+      const thisMonitorCredit = globalState.creditMap[m.monitorUserName];
+      if(executor.userName == m.executorName && m.raResult == true){
+        agreeCredit += thisMonitorCredit;
+        agreeMonitors.push(m);
+      }else{
+        disagreeCredit += thisMonitorCredit;
+        disagreeMonitors.push(m);
+      }
+    })
+    const totalPotentialMonitorCredit = computeTaskInPending.followUps.reduce((total, f)=>{
+      const peerId = f.peerId;
+      if(monitor[peerId]){
+        const thisMonitorUsername = monitor[peerId].monitorUserName
+        thisMonitorCredit = globalState.creditMap[thisMonitorUsername];
+        return total + thisMonitorCredit;
+      }else{
+        /** this peer is not in the monitor list. that means he is either absent or not response yet */
+        return total;
+      }
+      
+    }, 0);
+
+    if(agreeCredit >= totalPotentialMonitorCredit/2){
+      return {
+        executorGotConsensus: true,
+        agreeCredit,
+        disagreeCredit,
+        totalPotentialMonitorCredit,
+        agreeMonitors,
+        disagreeMonitors
+      };
+    }
+    else if(disagreeCredit >= totalPotentialMonitorCredit/2){
+      return {
+        executorGotConsensus: false,
+        agreeCredit,
+        disagreeCredit,
+        totalPotentialMonitorCredit,
+        agreeMonitors,
+        disagreeMonitors
+      };
+    }else{
+      /**** We have not got consensus yet, need to wait to next block or eventually timed out */
+      return {
+        executorGotConsensus: undefined,
+        agreeCredit,
+        disagreeCredit,
+        totalPotentialMonitorCredit,
+        agreeMonitors,
+        disagreeMonitors
+      };
+    }
+  }
+  const moreThanHalfCreditOfMonitorsAgreeTheExecutorResult = moreThanHalfCreditOfMonitorsAgreeTheExecutor();
+  if(typeof moreThanHalfCreditOfMonitorsAgreeTheExecutorResult.executorGotConsensus == 'undefined'){
+    return;
+  }
+  
+  globalState.pendingTasks[taskCid].type = 'computeTaskDone';
+  globalState.pendingTasks[taskCid].consensus = moreThanHalfCreditOfMonitorsAgreeTheExecutorResult;
 };
 
 const gasTransferProcess = async (globalState, messageObj)=>{

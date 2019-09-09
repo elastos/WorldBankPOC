@@ -1,6 +1,8 @@
 import {tryParseJson, o} from '../shared/utilities';
 import {validateRemoteAttestationVrf}  from '../shared/remoteAttestation';
 import {ComputeTaskRoles} from '../shared/constValue';
+import {computeTaskOwnerConfirmationDone, sendComputeTaskRaDone} from '../shared/computeTask';
+
 
 exports.peerJoined = (peer)=>console.log(`peer ${peer} joined`);
 exports.peerLeft = (peer)=>console.log(`peer ${peer} left`);
@@ -366,6 +368,35 @@ const rpcDirectHandler = {
     }
     handleReqVerifyPeerReRunable(messageObj);
 
+  },
+
+  reqComputeCompleted: ({from, guid, messageObj})=>()=>{
+    const {taskCid, result} = messageObj;
+    if( ComputeTaskRoles.taskOwner == global.nodeSimCache.computeTaskPeersMgr.checkMyRoleInTask(taskCid)){
+      global.rpcEvent.emit('rpcResponse', {
+        sendToPeerId: from, 
+        message : JSON.stringify({feedback:"Great Job!"}), 
+        guid
+      });
+      computeTaskOwnerConfirmationDone(taskCid);
+      
+    }
+    else if(ComputeTaskRoles.executeGroupMember == global.nodeSimCache.computeTaskPeersMgr.checkMyRoleInTask(taskCid)){
+      if(getExecutorName(taskCid) == global.userInfo.userName){
+        /**** I am the executor, i do not need to handle this message */
+      }else{
+        global.rpcEvent.emit('rpcResponse', {
+          sendToPeerId: from, 
+          message : JSON.stringify({feedback:"Great Job!"}), 
+          guid
+        });
+        sendComputeTaskRaDone(taskCid);
+      }
+    }
+    else{
+      o('error', 'I should be the task owner to receive reqComputeCompleted reqeust, but I am not. Something must be wrong');
+    }
+    
   }
 }
 

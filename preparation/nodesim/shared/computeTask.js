@@ -84,6 +84,8 @@ exports.executeCompute = async (taskCid)=>{
     console.log('computeTaskBuffer', computeTaskBuffer);
     const result = executeIfParamsAreReady(computeTaskBuffer, taskCid);
     if(result){
+      sendComputeResultBackToTaskOwner(taskCid, result);
+      sendComputeExecutionDoneToMonitor(taskCid);
       sendComputeTaskExecutionDone(taskCid);
     }
   };
@@ -106,9 +108,55 @@ const executeIfParamsAreReady = (computeTaskBuffer, taskCid)=>{
   }
   return null;
 }
-const sendComputeTaskRaDone = (taskCid, result=true)=>{
+
+const sendComputeResultBackToTaskOwner = (taskCid, result)=>{
+  const taskOwnerPeerId = global.nodeSimCache.computeTaskPeersMgr.getTaskOwnerPeer(taskCid);
+  const reqComputeCompleted = {
+    type: 'reqComputeCompleted',
+    taskCid,
+    result
+  };
+  const reqComputeCompletedCallBack = (res, err)=>{
+    if(err){
+      o('error', 'reqComputeCompleted get error response from taskOwner. err:', err);
+    }
+    if(res){
+      o('debug', 'I am executor. I have completed the compute task. i got this result from task owner:', res);
+    }
+  };
+  global.rpcEvent.emit('rpcRequest', {
+    sendToPeerId: taskOwnerPeerId,
+    message:JSON.stringify(reqComputeCompleted),
+    responseCallBack: reqComputeCompletedCallBack
+  })
+};
+
+const sendComputeExecutionDoneToMonitor = (taskCid)=>{
+  const monitorsPeers = global.nodeSimCache.computeTaskPeersMgr.getPeersInGroup(taskCid);
+  const reqComputeCompleted = {
+    type: 'reqComputeCompleted',
+    taskCid
+  };
+  const reqComputeCompletedFromMonitorCallBack = (res, err)=>{
+    if(err){
+      o('error', 'reqComputeCompleted get error response from remote attestator. err:', err);
+    }
+    if(res){
+      o('debug', 'I am executor. I have completed the compute task. i got this result from my remote attestator:', res);
+    }
+  };
+  monitorsPeers.forEach((sendToPeerId)=>{
+    global.rpcEvent.emit('rpcRequest', {
+      sendToPeerId,
+      message:JSON.stringify(reqComputeCompleted),
+      responseCallBack: reqComputeCompletedFromMonitorCallBack
+    });
+  });
+  
+};
+exports.sendComputeTaskRaDone = (taskCid, result=true)=>{
   const computeTaskRaDoneObj = {
-    txType:'computeTaskExecutionDone',
+    txType:'computeTaskRaDone',
     monitorName: global.userInfo.userName,
     executorName: global.nodeSimCache.computeTaskPeersMgr.getExecutorName(taskCid),
     taskCid,
@@ -119,7 +167,7 @@ const sendComputeTaskRaDone = (taskCid, result=true)=>{
   o('log', 'computer ra task done. send out broadcast in taskRoom');
 }
 
-const computeTaskOwnerConfirmationDone = (taskCid, result = true)=>{
+exports.computeTaskOwnerConfirmationDone = (taskCid, result = true)=>{
   const computeTaskOwnerConfirmationDoneObj = {
     txType:'computeTaskExecutionDone',
     taskOwnerName: global.userInfo.userName,
@@ -133,6 +181,8 @@ const computeTaskOwnerConfirmationDone = (taskCid, result = true)=>{
 
 
 const sendComputeTaskExecutionDone = (taskCid)=>{
+
+
   const computeTaskDoneObj = {
     txType:'computeTaskExecutionDone',
     executorName: global.userInfo.userName,
