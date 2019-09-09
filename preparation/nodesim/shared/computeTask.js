@@ -159,14 +159,14 @@ const sendComputeExecutionDoneToMonitor = (taskCid)=>{
   };
   
 };
-exports.sendComputeTaskRaDone = (taskCid, result=true)=>{
+exports.sendComputeTaskRaDone = (taskCid, raResult=true)=>{
   const computeTaskRaDoneObj = {
     txType:'computeTaskRaDone',
-    monitorName: global.userInfo.userName,
+    monitorUserName: global.userInfo.userName,
     executorName: global.nodeSimCache.computeTaskPeersMgr.getExecutorName(taskCid),
     taskCid,
     myVrfProof:global.nodeSimCache.computeTaskPeersMgr.getMyVrfProofInfo(taskCid),
-    result
+    raResult
   }
   global.broadcastEvent.emit('taskRoom', JSON.stringify(computeTaskRaDoneObj));
   o('log', 'computer ra task done. send out broadcast in taskRoom');

@@ -76,9 +76,9 @@ const computeTaskRaDone = ( globalState, messageObj, from)=>{
   const r = markComputeTaskDoneIfAllRaCompleted(computeTaskInPending, globalState.blockHeight);
   if(r){
     computeTaskInPending.type = 'computeTaskDone';
-    return globalState;
+    
   }
-  return;
+  return globalState;
 };
 const computeTaskExecutionDone = ( globalState, messageObj, from)=>{
   // {
@@ -99,9 +99,9 @@ const computeTaskExecutionDone = ( globalState, messageObj, from)=>{
   const r = markComputeTaskDoneIfAllRaCompleted(computeTaskInPending, globalState.blockHeight);
   if(r){
     computeTaskInPending.type = 'computeTaskDone';
-    return globalState;
+    
   }
-  return;
+  return globalState;
 }
 
 const computeTaskOwnerConfirmationDone = ( globalState, messageObj, from)=>{
@@ -125,9 +125,9 @@ const computeTaskOwnerConfirmationDone = ( globalState, messageObj, from)=>{
   const r = markComputeTaskDoneIfAllRaCompleted(computeTaskInPending, globalState.blockHeight);
   if(r){
     computeTaskInPending.type = 'computeTaskDone';
-    return globalState;
+    
   }
-  return;
+  return globalState;
 }
 
 const markComputeTaskDoneIfAllRaCompleted = (computeTaskInPending, currentBlockHeight)=>{
