@@ -79,13 +79,13 @@ const handlePendingComputeTask = (block)=>( taskCid)=>{
             if(block.pendingTasks[taskCid].initiatorPeerId == addedPeer){
               validationResult = true;
               otherPeerUserName = 'taskOwner';
-              global.nodeSimCache.computeTaskPeersMgr.setLambdaOwnerPeer(taskCid, addedPeer);
+              global.nodeSimCache.computeTaskPeersMgr.setTaskOwnerPeer(taskCid, addedPeer);
               return
             }
             else if(block.pendingTasks[taskCid].lambdaOwnerPeerId == addedPeer){
               validationResult = true;
               otherPeerUserName = 'lambdaOwner';
-              global.nodeSimCache.computeTaskPeersMgr.setTaskOwnerPeer(taskCid, addedPeer);
+              global.nodeSimCache.computeTaskPeersMgr.setLambdaOwnerPeer(taskCid, addedPeer);
               return
             }
             else

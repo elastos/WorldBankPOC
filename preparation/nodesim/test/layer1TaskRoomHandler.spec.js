@@ -17,17 +17,50 @@ describe('markComputeTaskDoneIfAllRaCompleted', ()=>{
     };
     const ret = markComputeTaskDoneIfAllRaCompleted(computeTaskInPending);
     expect(ret).to.be.undefined;
-    let computeTaskInPending = {
+    computeTaskInPending = {
       taskOwner:'something'
     };
     const ret = markComputeTaskDoneIfAllRaCompleted(computeTaskInPending);
     expect(ret).to.be.undefined;
-    let computeTaskInPending = {
+    computeTaskInPending = {
       taskOwner:'something'
     };
     const ret = markComputeTaskDoneIfAllRaCompleted(computeTaskInPending);
     expect(ret).to.be.undefined;
   })
-  
+  it('a normal pending task', ()=>{
+    const computeTaskInPending = {
+      type: 'computeTaskStart',
+      initiator: 'user #5',
+      initiatorPeerId: 'QmQb2wyRw9ET7VXqSvEfbxsmmg96e82H8dGUDjUpDbxmxv',
+      lambdaOwnerName: 'user #4',
+      lambdaOwnerPeerId: 'QmSh1yvaZoFA3YoETYrUCrAUrV8TLP9Tz9TMNTWeUHtYGa',
+      startBlockHeight: 2,
+      followUps: [
+        {
+          txType: 'computeTaskWinnerApplication',
+          ipfsPeerId: 'QmbNUFkGaeigYTcDqcJvn8SkZdUfZu9SnTgsopN1gud281',
+          blockHeightWhenVRF: 2,
+          peerId: 'QmbNUFkGaeigYTcDqcJvn8SkZdUfZu9SnTgsopN1gud281'
+        },
+        {
+          txType: 'computeTaskWinnerApplication',
+          ipfsPeerId: 'QmPsiXzYYrQH93kMBTczuLyVxoVgU8R6mBKchFUaDHw6sM',
+          blockHeightWhenVRF: 2,
+          peerId: 'QmPsiXzYYrQH93kMBTczuLyVxoVgU8R6mBKchFUaDHw6sM'
+        }
+      ],
+      result: {
+        executor: {
+          userName: 'user #2',
+          vrfProof: [Object],
+          peerId: 'QmPsiXzYYrQH93kMBTczuLyVxoVgU8R6mBKchFUaDHw6sM'
+        }
+      }
+    }
 
+    const ret = markComputeTaskDoneIfAllRaCompleted(computeTaskInPending);
+    console.log(ret);
+  })
+  
 });
