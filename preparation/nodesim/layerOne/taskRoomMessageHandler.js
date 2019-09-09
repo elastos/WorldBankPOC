@@ -129,13 +129,13 @@ const computeTaskOwnerConfirmationDone = ( globalState, messageObj, from)=>{
 
 const markComputeTaskDoneIfAllRaCompleted = (computeTaskInPending)=>{
   if(! computeTaskInPending)  return;
-  //o('debug', 'inside markComputeTaskDone, the computeTaskInPending is,', computeTaskInPending);
+  o('debug', 'inside markComputeTaskDone, the computeTaskInPending is,', computeTaskInPending);
   if(! computeTaskInPending.result) return;
   const {taskOwner, executor, monitors} = computeTaskInPending.result;
   if(! taskOwner) return;
   if(! monitors) return;
   if(! executor) return;
-  if(monitors.length < minComputeGroupMembersToStartCompute)  return;
+  if(Object.keys(monitors).length < minComputeGroupMembersToStartCompute)  return;
 
   const taskOwnerHasGotResult = ()=>{
     if(! taskOwner)
@@ -156,7 +156,7 @@ const markComputeTaskDoneIfAllRaCompleted = (computeTaskInPending)=>{
     
     const agreeMonitors = [];
     const disagreeMonitors = [];
-    monitors.forEach((m)=>{
+    for(var m in monitors){
       const thisMonitorCredit = globalState.creditMap[m.monitorUserName];
       if(executor.userName == m.executorName && m.raResult == true){
         agreeCredit += thisMonitorCredit;
@@ -165,7 +165,7 @@ const markComputeTaskDoneIfAllRaCompleted = (computeTaskInPending)=>{
         disagreeCredit += thisMonitorCredit;
         disagreeMonitors.push(m);
       }
-    })
+    };
     const totalPotentialMonitorCredit = computeTaskInPending.followUps.reduce((total, f)=>{
       const peerId = f.peerId;
       if(monitor[peerId]){

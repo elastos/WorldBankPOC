@@ -32,29 +32,41 @@ describe.only('markComputeTaskDoneIfAllRaCompleted', ()=>{
     const computeTaskInPending = {
       type: 'computeTaskStart',
       initiator: 'user #5',
-      initiatorPeerId: 'QmQb2wyRw9ET7VXqSvEfbxsmmg96e82H8dGUDjUpDbxmxv',
+      initiatorPeerId: 'QmPeaM9PaLP1fK7GbdpmNVUEev59tKxKWubAMC7c6TE2VB',
       lambdaOwnerName: 'user #4',
-      lambdaOwnerPeerId: 'QmSh1yvaZoFA3YoETYrUCrAUrV8TLP9Tz9TMNTWeUHtYGa',
+      lambdaOwnerPeerId: 'QmeFz2NvHF5zh5K5bsPyd3jHjHaiKwnEdSReyXdr8ubpwo',
       startBlockHeight: 2,
       followUps: [
         {
           txType: 'computeTaskWinnerApplication',
-          ipfsPeerId: 'QmbNUFkGaeigYTcDqcJvn8SkZdUfZu9SnTgsopN1gud281',
+          ipfsPeerId: 'QmcbQ9mBHqQtH5Cx3XuEa9KPcKnLVEXECnvCbaTq91uwFj',
           blockHeightWhenVRF: 2,
-          peerId: 'QmbNUFkGaeigYTcDqcJvn8SkZdUfZu9SnTgsopN1gud281'
+          peerId: 'QmcbQ9mBHqQtH5Cx3XuEa9KPcKnLVEXECnvCbaTq91uwFj'
         },
         {
           txType: 'computeTaskWinnerApplication',
-          ipfsPeerId: 'QmPsiXzYYrQH93kMBTczuLyVxoVgU8R6mBKchFUaDHw6sM',
+          ipfsPeerId: 'QmYkBecZGGXrhJ7UrPEUcPaKrPzAarm5R6qpSESteYP9XQ',
           blockHeightWhenVRF: 2,
-          peerId: 'QmPsiXzYYrQH93kMBTczuLyVxoVgU8R6mBKchFUaDHw6sM'
+          peerId: 'QmYkBecZGGXrhJ7UrPEUcPaKrPzAarm5R6qpSESteYP9XQ'
+        },
+        {
+          txType: 'computeTaskWinnerApplication',
+          ipfsPeerId: 'QmaWc8cchspWjYDyZCMuNUX7kkR4off5AXXBmRdPbv3Y4E',
+          blockHeightWhenVRF: 2,
+          peerId: 'QmaWc8cchspWjYDyZCMuNUX7kkR4off5AXXBmRdPbv3Y4E'
+        },
+        {
+          txType: 'computeTaskWinnerApplication',
+          ipfsPeerId: 'QmPxPCcr9abX8czivRpCXDhEcLtBkBYkgu5pAzPw7nghuF',
+          blockHeightWhenVRF: 2,
+          peerId: 'QmPxPCcr9abX8czivRpCXDhEcLtBkBYkgu5pAzPw7nghuF'
         }
       ],
       result: {
         executor: {
           userName: 'user #2',
-          vrfProof: [Object],
-          peerId: 'QmPsiXzYYrQH93kMBTczuLyVxoVgU8R6mBKchFUaDHw6sM'
+          vrfProof: undefined,
+          peerId: 'QmPeaM9PaLP1fK7GbdpmNVUEev59tKxKWubAMC7c6TE2VB'
         }
       }
     }

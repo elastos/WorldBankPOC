@@ -129,10 +129,12 @@ const sendComputeResultBackToTaskOwner = (taskCid, result)=>{
     message:JSON.stringify(reqComputeCompleted),
     responseCallBack: reqComputeCompletedCallBack
   })
+  o('debug', `I have done the task execution. i send reqComputeComplete to the task owner peer:${sendToPeerId}, waiting for response.`);
 };
 
 const sendComputeExecutionDoneToMonitor = (taskCid)=>{
   const monitorsPeers = global.nodeSimCache.computeTaskPeersMgr.getPeersInGroup(taskCid);
+  o('debug', 'monitorsPeers is,', monitorsPeers);
   const reqComputeCompleted = {
     type: 'reqComputeCompleted',
     taskCid
@@ -145,13 +147,14 @@ const sendComputeExecutionDoneToMonitor = (taskCid)=>{
       o('debug', 'I am executor. I have completed the compute task. i got this result from my remote attestator:', res);
     }
   };
-  monitorsPeers.forEach((sendToPeerId)=>{
+  for(let sendToPeerId of monitorsPeers){
     global.rpcEvent.emit('rpcRequest', {
       sendToPeerId,
       message:JSON.stringify(reqComputeCompleted),
       responseCallBack: reqComputeCompletedFromMonitorCallBack
     });
-  });
+     o('debug', `I have done the task execution. i send reqComputeComplete to my monitor peer:${sendToPeerId}, waiting for response.`);
+  };
   
 };
 exports.sendComputeTaskRaDone = (taskCid, result=true)=>{
