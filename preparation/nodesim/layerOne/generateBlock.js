@@ -1,6 +1,7 @@
 import {totalCreditToken, minRemoteAttestatorsToPassRaTask, minBlockDelayRequiredBeforeComputeStart,
   maxBlockDelayRequiredBeforeComputeStart, initialCreditIssuedWhenPassRa, awardCreditWhenRaSuccessful, 
-  penaltyCreditWhenRaFail, minComputeGroupMembersToStartCompute, reduceFactualIfRaFail} from '../shared/constValue';
+  penaltyCreditWhenRaFail, minComputeGroupMembersToStartCompute, creditRewardToExecutorAfterSuccessfulComputeTask, 
+  creditRewardToMonitorAfterSuccessfulComputeTask } from '../shared/constValue';
 const log=()=>{};//skip for now
 import { o } from '../shared/utilities';
 
@@ -108,7 +109,7 @@ const runSettlementBeforeNewBlock = ()=>{
         break;
       }
       case 'computeTaskDone':{
-        if ( await settleComputeTask(ipfs, globalState, taskCid)){
+        if ( await settleComputeTask(globalState, taskCid)){
           delete globalState.escrowGasMap[taskCid];
           delete globalState.pendingTasks[taskCid];
         }
@@ -204,9 +205,23 @@ const runCreditNormalization = (creditMapInput, maxCredit)=>{
   return creditMap;
 };
 
-const settleComputeTask = async (ipfs, globalState, taskCid)=>{
-  console.log("gasMap before settleComputeTask,", globalState.gasMap);
-  
+const settleComputeTask = async (globalState, taskCid)=>{
+  const computeTaskInPending = globalState.pendingTasks[taskCid];
+  const escrowTotal = globalState.escrowGasMap[taskCid];
+  const taskObj = (await ipfs.dag.get(taskCid)).value;
+  const lambdaObj = (await ipfs.dag.get(taskObj.lambdaCid)).value;
+
+  const lambdaOwnerGas = lambdaObj.amt;
+  const settleResult = settleComputeTaskTestable(computeTaskInPending, globalState.gasMap, globalState.creditMap, escrowTotal, lambdaOwnerGas)
+  if(settleResult){
+    globalState.gasMap = settleResult.gasMap;
+    globalState.creditMap = settleResult.creditMap;
+  }
+  return globalState;
+}
+const settleComputeTaskTestable = (computeTaskInPending, gasMap, creditMap,  escrowTotal, lambdaOwnerGas)=>{
+  console.log("gasMap before settleComputeTask,", gasMap);
+  const {taskOwner, executor, monitors} = computeTaskInPending.result;
   const moreThanHalfCreditOfMonitorsAgreeTheExecutor = ()=>{
     let agreeCredit = 0;
     let disagreeCredit = 0;
@@ -214,20 +229,21 @@ const settleComputeTask = async (ipfs, globalState, taskCid)=>{
     const agreeMonitors = [];
     const disagreeMonitors = [];
     for(var m in monitors){
-      const thisMonitorCredit = globalState.creditMap[m.monitorUserName];
-      if(executor.userName == m.executorName && m.raResult == true){
+      const monitor = monitors[m];
+      const thisMonitorCredit = creditMap[monitor.monitorUserName];
+      if(executor.userName == monitor.executorName && monitor.raResult == true){
         agreeCredit += thisMonitorCredit;
-        agreeMonitors.push(m);
+        agreeMonitors.push(monitor);
       }else{
         disagreeCredit += thisMonitorCredit;
-        disagreeMonitors.push(m);
+        disagreeMonitors.push(monitor);
       }
     };
     const totalPotentialMonitorCredit = computeTaskInPending.followUps.reduce((total, f)=>{
       const peerId = f.peerId;
-      if(monitor[peerId]){
-        const thisMonitorUsername = monitor[peerId].monitorUserName
-        thisMonitorCredit = globalState.creditMap[thisMonitorUsername];
+      if(monitors[peerId]){
+        const thisMonitorUsername = monitors[peerId].monitorUserName
+        const thisMonitorCredit = creditMap[thisMonitorUsername];
         return total + thisMonitorCredit;
       }else{
         /** this peer is not in the monitor list. that means he is either absent or not response yet */
@@ -267,52 +283,37 @@ const settleComputeTask = async (ipfs, globalState, taskCid)=>{
       };
     }
   }
-  const moreThanHalfCreditOfMonitorsAgreeTheExecutorResult = moreThanHalfCreditOfMonitorsAgreeTheExecutor();
-  if(typeof moreThanHalfCreditOfMonitorsAgreeTheExecutorResult.executorGotConsensus == 'undefined'){
+  const consensus = moreThanHalfCreditOfMonitorsAgreeTheExecutor();
+  if(typeof consensus.executorGotConsensus == 'undefined'){
     return;
   }
-  
-  computeTaskInPending.type = 'computeTaskDone';
-  computeTaskInPending.consensus = moreThanHalfCreditOfMonitorsAgreeTheExecutorResult;
-  return computeTaskInPending;
+  if(consensus.executorGotConsensus == true){
+    let remainingGas = escrowTotal;
+    gasMap[computeTaskInPending.lambdaOwnerName] += lambdaOwnerGas;
+    remainingGas -= lambdaOwnerGas;
+    console.assert(remainingGas > 0);
+    const rewardToExecutor = remainingGas / 2;
+    gasMap[executor.userName] += rewardToExecutor;
+    remainingGas -= rewardToExecutor;
+    creditMap[executor.userName] += creditRewardToExecutorAfterSuccessfulComputeTask;
+
+    const agreeMonitorNumber = Object.keys(consensus.agreeMonitors).length;
+    console.assert(agreeMonitorNumber > 0);
+    const rewardToEachMonitor = agreeMonitorNumber? remainingGas / (agreeMonitorNumber): remainingGas;
+    for(let monitor of consensus.agreeMonitors){
+      gasMap[monitor.monitorUserName] += rewardToEachMonitor;
+      remainingGas -= rewardToEachMonitor;
+      creditMap[monitor.monitorUserName] += creditRewardToMonitorAfterSuccessfulComputeTask;
+    }
+    return {
+      gasMap,
+      creditMap
+    }
+  }else{
+    o('error', 'We did not get a consensus on this task. We need to handle this. not implemented yet');
+  }
+  return null;
 };
-  // const taskInPending = globalState.pendingTasks[taskCid];
-  // const {followUps} = taskInPending;
-  // const executor = chooseExecutorAndMonitors(taskInPending);
-  // console.log('in settleComputeTask executor', executor)
-  // let totalRewardGasRemaining = globalState.escrowGasMap[taskCid];
-  // const taskObj = (await ipfs.dag.get(taskCid)).value;
-  // const lambdaObj = (await ipfs.dag.get(taskObj.lambdaCid)).value;
 
-  // const {ownerName, amt} = lambdaObj;
-  // console.log('in settleComputeTask ownerName', ownerName);
-  // console.log('in settleComputeTask amt', amt);
-  // globalState.gasMap[ownerName] += amt;
-  // totalRewardGasRemaining -= amt;
-  // const rewardToExecutor = totalRewardGasRemaining / 2;
-  // console.log('in settleComputeTask rewardToExecutor', rewardToExecutor)
-  
-  // globalState.gasMap[executor.userName] += rewardToExecutor;
-  
-  // totalRewardGasRemaining -= rewardToExecutor;
-
-  // if(followUps.length == 1){
-  //   //there is no monitor
-  //   console.log("ERROR: We should always have followups as monitors");
-  // }else{
-  //   const rewardToEachMonitor = totalRewardGasRemaining / (followUps.length - 1);
-  //   console.log('in settleComputeTask rewardToEachMonitor', rewardToEachMonitor)
-  
-  //   followUps.forEach((f)=>{
-  //   const followUpUserName = f.userName;
-  //   console.log('in settleComputeTask followUpUserName', followUpUserName);
-  
-  //   if(followUpUserName != executor.userName)
-  //     globalState.gasMap[followUpUserName] += rewardToEachMonitor;
-
-  //   })
-  // }
-  // console.log("gasMap after settleComputeTask,", globalState.gasMap);
-  
-
+exports.settleComputeTaskTestable = settleComputeTaskTestable;
 exports.runCreditNormalization = runCreditNormalization;

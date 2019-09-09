@@ -7,28 +7,10 @@ import chaiAsPromised from "chai-as-promised";
 import 'babel-polyfill';
 chai.use(chaiAsPromised);
 
+import {settleComputeTaskTestable} from '../layerOne/generateBlock';
 
-import {markComputeTaskDoneIfAllRaCompleted} from '../layerOne/taskRoomMessageHandler';
-
-describe.skip('markComputeTaskDoneIfAllRaCompleted', ()=>{
-  it.skip('It has to have taskOwner, executor, monitors. return undefined if any of them missing', ()=>{
-    let computeTaskInPending = {
-
-    };
-    let ret = markComputeTaskDoneIfAllRaCompleted(computeTaskInPending);
-    expect(ret).to.be.undefined;
-    computeTaskInPending = {
-      taskOwner:'something'
-    };
-    ret = markComputeTaskDoneIfAllRaCompleted(computeTaskInPending);
-    expect(ret).to.be.undefined;
-    computeTaskInPending = {
-      taskOwner:'something'
-    };
-    ret = markComputeTaskDoneIfAllRaCompleted(computeTaskInPending);
-    expect(ret).to.be.undefined;
-  })
-  it('a normal pending task', ()=>{
+describe.only('settle compute task', ()=>{
+  it('it should run', ()=>{
     const computeTaskInPending = {
       type: 'computeTaskStart',
       initiator: 'user #5',
@@ -65,35 +47,49 @@ describe.skip('markComputeTaskDoneIfAllRaCompleted', ()=>{
           peerId: 'Qmcpedsrkpz87cgcbJE3snsugJ7K86zCGZjJyHoihbGfJP'
         },
         executor: {
-          userName: 'user #1',
+          userName: 'user #0',
           vrfProof: 'something',
           peerId: 'QmPeXVhC4QDaxPSgY2FqC7ioi8EiWkpWSX6bZudiB9cG3d',
           
         },
         monitors: {
-          QmYtDFtJB2BBifKAVoe3ByA632u4n784ywnYmoj4ZUPCgK: {
-            monitorUserName: 'user #3' ,
-            executorName: 'user #1',
-            vrfProof : 'myVrfProof',
-          },
-          QmYtDFtJB2BBifKAVoe3ByA632u4n784ywnYmoj4ZUPCgK: {
-            peerId: 'QmVmtb69Pumi7G7VGAwRMCcpqrUjiYSYupb2fF6nabpibV',
-            raResult: true,
-          },
           Qmc3swMSRi7cpr8P9SLyeXkwyULNKKaQvJFyqz1H1ywkGz: {
-            monitorUserName: 'user #2' ,
+            monitorUserName: 'user #1' ,
             executorName: 'user #0',
             vrfProof : 'myVrfProof',
             peerId: 'Qmc3swMSRi7cpr8P9SLyeXkwyULNKKaQvJFyqz1H1ywkGz',
+            raResult: true,
+          },
+          QmYtDFtJB2BBifKAVoe3ByA632u4n784ywnYmoj4ZUPCgK: {
+            monitorUserName: 'user #2' ,
+            executorName: 'user #0',
+            vrfProof : 'myVrfProof',
+            peerId: 'QmYtDFtJB2BBifKAVoe3ByA632u4n784ywnYmoj4ZUPCgK',
             raResult: true,
           }
         }
       }
     };
-  
+    const gasMap = {
+      'user #1': 500,
+      'user #2': 500,
+      'user #3': 500,
+      'user #4': 500,
+      'user #5': 500
+    };
 
-    const ret = markComputeTaskDoneIfAllRaCompleted(computeTaskInPending, 5);
-    console.log(ret);
+    const creditMap = {
+      'user #1': 100,
+      'user #2': 100,
+      'user #3': 100,
+      'user #4': 100,
+      'user #5': 100
+    };
+
+    const escrowTotal = 12;
+    const lambdaOwnerGas = 2;
+    const ret = settleComputeTaskTestable(computeTaskInPending, gasMap, creditMap,  escrowTotal, lambdaOwnerGas)
   })
-  
-});
+
+
+})
