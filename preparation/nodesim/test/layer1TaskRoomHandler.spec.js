@@ -8,24 +8,24 @@ import 'babel-polyfill';
 chai.use(chaiAsPromised);
 
 
-import {markComputeTaskDoneIfAllRaCompleted} from '../layer1taskRoomMessageHandler';
+import {markComputeTaskDoneIfAllRaCompleted} from '../layerOne/taskRoomMessageHandler';
 
-describe('markComputeTaskDoneIfAllRaCompleted', ()=>{
+describe.only('markComputeTaskDoneIfAllRaCompleted', ()=>{
   it('It has to have taskOwner, executor, monitors. return undefined if any of them missing', ()=>{
     let computeTaskInPending = {
 
     };
-    const ret = markComputeTaskDoneIfAllRaCompleted(computeTaskInPending);
+    let ret = markComputeTaskDoneIfAllRaCompleted(computeTaskInPending);
     expect(ret).to.be.undefined;
     computeTaskInPending = {
       taskOwner:'something'
     };
-    const ret = markComputeTaskDoneIfAllRaCompleted(computeTaskInPending);
+    ret = markComputeTaskDoneIfAllRaCompleted(computeTaskInPending);
     expect(ret).to.be.undefined;
     computeTaskInPending = {
       taskOwner:'something'
     };
-    const ret = markComputeTaskDoneIfAllRaCompleted(computeTaskInPending);
+    ret = markComputeTaskDoneIfAllRaCompleted(computeTaskInPending);
     expect(ret).to.be.undefined;
   })
   it('a normal pending task', ()=>{

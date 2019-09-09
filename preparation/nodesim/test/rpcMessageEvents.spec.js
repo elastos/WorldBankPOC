@@ -12,7 +12,7 @@ import {ipfsInit, pubsubInit} from '../nodes/ipfsInit';
 
 chai.use(chaiAsPromised);
 
-describe.only('rpcMessageEvents', ()=>{
+describe('rpcMessageEvents', ()=>{
   describe('events', async ()=>{
     const rooms = [];
     const rpcEvents = [];

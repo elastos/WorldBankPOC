@@ -277,12 +277,12 @@ const rpcDirectHandler = {
             if(block.pendingTasks[taskCid].initiatorPeerId == from){
               validationResult = true;
               otherPeerUserName = 'taskOwner';
-              global.nodeSimCache.computeTaskPeersMgr.setLambdaOwnerPeer(taskCid, from);
+              global.nodeSimCache.computeTaskPeersMgr.setTaskOwnerPeer(taskCid, from);
             }
             else if(block.pendingTasks[taskCid].lambdaOwnerPeerId == from){
               validationResult = true;
               otherPeerUserName = 'lambdaOwner';
-              global.nodeSimCache.computeTaskPeersMgr.setTaskOwnerPeer(taskCid, from);
+              global.nodeSimCache.computeTaskPeersMgr.setLambdaOwnerPeer(taskCid, from);
             }
             else
             validationResult = false;

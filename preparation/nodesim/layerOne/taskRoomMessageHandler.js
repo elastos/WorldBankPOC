@@ -129,7 +129,7 @@ const computeTaskOwnerConfirmationDone = ( globalState, messageObj, from)=>{
 
 const markComputeTaskDoneIfAllRaCompleted = (computeTaskInPending)=>{
   if(! computeTaskInPending)  return;
-  o('debug', 'inside markComputeTaskDone, the computeTaskInPending is,', computeTaskInPending);
+  //o('debug', 'inside markComputeTaskDone, the computeTaskInPending is,', computeTaskInPending);
   if(! computeTaskInPending.result) return;
   const {taskOwner, executor, monitors} = computeTaskInPending.result;
   if(! taskOwner) return;
