@@ -17,9 +17,9 @@ exports.mBlockDelayRequiredBeforeComputeStart = 3;
 exports.minComputeGroupMembersToStartCompute = 2;
 exports.maxBlockDelayRequiredBeforeComputeStart = 3;
 exports.ComputeTaskRoles = {
-  taskOwner:1,
-  lambdaOwner:2,
-  executeGroupMember:3
+  taskOwner:'taskOwner',
+  lambdaOwner:'lambdaOwner',
+  executeGroupMember:'executeGroupMember'
 }
 exports.tryParseJson = (s)=>{
   try{

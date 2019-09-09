@@ -20,8 +20,9 @@ const handlePendingComputeTask = (block)=>( taskCid)=>{
     * I am not lucky to win the VRF at all. I won't be involved in the execution group.
     *  so I am not interested in the VRF verify at all. Just do nothing
     */
-    global.nodeSimCache.computeTaskPeersMgr.debugOutput(taskCid);
-    return o('debug', 'HandlePendingComputeTask.. I am not in execution group. do not bother checking other peer VRF');
+    //global.nodeSimCache.computeTaskPeersMgr.debugOutput(taskCid);
+    //o('debug', 'HandlePendingComputeTask.. I am not in execution group. do not bother checking other peer VRF');
+    return;
   }
   /*********
    * based on the exists of global.nodeSimCache.computeTasks. I know I am one of the execution group.
@@ -184,18 +185,22 @@ const handlePendingComputeTaskStart = (block)=> async (taskCid)=>{
       o('error', "executeCompute error", e);
     }
   }
+  else if(global.nodeSimCache.computeTaskPeersMgr.checkMyRoleInTask(taskCid) == ComputeTaskRoles.taskOwner){
+    o('debug', 'I am the task owner. I will response to executor request and waiting for the result then send tx computeTaskOwnerConfirmationDone');
+  }
+  else if(global.nodeSimCache.computeTaskPeersMgr.checkMyRoleInTask(taskCid) == ComputeTaskRoles.lambdaOwner){
+    o('debug', 'I am the lambdaOwner in this task. there is nothing for me to do now.')
+  }
   else if(global.nodeSimCache.computeTaskPeersMgr.checkMyRoleInTask(taskCid) == ComputeTaskRoles.executeGroupMember){
     o('debug', `I am the monitor, the executor is ${global.nodeSimCache.computeTaskPeersMgr.getExecutorName(taskCid)}. i am doing the remote attestatio now.
       After the task complete, I will send tx computeTaskRaDone.
       remote attestation during execution is not implemented yet. `);
       
   }
-  else if(global.nodeSimCache.computeTaskPeersMgr.checkMyRoleInTask(taskCid) == ComputeTaskRoles.taskOwner){
-    o('debug', 'I am the task owner. I will response to executor request and waiting for the result then send tx computeTaskOwnerConfirmationDone');
-  }
   else{
-    o('debug', 'I am the lambdaOwner in this task. there is nothing for me to do now.')
+    o('error', 'unhandled ComputeTaskRoles type');
   }
+  
 
 }
 

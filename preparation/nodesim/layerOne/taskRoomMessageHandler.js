@@ -74,7 +74,10 @@ const computeTaskRaDone = ( globalState, messageObj, from)=>{
     peerId: from,
     raResult
   }
-  markComputeTaskDoneIfAllRaCompleted(taskCid, globalState);
+  const r = markComputeTaskDoneIfAllRaCompleted(globalState.pendingTasks[taskCid]);
+  if(r){
+    globalState.pendingTasks[taskCid] = r;
+  }
   return globalState;
 };
 const computeTaskExecutionDone = ( globalState, messageObj, from)=>{
@@ -93,7 +96,10 @@ const computeTaskExecutionDone = ( globalState, messageObj, from)=>{
     peerId: from
   }
   
-  markComputeTaskDoneIfAllRaCompleted(taskCid, globalState);
+  const r = markComputeTaskDoneIfAllRaCompleted(globalState.pendingTasks[taskCid]);
+  if(r){
+    globalState.pendingTasks[taskCid] = r;
+  }
   return globalState;
 }
 
@@ -114,15 +120,16 @@ const computeTaskOwnerConfirmationDone = ( globalState, messageObj, from)=>{
     peerId: from
   }
   
-  markComputeTaskDoneIfAllRaCompleted(taskCid, globalState);
+  const r = markComputeTaskDoneIfAllRaCompleted(globalState.pendingTasks[taskCid]);
+  if(r){
+    globalState.pendingTasks[taskCid] = r;
+  }
   return globalState;
 }
 
-const markComputeTaskDoneIfAllRaCompleted = (taskCid, globalState)=>{
-  //globalState.pendingTasks[taskCid].type = 'computeTaskDone';
-  const computeTaskInPending = globalState.pendingTasks[taskCid];
+const markComputeTaskDoneIfAllRaCompleted = (computeTaskInPending)=>{
   if(! computeTaskInPending)  return;
-  o('debug', 'inside markComputeTaskDone, the computeTaskInPending.result is,', computeTaskInPending.result);
+  o('debug', 'inside markComputeTaskDone, the computeTaskInPending is,', computeTaskInPending);
   if(! computeTaskInPending.result) return;
   const {taskOwner, executor, monitors} = computeTaskInPending.result;
   if(! taskOwner) return;
@@ -208,9 +215,12 @@ const markComputeTaskDoneIfAllRaCompleted = (taskCid, globalState)=>{
     return;
   }
   
-  globalState.pendingTasks[taskCid].type = 'computeTaskDone';
-  globalState.pendingTasks[taskCid].consensus = moreThanHalfCreditOfMonitorsAgreeTheExecutorResult;
+  computeTaskInPending.type = 'computeTaskDone';
+  computeTaskInPending.consensus = moreThanHalfCreditOfMonitorsAgreeTheExecutorResult;
+  return computeTaskInPending;
 };
+
+exports.markComputeTaskDoneIfAllRaCompleted = markComputeTaskDoneIfAllRaCompleted;
 
 const gasTransferProcess = async (globalState, messageObj)=>{
   const {cid} = messageObj;

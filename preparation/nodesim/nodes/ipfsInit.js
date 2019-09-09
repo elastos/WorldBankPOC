@@ -36,9 +36,9 @@ exports.ipfsInit = async (swarmUrlOption)=>{
 exports.pubsubInit = async (ipfs, roomNamePostfix, rpcEvent, broadcastEvent)=>{
 
   const townHall = Room(ipfs, "townHall" + roomNamePostfix);
-  townHall.on('peer joined', townHallHandler.peerJoined);
-  townHall.on('peer left', townHallHandler.peerLeft);
-  townHall.on('subscribed', townHallHandler.subscribed);
+  //townHall.on('peer joined', townHallHandler.peerJoined);
+  //townHall.on('peer left', townHallHandler.peerLeft);
+  //townHall.on('subscribed', townHallHandler.subscribed);
   townHall.on('rpcDirect', townHallHandler.rpcDirect);
   townHall.on('message', townHallHandler.messageHandler);
 

@@ -82,7 +82,7 @@ exports.handleProccessedTxs = async ({height})=>{
   });
 
   uploadLambdaTxsCid.map((cid)=>{
-    console.log("for upload Lamdba, we do not need to do anything. Just have a record there that in which block height, the CID of this ladba has been recorded. In case of some future search")
+    //console.log("for upload Lamdba, we do not need to do anything. Just have a record there that in which block height, the CID of this ladba has been recorded. In case of some future search")
   });
   
   computeTaskTxsCid.map(async (cid)=>{
@@ -91,7 +91,7 @@ exports.handleProccessedTxs = async ({height})=>{
     if(mySpecialRole){
       return o('debug', `I am the ${mySpecialRole} in this task cid ${cid} myself, I cannot do execution compute task on myself`);
     };
-    o('debug', 'I will check the task first, make sure it is not faked');
+    //o('debug', 'I will check the task first, make sure it is not faked');
     
     const {depositAmt, executorRequirement} = (await ipfs.dag.get(cid)).value;
 
@@ -110,7 +110,7 @@ exports.handleProccessedTxs = async ({height})=>{
       o('log', `My credit balance is ${myCurrentCreditBalance} which is lower than the task client required ${executorRequirement.credit}. I have to quit this competition. Sorry. `);
       return;
     }
-    o('debug', 'I passed the basic verify of the new compute task. i will start try vrf');
+    //o('debug', 'I passed the basic verify of the new compute task. i will start try vrf');
     const vrfResult = ComputeTaskPeersMgr.tryVrfForComputeTask(block, cid, userInfo);
     if(vrfResult.result){
       o('log', `I am lucky!! J is ${vrfResult.j}. However I should not tell anyone about my win. Do not want to get hacker noticed. I just join the secure p2p chat group for winner's only`);

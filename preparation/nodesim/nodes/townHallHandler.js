@@ -42,7 +42,7 @@ exports.rpcRequest = (room)=>(args)=>{
 
 exports.rpcResponse =  (room)=>(args)=>{
   const {sendToPeerId, message, guid, err} = args;
-  o('debug', 'inside exports.rpcResponse:', sendToPeerId, message, guid, err);
+  //o('debug', 'inside exports.rpcResponse:', sendToPeerId, message, guid, err);
   room.rpcResponse(sendToPeerId, message, guid, err);
 }
 
@@ -239,7 +239,7 @@ const rpcDirectHandler = {
 
     const handleReqVerifyPeerReRunable = async (messageObj)=>{
       try{
-        o('debug', 'inside handleReqVerifyPeerReRunable', messageObj);
+        //o('debug', 'inside handleReqVerifyPeerReRunable', messageObj);
         if(messageObj.blockHeight > global.blockMgr.getLatestBlockHeight()){
           /******
            * 
@@ -298,7 +298,7 @@ const rpcDirectHandler = {
           if(global.nodeSimCache.computeTaskPeersMgr.validateOtherPeerVrfProofInfo(taskCid, otherPeerVrfProofInfo, blockCid, block)){
             validationResult = true;
             global.nodeSimCache.computeTaskPeersMgr.addOtherPeerToMyExecutionPeers(taskCid, from, otherPeerVrfProofInfo);
-            o('debug', 'vdalite VRF successful.......')
+            //o('debug', 'vdalite VRF successful.......')
           }else{
             o('debug', 'vrf validation failed too');
           }
