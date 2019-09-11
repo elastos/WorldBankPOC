@@ -9,7 +9,7 @@ chai.use(chaiAsPromised);
 
 import {settleComputeTaskTestable} from '../layerOne/generateBlock';
 
-describe.only('settle compute task', ()=>{
+describe.skip('settle compute task', ()=>{
   it('it should run', ()=>{
     const computeTaskInPending = {
       type: 'computeTaskStart',

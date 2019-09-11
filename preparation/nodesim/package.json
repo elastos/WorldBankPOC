@@ -4,7 +4,6 @@
   "description": "",
   "author": "Kevin G Zhang",
   "license": "Apache 2.0",
-  
   "scripts": {
     "start": "node --require @babel/register ./nodes",
     "dev": "nodemon --require @babel/register ./nodes",
